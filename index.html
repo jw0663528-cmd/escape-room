@@ -1,231 +1,293 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>חדר בריחה: מעבדת החקירה</title>
+    <title>The Biomimicry Express Journey</title>
     <style>
         :root {
-            --bg-color: #1a1a1a;
-            --accent: #00ff55;
-            --text: #eee;
+            --overlay-bg: rgba(44, 28, 18, 0.9);
+            --text-color: #f0e6d2;
+            --accent-color: #e7b36a;
         }
 
         body {
             margin: 0;
-            background: var(--bg-color);
-            color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
+            padding: 0;
+            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            background-color: #1a1a1a;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow: hidden;
         }
 
-        /* --- THE SCENE CONTAINER (The "Image") --- */
-        #lab-scene {
-            width: 800px;
-            height: 500px;
-            background: 
-                /* Shelf shadow */
-                linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 20%),
-                /* Desk Surface */
-                linear-gradient(to bottom, #2c3e50 0%, #2c3e50 60%, #1a252f 60%, #111 100%);
+        #game-container {
             position: relative;
-            border: 5px solid #444;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            /* Using the image source provided in the prompt's HTML snippet */
+            background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png');
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border-radius: 12px;
             overflow: hidden;
         }
 
-        /* --- DECORATIONS (CSS ART TO MAKE IT LOOK LIKE A ROOM) --- */
-        .shelf {
-            position: absolute; top: 100px; left: 50px; width: 300px; height: 10px; background: #554433;
-            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
-        }
-        .window {
-            position: absolute; top: 50px; right: 100px; width: 150px; height: 150px; 
-            background: #001133; border: 4px solid #333;
-            box-shadow: inset 0 0 20px #000;
-        }
-        .window::after { /* Moon */
-            content: ''; position: absolute; top: 20px; left: 20px; width: 30px; height: 30px; 
-            background: #ffc; border-radius: 50%; box-shadow: 0 0 10px #ffc;
-        }
-
-        /* --- INTERACTIVE OBJECTS --- */
-        .item {
+        /* --- HUD --- */
+        #hud {
             position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--overlay-bg);
+            color: var(--text-color);
+            padding: 15px 25px;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            max-width: 300px;
+        }
+
+        #mission-title {
+            margin: 0 0 10px 0;
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        #mission-text {
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        /* --- INTERACTIVE HOTSPOTS --- */
+        .hotspot {
+            position: absolute;
+            /* Using opacity 0 makes them invisible but clickable. 
+               Change to opacity: 0.3 and bg-color: red to debug positions. */
+            opacity: 0; 
             cursor: pointer;
-            transition: transform 0.2s, filter 0.2s;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
-            /* Emoji font size acts as image size */
-            font-size: 4rem; 
-            user-select: none;
+            display: none; /* Hidden by default until activated */
         }
 
-        .item:hover {
-            transform: scale(1.1) rotate(5deg);
-            filter: drop-shadow(0 0 10px var(--accent));
+        /* Coordinates mapped to the specific image provided */
+        #spot-cat {
+            top: 16%;
+            left: 21%;
+            width: 10%;
+            height: 10%;
+            border-radius: 50%;
         }
 
-        /* Specific Positions for Items */
-        #microscope { bottom: 180px; left: 100px; font-size: 6rem; }
-        #notebook { bottom: 160px; left: 350px; transform: rotate(-10deg); }
-        #coffee { bottom: 170px; right: 250px; font-size: 3rem; }
-        #safe { bottom: 160px; right: 50px; font-size: 7rem; }
-        #postit { top: 60px; left: 100px; font-size: 3rem; transform: rotate(5deg); }
+        #spot-hat {
+            top: 27%;
+            left: 68%;
+            width: 9%;
+            height: 17%;
+            transform: rotate(-10deg);
+        }
 
-        /* --- MODALS (The Riddles) --- */
-        .modal-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: none; /* Hidden by default */
+        #spot-window {
+            top: 20%;
+            left: 36%;
+            width: 27%;
+            height: 40%;
+        }
+
+        /* --- DIALOG MODAL --- */
+        #dialog-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
             justify-content: center;
             align-items: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
             z-index: 100;
-            backdrop-filter: blur(5px);
         }
 
-        .modal-content {
-            background: #222;
-            border: 2px solid var(--accent);
+        #dialog-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        #dialog-box {
+            background: var(--overlay-bg);
+            border: 3px solid var(--accent-color);
             padding: 30px;
-            width: 400px;
+            border-radius: 12px;
+            max-width: 600px;
             text-align: center;
-            border-radius: 10px;
-            box-shadow: 0 0 30px var(--accent);
-            position: relative;
+            color: var(--text-color);
+            transform: translateY(20px);
+            transition: transform 0.3s;
         }
 
-        .close-btn {
-            position: absolute; top: 10px; right: 15px; cursor: pointer; color: #888; font-weight: bold;
+        #dialog-overlay.active #dialog-box {
+            transform: translateY(0);
         }
-        .close-btn:hover { color: #fff; }
 
-        input { padding: 10px; margin-top: 10px; background: #111; border: 1px solid #555; color: white; width: 70%; text-align: center; }
-        button { padding: 10px 20px; margin-top: 10px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; }
-        
-        .clue-found { color: var(--accent); font-weight: bold; margin-top: 15px; display: none; border: 1px dashed var(--accent); padding: 10px;}
-
-        /* --- INVENTORY / HUD --- */
-        #inventory {
-            position: absolute; top: 10px; left: 10px; 
-            background: rgba(0,0,0,0.6); padding: 10px; border-radius: 5px;
+        #dialog-title {
+            color: var(--accent-color);
+            margin-top: 0;
         }
+
+        #dialog-content {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        #dialog-btn {
+            background: var(--accent-color);
+            border: none;
+            padding: 10px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #2c1c12;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background 0.2s;
+        }
+
+        #dialog-btn:hover {
+            background: #ffcc80;
+        }
+
     </style>
 </head>
 <body>
 
-    <div id="lab-scene">
-        <div class="window"></div>
-        <div class="shelf"></div>
-
-        <div id="microscope" class="item" onclick="openModal('modal-microscope')">🔬</div>
-        
-        <div id="notebook" class="item" onclick="openModal('modal-notebook')">📝</div>
-        
-        <div id="coffee" class="item" onclick="alert('סתם קפה קר. אין פה כלום.')">☕</div>
-
-        <div id="postit" class="item" onclick="openModal('modal-postit')">🟨</div>
-
-        <div id="safe" class="item" onclick="openModal('modal-safe')">🗄️</div>
-
-        <div id="inventory">רמזים שנאספו: <span id="clue-count">0</span>/3</div>
-
-        <div id="modal-microscope" class="modal-overlay">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModals()">X</span>
-                <h2>המיקרוסקופ</h2>
-                <p>אתה מביט בעדשה. רואים תאים מתחלקים.</p>
-                <p>חידה: מהו האיבר בגוף היתוש שמאפשר לו לשמוע?</p>
-                <input type="text" id="ans-micro" placeholder="התשובה בעברית...">
-                <button onclick="checkAnswer('ans-micro', 'גונסטון', 'clue-1')">בדוק</button>
-                <div id="clue-1" class="clue-found">ספרה ראשונה לקוד: 7</div>
-            </div>
-        </div>
-
-        <div id="modal-notebook" class="modal-overlay">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModals()">X</span>
-                <h2>יומן המחקר</h2>
-                <p>הדפים קרועים. כתוב בכתב יד צפוף:</p>
-                <p>"היתוש עף בגשם בלי להירטב..."</p>
-                <p>השלם: העיניים של היתוש הן ______ (דוחות מים)</p>
-                <input type="text" id="ans-note" placeholder="מילה בלועזית או עברית">
-                <button onclick="checkAnswer('ans-note', 'הידרופוביות', 'clue-2')">בדוק</button>
-                <div id="clue-2" class="clue-found">ספרה שנייה לקוד: 2</div>
-            </div>
-        </div>
-
-        <div id="modal-postit" class="modal-overlay">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModals()">X</span>
-                <h2>פתק נסתר</h2>
-                <p>מישהו הדביק את זה גבוה על המדף.</p>
-                <p>חידה: כמה רגליים יש ליתוש?</p>
-                <input type="number" id="ans-postit">
-                <button onclick="checkAnswer('ans-postit', '6', 'clue-3')">בדוק</button>
-                <div id="clue-3" class="clue-found">ספרה שלישית לקוד: 6</div>
-            </div>
-        </div>
-
-        <div id="modal-safe" class="modal-overlay">
-            <div class="modal-content">
-                <span class="close-btn" onclick="closeModals()">X</span>
-                <h2>הכספת</h2>
-                <p>הכספת נעולה. דרוש קוד בן 3 ספרות.</p>
-                <p>אסוף את הספרות מכל החפצים בחדר.</p>
-                <input type="text" id="ans-safe" placeholder="___" maxlength="3" style="font-size: 2rem; letter-spacing: 10px;">
-                <button onclick="checkFinalCode()">פתח כספת</button>
-            </div>
-        </div>
-
+<div id="game-container">
+    <div id="hud">
+        <h3 id="mission-title">Mission 1: Departure</h3>
+        <p id="mission-text">Welcome to the Biomimicry Express. We use nature's secrets to survive the journey. First task: We have a nervous passenger needing a painless injection. Look around the cabin for inspiration on how to perform a needle strike without waking someone up.</p>
     </div>
 
-    <script>
-        let cluesFound = 0;
+    <div id="spot-cat" class="hotspot"></div>
+    
+    <div id="spot-hat" class="hotspot"></div>
 
-        function openModal(id) {
-            document.getElementById(id).style.display = 'flex';
+    <div id="spot-window" class="hotspot"></div>
+
+
+    <div id="dialog-overlay">
+        <div id="dialog-box">
+            <h2 id="dialog-title">Biomimicry Insight Found!</h2>
+            <p id="dialog-content">Content goes here.</p>
+            <button id="dialog-btn">Continue Journey</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Game State
+    let currentMissionIndex = 0;
+
+    // DOM Elements
+    const hudTitle = document.getElementById('mission-title');
+    const hudText = document.getElementById('mission-text');
+    const dialogOverlay = document.getElementById('dialog-overlay');
+    const dialogTitle = document.getElementById('dialog-title');
+    const dialogContent = document.getElementById('dialog-content');
+    const dialogBtn = document.getElementById('dialog-btn');
+
+    const hotspots = {
+        cat: document.getElementById('spot-cat'),
+        hat: document.getElementById('spot-hat'),
+        window: document.getElementById('spot-window'),
+    };
+
+    // Mission Data (Based on previous mosquito biomimicry context)
+    const missions = [
+        {
+            title: "Mission 1: The Painless Strike",
+            instruction: "We need to administer a painless injection to a nervous passenger. Find inspiration in the cabin for stealthy, unnoticed contact.",
+            activeHotspot: 'cat',
+            successTitle: "Insight: The Stealth Needle",
+            successText: "Excellent. Observing the sleeping cat reminds us of the mosquito's proboscis. By using a micro-serrated needle that vibrates, and applying a numbing saliva anesthetic, we can perform injections that are virtually painless. The passenger didn't feel a thing.",
+        },
+        {
+            title: "Mission 2: Tunnel Vision",
+            instruction: "We are entering a pitch-black tunnel with hazardous gas readings. Our standard navigation is down. Find something related to guidance or sensing to help us navigate the dark.",
+            activeHotspot: 'hat',
+            successTitle: "Insight: Chemical Sensors",
+            successText: "Correct. The conductor's hat represents guidance. Like a mosquito uses antennae to detect CO2 and heat plumes in the dark to find a host, we will switch our train sensors to detect thermal gradients and chemical markers to navigate the tunnel safely.",
+        },
+        {
+            title: "Mission 3: High Winds Ahead",
+            instruction: "We've exited the tunnel into a storm. We need to launch a small repair drone outside, but the winds are too strong for standard stabilizers. Look outside for inspiration on stable flight.",
+            activeHotspot: 'window',
+            successTitle: "Insight: Gyroscopic Stabilizers",
+            successText: "Looking out the window at the turbulent air, we remember how mosquitos fly in rain. They use 'halteres'—tiny vibrating structures behind their wings—as gyroscopes for rapid stabilization. We've applied this principle to the drone. It's stable and launching now.",
+        },
+        {
+            title: "Journey Complete",
+            instruction: "You have successfully utilized biomimicry principles to navigate the dangers of the journey. Welcome to your destination.",
+            activeHotspot: null, // No active hotspot for final state
+            successTitle: "",
+            successText: "",
+        }
+    ];
+
+    // Initialize Game
+    function initGame() {
+        loadMission(0);
+        
+        // Event Listeners for Hotspots
+        for (const key in hotspots) {
+            hotspots[key].addEventListener('click', () => checkSolution(key));
         }
 
-        function closeModals() {
-            document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+        dialogBtn.addEventListener('click', nextMission);
+    }
+
+    function loadMission(index) {
+        currentMissionIndex = index;
+        const mission = missions[index];
+
+        hudTitle.innerText = mission.title;
+        hudText.innerText = mission.instruction;
+
+        // Hide all hotspots first
+        for (const key in hotspots) {
+            hotspots[key].style.display = 'none';
         }
 
-        function checkAnswer(inputId, correctAnswer, clueId) {
-            const userAns = document.getElementById(inputId).value.trim(); // simple check
-            
-            // בדיקה פשוטה (מכילה את התשובה)
-            if (userAns.includes(correctAnswer) || userAns === correctAnswer) {
-                const clueEl = document.getElementById(clueId);
-                if (clueEl.style.display !== 'block') {
-                    clueEl.style.display = 'block';
-                    cluesFound++;
-                    document.getElementById('clue-count').innerText = cluesFound;
-                }
-            } else {
-                alert('תשובה שגויה. נסה שוב.');
-            }
+        // Activate only the relevant hotspot for this mission
+        if (mission.activeHotspot) {
+            hotspots[mission.activeHotspot].style.display = 'block';
         }
+    }
 
-        function checkFinalCode() {
-            const code = document.getElementById('ans-safe').value;
-            if (code === '726') {
-                document.getElementById('lab-scene').innerHTML = `
-                    <div style="text-align:center; margin-top:150px;">
-                        <h1 style="color:#00ff55; font-size:4rem;">הכספת נפתחה!</h1>
-                        <p>מצאת את מפתח המאסטר של הרכבת.</p>
-                        <button onclick="location.reload()" style="font-size:1.5rem;">התחל מחדש</button>
-                    </div>
-                `;
-            } else {
-                alert('קוד שגוי!');
-                document.getElementById('lab-scene').style.boxShadow = "inset 0 0 100px red";
-                setTimeout(() => document.getElementById('lab-scene').style.boxShadow = "none", 500);
-            }
+    function checkSolution(clickedHotspotKey) {
+        const mission = missions[currentMissionIndex];
+        
+        if (clickedHotspotKey === mission.activeHotspot) {
+            // Success! Show dialog
+            dialogTitle.innerText = mission.successTitle;
+            dialogContent.innerText = mission.successText;
+            dialogOverlay.classList.add('active');
         }
-    </script>
+    }
+
+    function nextMission() {
+        dialogOverlay.classList.remove('active');
+        if (currentMissionIndex < missions.length - 1) {
+            loadMission(currentMissionIndex + 1);
+        }
+    }
+
+    // Start
+    initGame();
+
+</script>
+
 </body>
 </html>
