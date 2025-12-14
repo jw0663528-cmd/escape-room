@@ -3,583 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פרויקט קולקס | רכבת האימים</title>
+    <title>חדר בריחה: מעבדת החקירה</title>
     <style>
         :root {
-            --main-bg: #050505;
-            --hud-bg: #1a1a1a;
+            --bg-color: #1a1a1a;
             --accent: #00ff55;
-            --danger: #ff3300;
-            --metal-dark: #2c3e50;
-            --metal-light: #bdc3c7;
+            --text: #eee;
         }
+
         body {
             margin: 0;
-            background: var(--main-bg);
-            color: #eee;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            align-items: center;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* --- HUD --- */
-        #hud {
-            background: linear-gradient(to bottom, #2a2a2a, #111);
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            border-bottom: 3px solid #444;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
-            z-index: 100;
-            font-family: monospace;
-        }
-        .hud-item { font-size: 1.1rem; font-weight: bold; color: var(--metal-light); }
-        .antidote-icon { color: var(--accent); margin-right: 2px; text-shadow: 0 0 5px var(--accent); }
-        .antidote-lost { color: #333; }
-
-        /* --- GAME VIEW CONTAINER --- */
-        #game-view {
-            flex-grow: 1;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            perspective: 800px; /* Deep perspective for train car look */
-            overflow: hidden;
-            background: #000;
-        }
-
-        /* --- TRAIN CAR BASE AESTHETIC --- */
-        .scene {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            /* The metal train structure */
+        /* --- THE SCENE CONTAINER (The "Image") --- */
+        #lab-scene {
+            width: 800px;
+            height: 500px;
             background: 
-                /* Ceiling lights */
-                linear-gradient(to right, transparent 45%, rgba(255,255,255,0.8) 50%, transparent 55%),
-                /* Wall Structure */
-                linear-gradient(to bottom, #1a252f 0%, #2c3e50 20%, #2c3e50 80%, #111 100%);
-            background-size: 100% 10px, 100% 100%;
-            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+                /* Shelf shadow */
+                linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 20%),
+                /* Desk Surface */
+                linear-gradient(to bottom, #2c3e50 0%, #2c3e50 60%, #1a252f 60%, #111 100%);
+            position: relative;
+            border: 5px solid #444;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
             overflow: hidden;
         }
 
-        /* Fake windows giving sense of speed */
-        .scene::before, .scene::after {
-            content: '';
-            position: absolute;
-            top: 30%;
-            width: 100px;
-            height: 150px;
-            background: linear-gradient(to bottom, #000, #112);
-            border: 5px solid #555;
-            box-shadow: 0 0 20px rgba(200,200,255,0.1);
-            animation: passingLights 0.2s infinite linear;
-        }
-        .scene::before { left: -20px; transform: perspective(500px) rotateY(30deg); }
-        .scene::after { right: -20px; transform: perspective(500px) rotateY(-30deg); }
-
-        @keyframes passingLights {
-            0% { background: linear-gradient(to bottom, #000 0%, #112 100%); }
-            50% { background: linear-gradient(to bottom, #000 40%, #fff 50%, #000 60%); }
-            100% { background: linear-gradient(to bottom, #000 0%, #112 100%); }
-        }
-        
-        /* Dialog Box */
-        .dialog-box {
-            position: absolute;
-            bottom: 30px;
-            background: linear-gradient(to right, rgba(0,0,0,0.9), rgba(44, 62, 80, 0.9));
-            border-top: 2px solid var(--accent);
-            border-bottom: 2px solid var(--accent);
-            padding: 15px 30px;
-            border-radius: 5px;
-            max-width: 700px;
-            text-align: center;
-            z-index: 90;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-            font-size: 1.1rem;
-        }
-
-        /* ================= LEVEL SPECIFIC STYLES ================= */
-
-        /* --- LEVEL 1: NEEDLE ON A METAL TABLE --- */
-        .metal-table {
-            width: 600px; height: 300px;
-            background: repeating-linear-gradient(45deg, #333, #333 10px, #444 10px, #444 20px);
-            border: 5px solid #555;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center; position: relative;
-            transform: perspective(800px) rotateX(20deg); /* Angled table */
-        }
-        #l1-arm {
-            width: 280px; height: 90px; background: #cbb; border-radius: 45px; position: relative;
-            box-shadow: inset 0 -5px rgba(0,0,0,0.2), 5px 5px 10px rgba(0,0,0,0.3);
-            top: -50px;
-        }
-        #l1-target-zone {
-            width: 50px; height: 50px; background: rgba(255,0,0,0.2); border-radius: 50%;
-            position: absolute; top: 20px; left: 110px; border: 2px dashed #a33;
-        }
-        #l1-needle-device {
-            width: 140px; height: 30px; background: linear-gradient(to bottom, #666, #444); position: absolute; bottom: 30px; left: 100px;
-            border-radius: 4px; display: flex; align-items: center; border: 1px solid #777;
-            box-shadow: 2px 5px 10px rgba(0,0,0,0.4);
-        }
-        #l1-needle-tip {
-            width: 60px; height: 3px; background: silver; position: absolute; right: -60px;
-        }
-        .draggable-cover {
-            width: 70px; height: 18px; background: repeating-linear-gradient(90deg, var(--accent), var(--accent) 5px, #00cc44 5px, #00cc44 10px);
-            border-radius: 10px;
-            position: absolute; bottom: 35px; right: 120px; cursor: grab;
-            box-shadow: 0 0 10px var(--accent);
-            display: flex; justify-content: center; align-items: center; font-size: 0.6rem; color:black; font-weight:bold;
-            animation: tinyShake 0.1s infinite;
-        }
-        @keyframes tinyShake { 0% {transform: translateY(0);} 50% {transform: translateY(1px);} 100% {transform: translateY(0);} }
-
-        /* --- LEVEL 2: THERMAL DARK CAR --- */
-        .dark-car {
-            background: #050505 !important; /* Override default lights */
-            box-shadow: inset 0 0 200px #000;
-        }
-        .dark-car::before, .dark-car::after { display: none; } /* No windows here */
-
-        #l2-container {
-            width: 90%; height: 90%; position: relative; cursor: none;
-            background: 
-                /* Pipes pattern */
-                repeating-linear-gradient(90deg, #111, #111 50px, #1a1a1a 50px, #1a1a1a 60px),
-                repeating-linear-gradient(0deg, #111, #111 50px, #1a1a1a 50px, #1a1a1a 60px);
-        }
-        .heat-hazard {
-            position: absolute; width: 120px; height: 120px; background: radial-gradient(circle, red, transparent); 
-            filter: blur(20px); opacity: 0; transition: opacity 0.3s;
-        }
-        .safe-path {
-            position: absolute; width: 100px; height: 100px; background: radial-gradient(circle, blue, transparent);
-            filter: blur(15px); opacity: 0; transition: opacity 0.3s; cursor: pointer;
-        }
-        #flashlight {
-            position: absolute; width: 250px; height: 250px; border-radius: 50%;
-            /* Thermal coloring */
-            background: radial-gradient(circle, rgba(50,255,50,0.2) 0%, rgba(0,50,0,0.1) 60%, rgba(0,0,0,0.9) 70%);
-            pointer-events: none; transform: translate(-50%, -50%); z-index: 10;
-            border: 1px dashed var(--accent);
-        }
-
-        /* --- LEVEL 3: FOGGY END DOOR --- */
-        #l3-door-frame {
-            width: 320px; height: 450px; 
-            background: linear-gradient(to right, #333, #555, #333);
-            border: 8px solid #222;
-            border-radius: 10px;
-            position: relative;
-            display: flex; justify-content: center; align-items: center;
-            box-shadow: inset 0 0 50px #000;
-            transform: perspective(500px) translateZ(-100px); /* Pushed back */
-        }
-        .door-handle {
-            position: absolute; right: 20px; top: 50%; width: 20px; height: 80px; background: silver; border-radius: 5px;
+        /* --- DECORATIONS (CSS ART TO MAKE IT LOOK LIKE A ROOM) --- */
+        .shelf {
+            position: absolute; top: 100px; left: 50px; width: 300px; height: 10px; background: #554433;
             box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
         }
-        #l3-keypad-display {
-            font-size: 3.5rem; color: var(--accent); letter-spacing: 15px; font-family: 'Courier New', monospace;
-            text-shadow: 0 0 10px var(--accent);
+        .window {
+            position: absolute; top: 50px; right: 100px; width: 150px; height: 150px; 
+            background: #001133; border: 4px solid #333;
+            box-shadow: inset 0 0 20px #000;
         }
-        #fog-canvas {
-            position: absolute; top: 10%; left: 10%; width: 80%; height: 60%; cursor: crosshair;
-            border: 4px solid #222; background: #444;
+        .window::after { /* Moon */
+            content: ''; position: absolute; top: 20px; left: 20px; width: 30px; height: 30px; 
+            background: #ffc; border-radius: 50%; box-shadow: 0 0 10px #ffc;
         }
-        #l3-input-area {
-            position: absolute; bottom: -70px; display: flex; gap: 10px;
-            background: #222; padding: 10px; border-radius: 5px; border: 2px solid #555;
-        }
-        #l3-code-input { background: #111; color: var(--accent); border: 1px solid var(--accent); padding: 8px; font-size: 1.3rem; width: 120px; text-align: center; font-family: monospace;}
-        .train-btn { background: linear-gradient(to bottom, #444, #222); color: var(--metal-light); border: 1px solid #555; padding: 0 20px; cursor: pointer; font-weight: bold;}
-        .train-btn:hover { background: var(--accent); color: #000; }
 
-        /* --- LEVEL 4: DRONE AISLE --- */
-        .aisle-view {
-            flex-direction: column;
-             /* Floor texture perspective */
-             background: 
-                linear-gradient(to bottom, transparent 60%, #111 100%),
-                repeating-linear-gradient(90deg, #333, #333 20px, #222 20px, #222 40px) !important;
-             transform: perspective(500px) rotateX(10deg);
+        /* --- INTERACTIVE OBJECTS --- */
+        .item {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.2s, filter 0.2s;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+            /* Emoji font size acts as image size */
+            font-size: 4rem; 
+            user-select: none;
         }
-        #l4-wind-tunnel {
-            width: 90%; height: 350px; 
-            position: relative; overflow: hidden; 
-            border-left: 10px solid #222; border-right: 10px solid #222;
-            background: rgba(0,0,0,0.5);
+
+        .item:hover {
+            transform: scale(1.1) rotate(5deg);
+            filter: drop-shadow(0 0 10px var(--accent));
         }
-        .wind-particle {
-            position: absolute; width: 80px; height: 3px; background: rgba(200,200,255,0.3);
-            box-shadow: 0 0 5px rgba(200,200,255,0.5);
-            animation: windMove 0.8s linear infinite;
+
+        /* Specific Positions for Items */
+        #microscope { bottom: 180px; left: 100px; font-size: 6rem; }
+        #notebook { bottom: 160px; left: 350px; transform: rotate(-10deg); }
+        #coffee { bottom: 170px; right: 250px; font-size: 3rem; }
+        #safe { bottom: 160px; right: 50px; font-size: 7rem; }
+        #postit { top: 60px; left: 100px; font-size: 3rem; transform: rotate(5deg); }
+
+        /* --- MODALS (The Riddles) --- */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
         }
-        #l4-drone {
-            width: 70px; height: 25px; background: linear-gradient(to bottom, #888, #666); position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); border-radius: 10px; transition: all 0.3s ease-out;
-            border: 2px solid #444; z-index: 10;
+
+        .modal-content {
+            background: #222;
+            border: 2px solid var(--accent);
+            padding: 30px;
+            width: 400px;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 0 30px var(--accent);
+            position: relative;
         }
-        #l4-drone::before, #l4-drone::after { /* Propellers */
-            content: ''; position: absolute; width: 35px; height: 6px; background: #aaa; top: -12px;
-            animation: spin 0.08s linear infinite; border-radius: 3px;
+
+        .close-btn {
+            position: absolute; top: 10px; right: 15px; cursor: pointer; color: #888; font-weight: bold;
         }
-        #l4-drone::before { left: -5px; } #l4-drone::after { right: -5px; }
+        .close-btn:hover { color: #fff; }
+
+        input { padding: 10px; margin-top: 10px; background: #111; border: 1px solid #555; color: white; width: 70%; text-align: center; }
+        button { padding: 10px 20px; margin-top: 10px; background: var(--accent); border: none; font-weight: bold; cursor: pointer; }
         
-        #l4-controls-panel { 
-            position: absolute; bottom: 20px; width: 400px; text-align: center;
-            background: #222; padding: 20px; border: 3px solid #444; border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.7);
+        .clue-found { color: var(--accent); font-weight: bold; margin-top: 15px; display: none; border: 1px dashed var(--accent); padding: 10px;}
+
+        /* --- INVENTORY / HUD --- */
+        #inventory {
+            position: absolute; top: 10px; left: 10px; 
+            background: rgba(0,0,0,0.6); padding: 10px; border-radius: 5px;
         }
-        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); }
-        #freq-display { font-family: monospace; font-size: 1.2rem; color: var(--accent); }
-
-        /* Animations */
-        @keyframes windMove { from { left: -100px; opacity: 0;} to { left: 100%; opacity: 1;} }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        .shake-hard { animation: shake 0.2s infinite; border-color: var(--danger) !important; background: var(--danger) !important;}
-        @keyframes shake { 0% { transform: translate(-50%, -50%) rotate(5deg); } 50% { transform: translate(-50%, -50%) rotate(-5deg); } 100% { transform: translate(-50%, -50%) rotate(5deg); } }
-
-        /* --- END SCREENS --- */
-        .end-screen-content { 
-            background: rgba(0,0,0,0.8); padding: 50px; border-radius: 20px; border: 5px solid #444; text-align: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
-        .end-screen h1 { font-size: 3rem; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 5px;}
-        .big-btn { background: var(--accent); border: none; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; color: #000; font-weight: bold; margin-top: 30px; border-radius: 5px; box-shadow: 0 5px 15px rgba(0,255,85,0.4); transition: 0.3s;}
-        .big-btn:hover { transform: scale(1.05); background: #fff; }
-        .big-btn.red { background: var(--danger); box-shadow: 0 5px 15px rgba(255, 51, 0, 0.4); color: #fff;}
-
     </style>
 </head>
 <body>
 
-    <div id="hud">
-        <div class="hud-item">מיקום: <span id="loc-text">START</span></div>
-        <div class="hud-item">
-            נוגדנים: <span id="antidotes-container">
-                <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span>
-            </span>
+    <div id="lab-scene">
+        <div class="window"></div>
+        <div class="shelf"></div>
+
+        <div id="microscope" class="item" onclick="openModal('modal-microscope')">🔬</div>
+        
+        <div id="notebook" class="item" onclick="openModal('modal-notebook')">📝</div>
+        
+        <div id="coffee" class="item" onclick="alert('סתם קפה קר. אין פה כלום.')">☕</div>
+
+        <div id="postit" class="item" onclick="openModal('modal-postit')">🟨</div>
+
+        <div id="safe" class="item" onclick="openModal('modal-safe')">🗄️</div>
+
+        <div id="inventory">רמזים שנאספו: <span id="clue-count">0</span>/3</div>
+
+        <div id="modal-microscope" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModals()">X</span>
+                <h2>המיקרוסקופ</h2>
+                <p>אתה מביט בעדשה. רואים תאים מתחלקים.</p>
+                <p>חידה: מהו האיבר בגוף היתוש שמאפשר לו לשמוע?</p>
+                <input type="text" id="ans-micro" placeholder="התשובה בעברית...">
+                <button onclick="checkAnswer('ans-micro', 'גונסטון', 'clue-1')">בדוק</button>
+                <div id="clue-1" class="clue-found">ספרה ראשונה לקוד: 7</div>
+            </div>
         </div>
+
+        <div id="modal-notebook" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModals()">X</span>
+                <h2>יומן המחקר</h2>
+                <p>הדפים קרועים. כתוב בכתב יד צפוף:</p>
+                <p>"היתוש עף בגשם בלי להירטב..."</p>
+                <p>השלם: העיניים של היתוש הן ______ (דוחות מים)</p>
+                <input type="text" id="ans-note" placeholder="מילה בלועזית או עברית">
+                <button onclick="checkAnswer('ans-note', 'הידרופוביות', 'clue-2')">בדוק</button>
+                <div id="clue-2" class="clue-found">ספרה שנייה לקוד: 2</div>
+            </div>
+        </div>
+
+        <div id="modal-postit" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModals()">X</span>
+                <h2>פתק נסתר</h2>
+                <p>מישהו הדביק את זה גבוה על המדף.</p>
+                <p>חידה: כמה רגליים יש ליתוש?</p>
+                <input type="number" id="ans-postit">
+                <button onclick="checkAnswer('ans-postit', '6', 'clue-3')">בדוק</button>
+                <div id="clue-3" class="clue-found">ספרה שלישית לקוד: 6</div>
+            </div>
+        </div>
+
+        <div id="modal-safe" class="modal-overlay">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModals()">X</span>
+                <h2>הכספת</h2>
+                <p>הכספת נעולה. דרוש קוד בן 3 ספרות.</p>
+                <p>אסוף את הספרות מכל החפצים בחדר.</p>
+                <input type="text" id="ans-safe" placeholder="___" maxlength="3" style="font-size: 2rem; letter-spacing: 10px;">
+                <button onclick="checkFinalCode()">פתח כספת</button>
+            </div>
+        </div>
+
     </div>
 
-    <div id="game-view">
-        </div>
+    <script>
+        let cluesFound = 0;
 
-<script>
-    // --- STATE ---
-    let gameState = {
-        level: 0,
-        antidotes: 6
-    };
-    const gameView = document.getElementById('game-view');
-    const locText = document.getElementById('loc-text');
-    const antidotesContainer = document.getElementById('antidotes-container');
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
 
-    // --- CORE FUNCTIONS ---
-    function updateHUD() {
-        const icons = antidotesContainer.children;
-        for (let i = 0; i < 6; i++) {
-            if (i < gameState.antidotes) {
-                icons[i].classList.remove('antidote-lost');
-                icons[i].classList.add('antidote-icon');
+        function closeModals() {
+            document.querySelectorAll('.modal-overlay').forEach(el => el.style.display = 'none');
+        }
+
+        function checkAnswer(inputId, correctAnswer, clueId) {
+            const userAns = document.getElementById(inputId).value.trim(); // simple check
+            
+            // בדיקה פשוטה (מכילה את התשובה)
+            if (userAns.includes(correctAnswer) || userAns === correctAnswer) {
+                const clueEl = document.getElementById(clueId);
+                if (clueEl.style.display !== 'block') {
+                    clueEl.style.display = 'block';
+                    cluesFound++;
+                    document.getElementById('clue-count').innerText = cluesFound;
+                }
             } else {
-                icons[i].classList.remove('antidote-icon');
-                icons[i].classList.add('antidote-lost');
+                alert('תשובה שגויה. נסה שוב.');
             }
         }
-        if (gameState.antidotes <= 0) setTimeout(() => loadLevel('lose'), 500);
-    }
 
-    function fail() {
-        gameState.antidotes--;
-        updateHUD();
-        gameView.style.boxShadow = "inset 0 0 150px var(--danger)";
-        setTimeout(() => gameView.style.boxShadow = "none", 500);
-    }
-
-    function nextLevel() {
-        gameState.level++;
-        loadLevel(gameState.level);
-    }
-
-    function setDialog(text, isError=false) {
-        const dialog = document.querySelector('.dialog-box');
-        if(dialog) {
-            dialog.innerText = text;
-            dialog.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
+        function checkFinalCode() {
+            const code = document.getElementById('ans-safe').value;
+            if (code === '726') {
+                document.getElementById('lab-scene').innerHTML = `
+                    <div style="text-align:center; margin-top:150px;">
+                        <h1 style="color:#00ff55; font-size:4rem;">הכספת נפתחה!</h1>
+                        <p>מצאת את מפתח המאסטר של הרכבת.</p>
+                        <button onclick="location.reload()" style="font-size:1.5rem;">התחל מחדש</button>
+                    </div>
+                `;
+            } else {
+                alert('קוד שגוי!');
+                document.getElementById('lab-scene').style.boxShadow = "inset 0 0 100px red";
+                setTimeout(() => document.getElementById('lab-scene').style.boxShadow = "none", 500);
+            }
         }
-    }
-
-    // --- LEVEL RENDERERS ---
-
-    const levels = {
-        0: () => { // INTRO
-            locText.innerText = "תחנת מוצא";
-            gameView.innerHTML = `
-                <div class="scene" style="flex-direction: column;">
-                    <h1 style="font-size:4rem; margin-bottom:10px; text-shadow: 0 0 20px var(--accent);">רכבת CULEX</h1>
-                    <div class="dialog-box" style="position:relative; bottom:auto; max-width:800px;">
-                        אתה עומד להיכנס לרכבת ניסיונית. כל קרון הוא מלכודת.<br>
-                        הדרך היחידה לשרוד היא לחשוב כמו יתוש: עדינות, חושים חדים, והתאמות מהירות.<br>
-                        הכל כאן ויזואלי ואינטראקטיבי. אין הוראות.<br>
-                        בהצלחה.
-                    </div>
-                    <button class="big-btn" onclick="nextLevel()">עלה לרכבת</button>
-                </div>
-            `;
-        },
-        1: () => { // NEEDLE DRAG (ON A TABLE)
-            locText.innerText = "קרון 1: המרפאה";
-            gameView.innerHTML = `
-                <div class="scene">
-                    <div class="metal-table">
-                        <div id="l1-arm"><div id="l1-target-zone"></div></div>
-                        <div id="l1-needle-device">
-                            <div id="l1-needle-tip"></div>
-                        </div>
-                        <div class="draggable-cover" draggable="true" id="bio-cover">>>> רטט >>></div>
-                    </div>
-                    <div class="dialog-box">הילדה בלחץ. המחט החשופה תכאיב לה והיא תזוז. יש כאן על השולחן כיסוי ביומימטי רוטט (כמו חדק יתוש). אתה יודע מה לעשות איתו.</div>
-                </div>
-            `;
-            
-            const cover = document.getElementById('bio-cover');
-            const target = document.getElementById('l1-needle-tip');
-            const device = document.getElementById('l1-needle-device');
-
-            cover.addEventListener('dragstart', e => {
-                e.dataTransfer.setData('text/plain', null);
-                setTimeout(() => cover.style.opacity = '0.5', 0);
-            });
-
-            cover.addEventListener('dragend', () => cover.style.opacity = '1');
-
-            target.addEventListener('dragover', e => e.preventDefault());
-            target.addEventListener('drop', e => {
-                e.preventDefault();
-                target.style.background = 'var(--accent)';
-                target.style.width = '70px';
-                target.style.height = '12px'; target.style.top='-4px';
-                target.style.borderRadius = '5px';
-                cover.remove();
-                setDialog("המחט מוסווית ורוטטת. כעת לחץ על המכשיר כדי להזריק בעדינות.");
-
-                device.style.cursor = 'pointer';
-                device.onclick = () => {
-                    device.style.transform = "translate(90px, -150px) rotate(-10deg)";
-                    setTimeout(() => {
-                        if(target.style.background === 'var(--accent)') {
-                            nextLevel();
-                        }
-                    }, 600);
-                };
-            });
-
-            device.onclick = () => {
-                 if(target.style.background !== 'var(--accent)') {
-                    device.style.transform = "translate(90px, -150px) rotate(-10deg)";
-                    setTimeout(() => {
-                        fail();
-                        setDialog("טעות! הזרקת עם מחט חשופה. הילדה זזה בבהלה. איבדת נוגדן.", true);
-                        device.style.transform = "translate(0, 0)";
-                    }, 600);
-                 }
-            };
-        },
-        2: () => { // THERMAL FLASHLIGHT (DARK PIPES)
-            locText.innerText = "קרון 2: חדר המנועים";
-            gameView.innerHTML = `
-                <div class="scene dark-car">
-                    <div id="l2-container">
-                        <div id="flashlight"></div>
-                        <div class="heat-hazard" style="top:15%; left:25%"></div>
-                        <div class="heat-hazard" style="top:55%; left:65%"></div>
-                        <div class="heat-hazard" style="top:75%; left:15%"></div>
-                        <div class="heat-hazard" style="top:30%; left:80%"></div>
-                        <div class="safe-path" id="l2-goal" style="top:45%; left:48%"></div>
-                    </div>
-                    <div class="dialog-box" style="pointer-events:none;">חושך מוחלט. הקרון מלא בצינורות קיטור לוהטים. השתמש בראייה התרמית (הזזת עכבר). אדום = מוות. חפש את השסתום הקר (כחול) ולחץ עליו.</div>
-                </div>
-            `;
-
-            const container = document.getElementById('l2-container');
-            const flashlight = document.getElementById('flashlight');
-            const hazards = document.querySelectorAll('.heat-hazard');
-            const safe = document.querySelector('.safe-path');
-
-            container.addEventListener('mousemove', e => {
-                const rect = container.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                flashlight.style.left = x + 'px';
-                flashlight.style.top = y + 'px';
-
-                [...hazards, safe].forEach(el => {
-                    const elRect = el.getBoundingClientRect();
-                    const elX = elRect.left + elRect.width/2 - rect.left;
-                    const elY = elRect.top + elRect.height/2 - rect.top;
-                    const dist = Math.sqrt((x-elX)**2 + (y-elY)**2);
-                    el.style.opacity = Math.max(0, 1 - dist/150); 
-                });
-            });
-
-            hazards.forEach(h => h.addEventListener('click', () => {
-                fail();
-                setDialog("נכווית מקיטור רותח! המערכת הזריקה נוגדן אוטומטית.", true);
-            }));
-
-            safe.addEventListener('click', nextLevel);
-        },
-        3: () => { // FOG WIPE (END DOOR)
-            locText.innerText = "קרון 3: דלת המעבר";
-            gameView.innerHTML = `
-                <div class="scene">
-                    <div id="l3-door-frame">
-                        <div class="door-handle"></div>
-                        <div id="l3-keypad-display">9X4B</div>
-                        <canvas id="fog-canvas" width="250" height="250"></canvas>
-                    </div>
-                    <div id="l3-input-area">
-                        <input type="text" id="l3-code-input" placeholder="הכנס קוד" maxlength="4">
-                        <button class="train-btn" onclick="checkCodeL3()">פתח דלת</button>
-                    </div>
-                    <div class="dialog-box">הדלת לקרון הבא נעולה. החלון של הלוח הדיגיטלי מכוסה באדים שמסתירים את הקוד. נגב אותם מהר לפני שהם חוזרים.</div>
-                </div>
-            `;
-
-            const canvas = document.getElementById('fog-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            ctx.fillStyle = 'rgba(200, 210, 220, 0.9)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            let isDrawing = false;
-            canvas.onmousedown = () => isDrawing = true;
-            canvas.onmouseup = () => isDrawing = false;
-            canvas.onmouseleave = () => isDrawing = false;
-            canvas.onmousemove = (e) => {
-                if (!isDrawing) return;
-                const rect = canvas.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.fill();
-            };
-
-            setInterval(() => {
-                 ctx.globalCompositeOperation = 'source-over';
-                 ctx.fillStyle = 'rgba(200, 210, 220, 0.08)';
-                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }, 150);
-
-            window.checkCodeL3 = () => {
-                const input = document.getElementById('l3-code-input');
-                if (input.value.toUpperCase() === '9X4B') nextLevel();
-                else {
-                    fail(); input.value=''; setDialog("קוד שגוי. הדלת נשארת נעולה.", true);
-                }
-            };
-        },
-        4: () => { // DRONE STABILIZER (AISLE VIEW)
-            locText.innerText = "קרון 4: המסדרון הפרוץ";
-            gameView.innerHTML = `
-                <div class="scene aisle-view">
-                    <div id="l4-wind-tunnel">
-                        ${Array(15).fill('<div class="wind-particle" style="top:'+Math.random()*100+'%; animation-delay:-'+Math.random()*2+'s"></div>').join('')}
-                        <div id="l4-drone"></div>
-                    </div>
-                    <div id="l4-controls-panel">
-                        <p style="margin-top:0; color:#aaa;">בקרת ייצוב תדר (Halteres)</p>
-                        <input type="range" id="l4-slider" min="0" max="100" value="0">
-                        <p>תדר נוכחי: <span id="freq-display">0</span> Hz</p>
-                    </div>
-                     <div class="dialog-box" style="bottom: 220px;">החלונות שבורים ויש רוח צד חזקה. עליך להטיס את הרחפן לסוף הקרון. הוא לא יציב. מצא את תדר הרטט הנכון בסליידר (כמו יתוש) כדי לייצב אותו במרכז.</div>
-                </div>
-            `;
-            
-            const slider = document.getElementById('l4-slider');
-            const drone = document.getElementById('l4-drone');
-            const freqDisplay = document.getElementById('freq-display');
-            let stableTimer;
-
-            slider.oninput = (e) => {
-                const val = parseInt(e.target.value);
-                freqDisplay.innerText = val * 10; 
-                
-                // Target range: 580-620Hz
-                if (val >= 58 && val <= 62) {
-                    drone.style.top = '50%';
-                    drone.classList.remove('shake-hard');
-                    drone.style.background = 'var(--accent)';
-                    drone.style.borderColor = '#fff';
-                    
-                    clearTimeout(stableTimer);
-                    stableTimer = setTimeout(() => {
-                        setDialog("הרחפן יציב! מתקדם לקצה הקרון...");
-                        drone.style.transition = "left 2s ease-in";
-                        drone.style.left = "120%";
-                        setTimeout(nextLevel, 2000);
-                    }, 800);
-
-                } else {
-                    const offset = (val - 60) * 2.5;
-                    drone.style.top = `${50 + offset}%`;
-                    drone.classList.add('shake-hard');
-                    drone.style.background = 'var(--danger)';
-                    drone.style.borderColor = '#500';
-                    clearTimeout(stableTimer);
-                }
-            };
-            slider.dispatchEvent(new Event('input'));
-        },
-        'win': () => {
-             locText.innerText = "יעד סופי";
-             gameView.innerHTML = `
-                <div class="scene" style="background: linear-gradient(to bottom, #003311, #001100);">
-                    <div class="end-screen-content" style="border-color: var(--accent);">
-                        <h1 style="color:var(--accent)">רכבת נעצרה</h1>
-                        <p style="font-size:1.2rem;">הוכחת שהטבע הוא המהנדס האולטימטיבי.</p>
-                        <p style="font-size:1.5rem; margin-top:20px;">נוגדנים שנותרו: <span style="color:var(--accent); font-weight:bold;">${gameState.antidotes}</span></p>
-                        <button class="big-btn" onclick="location.reload()">התחל מחדש</button>
-                    </div>
-                </div>
-            `;
-        },
-        'lose': () => {
-             locText.innerText = "כשל מערכתי";
-             gameView.innerHTML = `
-                <div class="scene" style="background: linear-gradient(to bottom, #330000, #110000);">
-                    <div class="end-screen-content" style="border-color: var(--danger);">
-                        <h1 style="color:var(--danger)">סוף המשחק</h1>
-                        <p style="font-size:1.5rem;">אזלו הנוגדנים. הרעל הכריע אותך.</p>
-                        <button class="big-btn red" onclick="location.reload()">נסה שוב</button>
-                    </div>
-                </div>
-            `;
-        }
-    };
-
-    function loadLevel(lvl) {
-        if (levels[lvl]) levels[lvl]();
-        else if (lvl > 4) loadLevel('win');
-    }
-
-    // START GAME
-    loadLevel(0);
-
-</script>
+    </script>
 </body>
 </html>
