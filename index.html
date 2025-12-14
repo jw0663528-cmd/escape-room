@@ -3,397 +3,864 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biomimicry Express: Full Journey</title>
+    <title>PROJECT CULEX: Biomimicry Research Initiative</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
+        /* * ==========================================================================
+         * GLOBAL VARIABLES & RESET
+         * ==========================================================================
+         */
         :root {
-            --bg-color: #121212;
-            --panel-bg: #1e1e1e;
-            --text-main: #e0e0e0;
-            --accent: #4caf50; /* Green for nature/biomimicry */
-            --highlight: #ff9800;
-            --error: #f44336;
+            /* Colors */
+            --bg-dark: #050505;
+            --panel-bg: #111115;
+            --panel-border: #333;
+            
+            --text-main: #a8b2d1;
+            --text-bright: #e6f1ff;
+            
+            --accent-green: #00ff9d; /* Success / Bio */
+            --accent-blue: #00e5ff;  /* Tech / Day */
+            --accent-amber: #ffaa00; /* Warning / Night */
+            --accent-red: #ff3333;   /* Error */
+            
+            /* CRT Effects */
+            --scanline-color: rgba(0, 0, 0, 0.5);
+            --glow-spread: 5px;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Prevent text selection for game feel */
         }
 
         body {
             margin: 0;
-            padding: 20px;
-            background-color: var(--bg-color);
+            padding: 0;
+            background-color: var(--bg-dark);
             color: var(--text-main);
-            font-family: 'Segoe UI', sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-family: 'Rajdhani', sans-serif;
             height: 100vh;
-            box-sizing: border-box;
-        }
-
-        /* --- LAYOUT --- */
-        #main-wrapper {
+            width: 100vw;
+            overflow: hidden;
             display: flex;
-            flex-direction: column;
-            width: 95vw;
-            max-width: 1400px;
-            gap: 15px;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* --- 1. GAME VIEW (IMAGE) --- */
-        #game-viewport {
+        /* * ==========================================================================
+         * MAIN LAYOUT GRID
+         * ==========================================================================
+         */
+        #terminal-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 350px; /* Game View | Sidebar */
+            width: 98vw;
+            height: 96vh;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border-radius: 8px;
+            overflow: hidden;
             position: relative;
-            width: 100%;
-            /* Force 16:9 aspect ratio to match the image exactly */
-            aspect-ratio: 16 / 9;
-            background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png');
-            background-size: cover;
-            background-position: center;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 2px solid #333;
+        }
+
+        /* * ==========================================================================
+         * LEFT COLUMN: VISUALIZATIONS (GAME VIEW)
+         * ==========================================================================
+         */
+        #viewport {
+            position: relative;
+            background: #000;
             overflow: hidden;
             cursor: crosshair;
+            border-right: 2px solid var(--panel-border);
         }
 
-        /* --- HOTSPOTS (Interactable Areas) --- */
-        .hotspot {
+        /* The Background Image Layers */
+        .bg-layer {
             position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 2s ease-in-out;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        /* Layer definitions */
+        #bg-day {
+            background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png');
+            opacity: 1; /* Default visible */
+        }
+
+        #bg-night {
+            background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png');
+        }
+
+        #bg-lab {
+            background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png');
+            z-index: 100; /* On top when active */
+            pointer-events: none; /* Initially allow clicks through? No, blocks game when active */
+        }
+
+        /* Particle Canvas Layer */
+        #particle-canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 5; /* Above BG, below hotspots */
+            pointer-events: none;
+        }
+
+        /* Hotspot Container */
+        #hotspot-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             z-index: 10;
-            cursor: pointer;
-            /* Hidden by default, toggle class to see them for debugging */
-            background-color: rgba(255, 255, 255, 0); 
-            transition: background-color 0.2s, box-shadow 0.2s;
         }
 
-        /* Debug mode style */
-        .hotspot.debug-visible {
-            background-color: rgba(0, 255, 0, 0.2); /* Semi-transparent green */
-            border: 2px dashed #fff;
-        }
-
-        /* Wrong click feedback */
-        .hotspot.shake {
-            animation: shake 0.4s ease-in-out;
-            background-color: rgba(255, 0, 0, 0.4) !important;
-        }
-
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
-
-        /* --- 2. CONTROL PANEL (Text) --- */
-        #control-panel {
-            background-color: var(--panel-bg);
-            padding: 20px 30px;
-            border-radius: 12px;
-            border-left: 5px solid var(--accent);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        /* * ==========================================================================
+         * RIGHT COLUMN: CONTROL PANEL (SIDEBAR)
+         * ==========================================================================
+         */
+        #dashboard {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            min-height: 120px;
+            background: #0a0a0e;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
         }
 
-        #mission-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        #mission-title {
-            font-size: 1.4rem;
-            color: var(--highlight);
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        #progress-counter {
-            background: #333;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            color: #888;
-        }
-
-        #mission-instruction {
-            font-size: 1.1rem;
-            line-height: 1.5;
-            color: #ddd;
-        }
-
-        /* --- MODAL (Success Message) --- */
-        #modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
+        /* CRT Scanline Overlay for Sidebar */
+        #dashboard::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
             pointer-events: none;
-            transition: opacity 0.3s;
-            z-index: 100;
         }
 
-        #modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
+        /* -- Sidebar Components -- */
+
+        /* 1. Header / Clock */
+        .panel-section {
+            border: 1px solid #333;
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            position: relative;
+            z-index: 3;
         }
 
-        #modal-box {
-            background: #252525;
-            width: 500px;
-            max-width: 90%;
-            padding: 30px;
-            border-radius: 15px;
-            border: 2px solid var(--accent);
+        .section-title {
+            font-family: 'Share Tech Mono', monospace;
+            color: #666;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: block;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        #clock-display {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 2.5rem;
+            color: var(--accent-blue);
+            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
             text-align: center;
-            transform: translateY(20px);
-            transition: transform 0.3s;
+            letter-spacing: 3px;
         }
 
-        #modal-overlay.active #modal-box {
-            transform: translateY(0);
-        }
-
-        #modal-title { color: var(--accent); margin-top: 0; font-size: 1.8rem; }
-        #modal-text { font-size: 1.1rem; color: #ccc; line-height: 1.6; margin-bottom: 30px; }
-        
-        #next-btn {
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 1.1rem;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-        #next-btn:hover { background: #43a047; }
-
-        /* --- HOTSPOT COORDINATES (Based on your image) --- */
-        /* Note: Using percentages allows it to scale with the image */
-        
-        #spot-cat { top: 14%; left: 20%; width: 11%; height: 13%; }
-        #spot-bags { top: 11%; left: 5%; width: 14%; height: 16%; }
-        #spot-map { top: 35%; left: 9%; width: 18%; height: 23%; }
-        #spot-sticky { top: 36%; left: 29%; width: 5%; height: 18%; } /* The notes next to map */
-        #spot-window { top: 22%; left: 35%; width: 28%; height: 38%; }
-        #spot-poster { top: 44%; left: 65%; width: 9%; height: 20%; }
-        #spot-hat { top: 26%; left: 67%; width: 8%; height: 15%; }
-        #spot-door { top: 18%; left: 78%; width: 20%; height: 75%; }
-
-        /* Footer / Debug */
-        #footer-controls {
-            display: flex;
-            justify-content: flex-end;
+        #day-cycle-indicator {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
             margin-top: 5px;
+            text-transform: uppercase;
         }
-        #debug-btn {
+
+        /* 2. Mission Status */
+        #mission-card {
+            border-left: 3px solid var(--accent-blue);
+            transition: border-color 0.5s;
+        }
+        
+        #mission-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            margin-bottom: 5px;
+        }
+
+        #mission-brief {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #aaa;
+            min-height: 60px;
+        }
+
+        /* 3. Data Bank (Inventory) */
+        #databank-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .data-slot {
+            aspect-ratio: 1;
+            border: 1px solid #333;
+            background: #111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #444;
+            transition: all 0.3s;
+        }
+
+        .data-slot.acquired {
+            background: rgba(0, 255, 157, 0.1);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+            box-shadow: 0 0 5px rgba(0, 255, 157, 0.3);
+        }
+
+        /* 4. System Log (Terminal) */
+        #log-container {
+            flex-grow: 1;
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            color: #888;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse; /* New items at bottom (visually handled via prepend) */
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #111;
+            padding-bottom: 2px;
+        }
+        .log-entry.success { color: var(--accent-green); }
+        .log-entry.warn { color: var(--accent-amber); }
+        .log-entry.error { color: var(--accent-red); }
+        .log-entry.info { color: var(--accent-blue); }
+
+        /* 5. Footer Controls */
+        #controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .btn {
             background: transparent;
             border: 1px solid #444;
             color: #666;
             padding: 5px 10px;
+            font-family: 'Share Tech Mono', monospace;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+            text-transform: uppercase;
         }
-        #debug-btn:hover { color: #fff; border-color: #fff; }
+        .btn:hover {
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+        }
+
+        /* * ==========================================================================
+         * INTERACTIVE ELEMENTS (HOTSPOTS & UI)
+         * ==========================================================================
+         */
+        
+        /* The clickable areas */
+        .hotspot {
+            position: absolute;
+            border-radius: 50%;
+            cursor: none; /* Handled by custom cursor/tooltip */
+            z-index: 20;
+            transition: all 0.3s ease;
+            /* Debug Visibility (Toggled via JS) */
+            border: 1px dashed rgba(255,255,255,0); 
+        }
+
+        /* Hover effect */
+        .hotspot:hover {
+            box-shadow: 0 0 15px var(--accent-blue), inset 0 0 10px var(--accent-blue);
+            border-color: rgba(0, 229, 255, 0.5);
+            background: rgba(0, 229, 255, 0.1);
+        }
+
+        /* Scanning Animation (Ring) */
+        .scanning-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%; height: 100%;
+            border: 2px solid var(--accent-green);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes scanPulse {
+            0% { width: 0%; height: 0%; opacity: 1; }
+            100% { width: 150%; height: 150%; opacity: 0; }
+        }
+        
+        .scanning .scanning-ring {
+            animation: scanPulse 1s ease-out infinite;
+        }
+
+        /* Custom Tooltip */
+        #tooltip {
+            position: fixed;
+            z-index: 9999;
+            background: rgba(10, 10, 15, 0.95);
+            border: 1px solid var(--accent-blue);
+            color: var(--text-bright);
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            font-family: 'Share Tech Mono', monospace;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(15px, 15px);
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+        }
+        
+        #tooltip::before {
+            content: "SCANNING TARGET...";
+            display: block;
+            font-size: 0.6rem;
+            color: #666;
+            margin-bottom: 2px;
+        }
+
+        /* Hotspot specific styles (positions) */
+        /* Using percentages for responsive scaling within the container */
+        #spot-cat    { top: 14%; left: 20%; width: 12%; height: 14%; }
+        #spot-map    { top: 35%; left: 9%;  width: 18%; height: 23%; }
+        #spot-window { top: 22%; left: 35%; width: 28%; height: 38%; }
+        #spot-hat    { top: 26%; left: 67%; width: 10%; height: 16%; }
+        #spot-door   { top: 18%; left: 78%; width: 20%; height: 75%; }
+        
+        /* Error Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); border-color: var(--accent-red); box-shadow: 0 0 10px var(--accent-red);}
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.5s; }
+
+        /* * ==========================================================================
+         * END GAME OVERLAY
+         * ==========================================================================
+         */
+        #lab-ui {
+            position: absolute;
+            bottom: 50px; left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            background: rgba(0, 20, 10, 0.9);
+            border: 2px solid var(--accent-green);
+            padding: 30px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 2s;
+            pointer-events: none; /* Initially */
+            z-index: 101;
+        }
+
+        #lab-ui.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .victory-title {
+            color: var(--accent-green);
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px var(--accent-green);
+        }
+
+        .restart-btn {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 10px 30px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .restart-btn:hover { background: #fff; }
 
     </style>
 </head>
 <body>
 
-<div id="main-wrapper">
-    
-    <div id="game-viewport">
-        <div id="spot-cat" class="hotspot" title="Sleeping Cat"></div>
-        <div id="spot-bags" class="hotspot" title="Leather Bags"></div>
-        <div id="spot-map" class="hotspot" title="World Map"></div>
-        <div id="spot-sticky" class="hotspot" title="Sticky Notes"></div>
-        <div id="spot-window" class="hotspot" title="Main Window"></div>
-        <div id="spot-poster" class="hotspot" title="Adventure Poster"></div>
-        <div id="spot-hat" class="hotspot" title="Conductor Hat"></div>
-        <div id="spot-door" class="hotspot" title="Sliding Door"></div>
-    </div>
+    <div id="tooltip">TARGET NAME</div>
 
-    <div id="control-panel">
-        <div id="mission-header">
-            <h2 id="mission-title">Mission Initializing...</h2>
-            <div id="progress-counter">0 / 7</div>
+    <div id="terminal-wrapper">
+        
+        <div id="viewport">
+            <canvas id="particle-canvas"></canvas>
+            
+            <div id="bg-lab" class="bg-layer"></div>
+            <div id="bg-night" class="bg-layer"></div>
+            <div id="bg-day" class="bg-layer"></div>
+            
+            <div id="hotspot-layer">
+                <div id="spot-cat" class="hotspot" data-name="Felis Catus">
+                    <div class="scanning-ring"></div>
+                </div>
+                <div id="spot-map" class="hotspot" data-name="Topographical Map">
+                    <div class="scanning-ring"></div>
+                </div>
+                <div id="spot-window" class="hotspot" data-name="Exterior View">
+                    <div class="scanning-ring"></div>
+                </div>
+                <div id="spot-hat" class="hotspot" data-name="Uniform Cap">
+                    <div class="scanning-ring"></div>
+                </div>
+                <div id="spot-door" class="hotspot" data-name="Restricted Access">
+                    <div class="scanning-ring"></div>
+                </div>
+            </div>
+
+            <div id="lab-ui">
+                <h1 class="victory-title">ACCESS GRANTED</h1>
+                <p>Welcome to the Biomimicry Laboratory.</p>
+                <p>All theoretical data has been verified. Research phase initiated.</p>
+                <button class="restart-btn" onclick="location.reload()">REBOOT SYSTEM</button>
+            </div>
         </div>
-        <div id="mission-instruction">Loading mission parameters...</div>
+
+        <div id="dashboard">
+            <div class="panel-section">
+                <span class="section-title">Local Time</span>
+                <div id="clock-display">12:00</div>
+                <div id="day-cycle-indicator">Daylight Cycle Active</div>
+            </div>
+
+            <div class="panel-section" id="mission-card">
+                <span class="section-title">Active Directive</span>
+                <div id="mission-name">Loading...</div>
+                <div id="mission-brief">Initializing mission parameters...</div>
+            </div>
+
+            <div class="panel-section">
+                <span class="section-title">Data Bank</span>
+                <div id="databank-grid">
+                    <div class="data-slot" id="slot-0">01</div>
+                    <div class="data-slot" id="slot-1">02</div>
+                    <div class="data-slot" id="slot-2">03</div>
+                    <div class="data-slot" id="slot-3">04</div>
+                    <div class="data-slot" id="slot-4">KEY</div>
+                </div>
+            </div>
+
+            <span class="section-title" style="margin-top:auto;">System Log</span>
+            <div id="log-container">
+                </div>
+
+            <div id="controls">
+                <button class="btn" onclick="Game.toggleDebug()">[DBG] Hitboxes</button>
+                <button class="btn" onclick="Game.toggleMute()">[AUD] Mute</button>
+            </div>
+        </div>
     </div>
 
-    <div id="footer-controls">
-        <button id="debug-btn" onclick="toggleDebug()">Toggle Hitboxes (Cheat Mode)</button>
-    </div>
-</div>
+    <script>
+        /**
+         * ==========================================================================
+         * GAME CONFIGURATION & DATA
+         * ==========================================================================
+         */
+        const Config = {
+            dayStart: 6,
+            nightStart: 18,
+            timeSpeed: 10000, // 10s real time = 1 hour game time
+            startHour: 10,
+            bgDay: 'bg-day',
+            bgNight: 'bg-night',
+            bgLab: 'bg-lab'
+        };
 
-<div id="modal-overlay">
-    <div id="modal-box">
-        <h2 id="modal-title">Insight Acquired!</h2>
-        <p id="modal-text">Biomimicry connection established.</p>
-        <button id="next-btn">Next Mission</button>
-    </div>
-</div>
+        const Missions = [
+            {
+                id: 0,
+                targetId: 'spot-cat',
+                name: "PROTOCOL: PAINLESS",
+                desc: "Objective: Locate biological subject capable of stealthy fluid extraction without triggering host pain response.",
+                successMsg: "ANALYSIS COMPLETE: Cat sleeping habits referenced. Connection to Mosquito proboscis stealth verified. Microneedle technology unlocked.",
+                dataSlot: 0
+            },
+            {
+                id: 1,
+                targetId: 'spot-map',
+                name: "PROTOCOL: TRACKING",
+                desc: "Objective: Identify long-range navigation tools. We require heat-seeking capability for target acquisition.",
+                successMsg: "ANALYSIS COMPLETE: Global map scanned. Thermal imaging sensors calibrated based on vector navigation patterns.",
+                dataSlot: 1
+            },
+            {
+                id: 2,
+                targetId: 'spot-window',
+                name: "PROTOCOL: STABILITY",
+                desc: "Objective: Exterior conditions are turbulent. Identify atmospheric reference points to stabilize drone flight.",
+                successMsg: "ANALYSIS COMPLETE: Storm patterns analyzed. Gyroscopic Halteres mechanism activated for flight stabilization.",
+                dataSlot: 2
+            },
+            {
+                id: 3,
+                targetId: 'spot-hat',
+                name: "PROTOCOL: SENSORS",
+                desc: "Objective: Visibility dropping. Locate symbol of authority/guidance to calibrate chemical sensors.",
+                successMsg: "ANALYSIS COMPLETE: Conductor Hat identified. Chemical receptors online. Navigation systems fully operational.",
+                dataSlot: 3
+            },
+            {
+                id: 4,
+                targetId: 'spot-door',
+                name: "PROTOCOL: BREACH",
+                desc: "Objective: All biometric keys acquired. Locate the sealed entry point to the Research Lab.",
+                successMsg: "ACCESS GRANTED. OPENING LAB DOORS...",
+                dataSlot: 4
+            }
+        ];
 
-<script>
-    // --- GAME DATA ---
-    const missions = [
-        {
-            id: 1,
-            targetID: 'spot-cat',
-            title: "Mission 1: The Painless Strike",
-            desc: "A passenger requires a medical injection, but they are terrified of pain. Find an example of a creature (or object representing it) that can pierce skin without waking a sleeping host.",
-            successTitle: "The Stealth Needle",
-            successDesc: "Correct! The sleeping cat represents stealth. Like the mosquito, which uses a serrated, vibrating proboscis to reduce friction and skin contact, modern 'microneedles' are designed to be painless—just like a cat's undetected nap."
-        },
-        {
-            id: 2,
-            targetID: 'spot-hat',
-            title: "Mission 2: Navigation in the Dark",
-            desc: "We are entering a dark tunnel. Our GPS is down. We need to sense chemical signals and heat to find our way. Click the object that represents 'Command and Sensing'.",
-            successTitle: "Antennae Sensors",
-            successDesc: "Excellent. The Conductor's Hat symbolizes guidance. Mosquitos navigate using highly sensitive antennae that detect CO2 and heat. Engineers mimic this to create drones that 'sniff out' survivors in disaster zones."
-        },
-        {
-            id: 3,
-            targetID: 'spot-window',
-            title: "Mission 3: Stabilizing Flight",
-            desc: "A storm is hitting the train! We need to launch a drone to check the tracks, but the wind is too strong. Look outside for the source of the turbulence to calibrate the stabilizers.",
-            successTitle: "Gyroscopic Halteres",
-            successDesc: "You looked at the turbulent view. Mosquitos have tiny organs called 'halteres' that vibrate to detect rotation, acting like gyroscopes. This technology allows drones to stay stable even in the chaotic winds shown outside."
-        },
-        {
-            id: 4,
-            targetID: 'spot-map',
-            title: "Mission 4: Thermal Tracking",
-            desc: "We need to find the next heat source (a station) over a long distance. Locate the object used for planning long-distance travel.",
-            successTitle: "Thermal Imaging",
-            successDesc: "The World Map! Mosquitos can detect a blood vessel's heat from a distance. By mimicking their thermal vision, we created heat-seeking cameras for medical diagnostics and search-and-rescue maps."
-        },
-        {
-            id: 5,
-            targetID: 'spot-bags',
-            title: "Mission 5: Lightweight Storage",
-            desc: "We need to carry more fuel without weighing down the train. Find the object that represents storage and carrying capacity.",
-            successTitle: "Expandable Abdomen",
-            successDesc: "The Luggage Bags. A mosquito's abdomen can expand significantly to hold blood without bursting, while remaining light. Scientists copy this structure to create expandable, lightweight fuel tanks for aircraft."
-        },
-        {
-            id: 6,
-            targetID: 'spot-door',
-            title: "Mission 6: The Protective Sheath",
-            desc: "The train's external sensors are fragile. We need a mechanism that protects them when not in use, but retracts when needed. Find the mechanism that opens and closes.",
-            successTitle: "Labium Retraction",
-            successDesc: "The Sliding Door. When a mosquito bites, a protective sheath (labium) bends back to let the needle enter. This retraction mechanism inspired flexible sheaths for delicate surgical probes."
-        },
-        {
-            id: 7,
-            targetID: 'spot-poster',
-            title: "Mission 7: Visual Processing",
-            desc: "Final Mission: We need a 360-degree view of the surroundings to avoid obstacles. Find the object that promotes looking at visual scenery.",
-            successTitle: "Compound Eyes",
-            successDesc: "The 'Next Stop Adventure' Poster! Mosquitos use compound eyes for a wide field of view and rapid motion detection. This inspired the creation of multi-lens cameras for autonomous vehicles."
+        /**
+         * ==========================================================================
+         * SYSTEMS
+         * ==========================================================================
+         */
+
+        /* --- 1. TIME SYSTEM --- */
+        class TimeSystem {
+            constructor() {
+                this.hour = Config.startHour;
+                this.minute = 0;
+                this.isNight = false;
+                this.timer = null;
+            }
+
+            start() {
+                this.updateClock();
+                this.timer = setInterval(() => {
+                    this.tick();
+                }, Config.timeSpeed);
+            }
+
+            tick() {
+                this.hour++;
+                if (this.hour >= 24) this.hour = 0;
+                this.checkPhase();
+                this.updateClock();
+            }
+
+            checkPhase() {
+                const wasNight = this.isNight;
+                // Night is 18:00 (6PM) to 06:00 (6AM)
+                this.isNight = (this.hour >= Config.nightStart || this.hour < Config.dayStart);
+                
+                if (this.isNight !== wasNight) {
+                    Game.onPhaseChange(this.isNight);
+                }
+            }
+
+            updateClock() {
+                const h = this.hour.toString().padStart(2, '0');
+                const m = this.minute.toString().padStart(2, '0');
+                document.getElementById('clock-display').innerText = `${h}:${m}`;
+                
+                const phaseText = this.isNight ? "NIGHT OPS ACTIVE" : "DAYLIGHT CYCLE ACTIVE";
+                const phaseEl = document.getElementById('day-cycle-indicator');
+                phaseEl.innerText = phaseText;
+                phaseEl.style.color = this.isNight ? "var(--accent-amber)" : "var(--accent-blue)";
+            }
         }
-    ];
 
-    // --- STATE MANAGEMENT ---
-    let currentMissionIndex = 0;
-    
-    // --- DOM ELEMENTS ---
-    const dom = {
-        title: document.getElementById('mission-title'),
-        desc: document.getElementById('mission-instruction'),
-        counter: document.getElementById('progress-counter'),
-        modal: document.getElementById('modal-overlay'),
-        modalTitle: document.getElementById('modal-title'),
-        modalText: document.getElementById('modal-text'),
-        nextBtn: document.getElementById('next-btn'),
-        hotspots: document.querySelectorAll('.hotspot')
-    };
+        /* --- 2. LOG SYSTEM (TYPEWRITER) --- */
+        class LogSystem {
+            constructor() {
+                this.container = document.getElementById('log-container');
+            }
 
-    // --- INITIALIZATION ---
-    function init() {
-        loadMission(0);
-        
-        // Add click listeners to all hotspots
-        dom.hotspots.forEach(spot => {
-            spot.addEventListener('click', (e) => handleObjectClick(e.target.id));
-        });
-
-        // Next button listener
-        dom.nextBtn.addEventListener('click', advanceMission);
-    }
-
-    // --- CORE LOGIC ---
-    function loadMission(index) {
-        if (index >= missions.length) {
-            gameComplete();
-            return;
+            add(msg, type = 'info') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                
+                // Timestamp
+                const now = new Date();
+                const ts = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+                
+                entry.innerHTML = `[${ts}] > ${msg}`;
+                this.container.prepend(entry);
+                
+                // Limit log size
+                if(this.container.children.length > 20) {
+                    this.container.removeChild(this.container.lastChild);
+                }
+            }
         }
 
-        const m = missions[index];
-        dom.title.innerText = m.title;
-        dom.desc.innerText = m.desc;
-        dom.counter.innerText = `${index + 1} / ${missions.length}`;
-        currentMissionIndex = index;
-    }
+        /* --- 3. PARTICLE SYSTEM (CANVAS) --- */
+        class ParticleSystem {
+            constructor() {
+                this.canvas = document.getElementById('particle-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                this.mode = 'dust'; // 'dust' or 'fireflies'
+            }
 
-    function handleObjectClick(clickedID) {
-        const currentMission = missions[currentMissionIndex];
+            resize() {
+                this.canvas.width = this.canvas.offsetWidth;
+                this.canvas.height = this.canvas.offsetHeight;
+            }
 
-        if (clickedID === currentMission.targetID) {
-            // Correct!
-            showSuccessModal(currentMission);
-        } else {
-            // Wrong!
-            triggerShake(clickedID);
+            setMode(mode) {
+                this.mode = mode;
+                // Reset particles on mode switch for dramatic effect
+                this.particles = [];
+                this.initParticles(50);
+            }
+
+            initParticles(count) {
+                for(let i=0; i<count; i++) {
+                    this.particles.push(this.createParticle());
+                }
+            }
+
+            createParticle() {
+                return {
+                    x: Math.random() * this.canvas.width,
+                    y: Math.random() * this.canvas.height,
+                    size: Math.random() * 2 + 0.5,
+                    speedX: (Math.random() - 0.5) * 0.5,
+                    speedY: (Math.random() - 0.5) * 0.5,
+                    alpha: Math.random(),
+                    phase: Math.random() * Math.PI * 2
+                };
+            }
+
+            update() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const isFirefly = (this.mode === 'fireflies');
+                const color = isFirefly ? '255, 200, 50' : '200, 220, 255';
+                
+                this.particles.forEach(p => {
+                    // Move
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+
+                    // Float logic
+                    if(isFirefly) {
+                        p.alpha = 0.5 + 0.5 * Math.sin(Date.now() * 0.005 + p.phase);
+                        p.y -= 0.2; // Float up
+                    } else {
+                        // Dust logic (subtle twinkle)
+                        p.alpha = 0.2 + 0.1 * Math.sin(Date.now() * 0.002 + p.phase);
+                    }
+
+                    // Wrap
+                    if(p.x < 0) p.x = this.canvas.width;
+                    if(p.x > this.canvas.width) p.x = 0;
+                    if(p.y < 0) p.y = this.canvas.height;
+                    if(p.y > this.canvas.height) p.y = 0;
+
+                    // Draw
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(${color}, ${p.alpha})`;
+                    this.ctx.fill();
+                });
+
+                requestAnimationFrame(() => this.update());
+            }
         }
-    }
 
-    function triggerShake(elementID) {
-        const el = document.getElementById(elementID);
-        el.classList.add('shake');
-        // Allow re-shake after animation plays
-        setTimeout(() => el.classList.remove('shake'), 400);
-    }
+        /* --- 4. GAME ENGINE (CONTROLLER) --- */
+        const Game = {
+            missionIdx: 0,
+            timeSys: new TimeSystem(),
+            logSys: new LogSystem(),
+            particleSys: new ParticleSystem(),
+            debugMode: false,
 
-    function showSuccessModal(mission) {
-        dom.modalTitle.innerText = mission.successTitle;
-        dom.modalText.innerText = mission.successDesc;
-        dom.modal.classList.add('active');
-    }
+            init() {
+                this.logSys.add("System Initialized.", "info");
+                this.logSys.add("Loading bio-data archives...", "info");
+                
+                this.timeSys.start();
+                this.particleSys.initParticles(60);
+                this.particleSys.update(); // start loop
 
-    function advanceMission() {
-        dom.modal.classList.remove('active');
-        loadMission(currentMissionIndex + 1);
-    }
+                this.setupInteractions();
+                this.loadMission(0);
+            },
 
-    function gameComplete() {
-        dom.title.innerText = "JOURNEY COMPLETE";
-        dom.desc.innerText = "You have successfully mastered the principles of biomimicry. The train has arrived safely at the station.";
-        dom.counter.innerText = "DONE";
-        
-        // Disable interactions
-        dom.hotspots.forEach(spot => spot.style.pointerEvents = 'none');
-    }
+            loadMission(idx) {
+                if(idx >= Missions.length) return; // Win state handled elsewhere
 
-    // --- DEBUGGING ---
-    window.toggleDebug = function() {
-        dom.hotspots.forEach(spot => {
-            spot.classList.toggle('debug-visible');
-        });
-    }
+                this.missionIdx = idx;
+                const m = Missions[idx];
+                
+                document.getElementById('mission-name').innerText = m.name;
+                document.getElementById('mission-brief').innerText = m.desc;
+                
+                // Visual cue on mission change
+                const card = document.getElementById('mission-card');
+                card.style.borderColor = 'var(--text-bright)';
+                setTimeout(() => card.style.borderColor = 'var(--accent-blue)', 500);
+            },
 
-    // Start the game
-    init();
+            onPhaseChange(isNight) {
+                const bgDay = document.getElementById(Config.bgDay);
+                const bgNight = document.getElementById(Config.bgNight);
+                const clockDisp = document.getElementById('clock-display');
 
-</script>
+                if (isNight) {
+                    bgNight.style.opacity = 1;
+                    bgDay.style.opacity = 0;
+                    this.particleSys.setMode('fireflies');
+                    this.logSys.add("Light levels dropping. Night vision enabled.", "warn");
+                    clockDisp.style.color = "var(--accent-amber)";
+                    clockDisp.style.textShadow = "0 0 10px rgba(255, 170, 0, 0.5)";
+                } else {
+                    bgDay.style.opacity = 1;
+                    bgNight.style.opacity = 0;
+                    this.particleSys.setMode('dust');
+                    this.logSys.add("Sunlight detected. Solar arrays active.", "info");
+                    clockDisp.style.color = "var(--accent-blue)";
+                    clockDisp.style.textShadow = "0 0 10px rgba(0, 229, 255, 0.5)";
+                }
+            },
 
+            setupInteractions() {
+                const hotspots = document.querySelectorAll('.hotspot');
+                const tooltip = document.getElementById('tooltip');
+
+                // Mouse Movement for Tooltip
+                document.addEventListener('mousemove', (e) => {
+                    // Offset tooltip slightly
+                    tooltip.style.left = (e.clientX + 15) + 'px';
+                    tooltip.style.top = (e.clientY + 15) + 'px';
+                });
+
+                hotspots.forEach(spot => {
+                    // Hover
+                    spot.addEventListener('mouseenter', () => {
+                        tooltip.innerHTML = spot.getAttribute('data-name');
+                        tooltip.style.opacity = 1;
+                    });
+                    spot.addEventListener('mouseleave', () => {
+                        tooltip.style.opacity = 0;
+                    });
+
+                    // Click
+                    spot.addEventListener('click', () => {
+                        this.handleScan(spot);
+                    });
+                });
+            },
+
+            handleScan(element) {
+                const currentMission = Missions[this.missionIdx];
+                
+                // Add scanning visual class
+                element.classList.add('scanning');
+                this.logSys.add(`Scanning target: ${element.getAttribute('data-name')}...`);
+
+                setTimeout(() => {
+                    element.classList.remove('scanning');
+                    
+                    if (element.id === currentMission.targetId) {
+                        this.onMissionSuccess(currentMission);
+                    } else {
+                        this.onMissionFail(element);
+                    }
+                }, 800); // Scan duration
+            },
+
+            onMissionSuccess(mission) {
+                this.logSys.add(mission.successMsg, "success");
+                
+                // Update Databank
+                const slot = document.getElementById(`slot-${mission.dataSlot}`);
+                if(slot) slot.classList.add('acquired');
+
+                this.missionIdx++;
+
+                if (this.missionIdx >= Missions.length) {
+                    this.triggerWinState();
+                } else {
+                    this.loadMission(this.missionIdx);
+                }
+            },
+
+            onMissionFail(element) {
+                element.classList.add('shake');
+                setTimeout(() => element.classList.remove('shake'), 500);
+                this.logSys.add("Negative match. Target properties incompatible.", "error");
+            },
+
+            triggerWinState() {
+                this.logSys.add("ALL SECURITY PROTOCOLS BYPASSED.", "success");
+                
+                // Show Lab BG
+                const labBg = document.getElementById(Config.bgLab);
+                labBg.style.opacity = 1;
+
+                // Show UI
+                const ui = document.getElementById('lab-ui');
+                ui.classList.add('active');
+
+                // Update Dashboard text
+                document.getElementById('mission-name').innerText = "STATUS: COMPLETE";
+                document.getElementById('mission-brief').innerText = "Laboratory access authorized.";
+                document.getElementById('mission-card').style.borderColor = "var(--accent-green)";
+            },
+
+            toggleDebug() {
+                this.debugMode = !this.debugMode;
+                const spots = document.querySelectorAll('.hotspot');
+                spots.forEach(s => {
+                    s.style.border = this.debugMode ? "1px dashed #0f0" : "1px dashed rgba(0,0,0,0)";
+                    s.style.background = this.debugMode ? "rgba(0, 255, 0, 0.1)" : "transparent";
+                });
+                this.logSys.add(`Debug Mode: ${this.debugMode ? "ON" : "OFF"}`, "warn");
+            },
+
+            toggleMute() {
+                this.logSys.add("Audio output toggled (Simulated).", "info");
+            }
+        };
+
+        // Start Game
+        window.onload = () => Game.init();
+
+    </script>
 </body>
 </html>
