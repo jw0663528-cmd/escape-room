@@ -3,543 +3,468 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פרויקט CULEX | סימולציית הישרדות</title>
+    <title>פרויקט קולקס | חוויה ויזואלית</title>
     <style>
-        /* --- CORE STYLES --- */
         :root {
-            --bg-color: #050a0f;
-            --terminal-bg: #0d1117;
-            --text-color: #c9d1d9;
-            --accent-cyan: #58a6ff;
-            --accent-green: #2ea043;
-            --accent-red: #da3633;
-            --glass: rgba(22, 27, 34, 0.95);
-            --font-mono: 'Courier New', Courier, monospace;
+            --main-bg: #111;
+            --hud-bg: #222;
+            --accent: #00ff55;
+            --danger: #ff3300;
         }
-
         body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--font-mono);
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 50% 50%, #161b22 0%, #000000 100%);
-        }
-
-        /* --- GAME CONTAINER --- */
-        #terminal {
-            width: 100%;
-            max-width: 900px;
-            background: var(--terminal-bg);
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            box-shadow: 0 0 30px rgba(88, 166, 255, 0.1);
-            overflow: hidden;
+            background: var(--main-bg);
+            color: #eee;
+            font-family: sans-serif;
             display: flex;
             flex-direction: column;
-            height: 90vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        /* --- HEADER & HUD --- */
-        .hud {
-            background: #161b22;
+        /* --- HUD --- */
+        #hud {
+            background: var(--hud-bg);
             padding: 15px;
-            border-bottom: 1px solid #30363d;
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            border-bottom: 2px solid #444;
+            z-index: 100;
         }
+        .hud-item { font-size: 1.2rem; font-weight: bold; }
+        .antidote-icon { color: var(--accent); margin-right: 5px; }
+        .antidote-lost { color: #555; }
 
-        .hud-stat {
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .progress-bar-container {
-            width: 200px;
-            height: 10px;
-            background: #30363d;
-            border-radius: 5px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--accent-cyan);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        .antidote-counter {
-            color: var(--accent-green);
-            font-weight: bold;
-            font-size: 1.2rem;
-            text-shadow: 0 0 10px rgba(46, 160, 67, 0.5);
-        }
-
-        /* --- MAIN SCREEN AREA --- */
-        .screen-content {
+        /* --- GAME VIEW CONTAINER --- */
+        #game-view {
             flex-grow: 1;
-            padding: 30px;
-            overflow-y: auto;
             position: relative;
-        }
-
-        .story-section {
-            display: none;
-            animation: fadeIn 0.6s ease;
-        }
-
-        .story-section.active {
-            display: block;
-        }
-
-        h2 { color: var(--accent-cyan); border-bottom: 1px dashed #30363d; padding-bottom: 10px; }
-        .narrative { line-height: 1.6; margin-bottom: 20px; font-size: 1.1rem; }
-        .highlight { color: var(--accent-cyan); font-weight: bold; }
-        
-        /* --- INTERACTIVE ELEMENTS --- */
-        .puzzle-box {
-            background: rgba(48, 54, 61, 0.3);
-            border: 1px solid var(--accent-cyan);
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-
-        button {
-            background: transparent;
-            border: 1px solid var(--accent-green);
-            color: var(--accent-green);
-            padding: 10px 20px;
-            font-family: var(--font-mono);
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.2s;
-            border-radius: 4px;
-        }
-
-        button:hover { background: rgba(46, 160, 67, 0.1); }
-        button.danger { border-color: var(--accent-red); color: var(--accent-red); }
-        button.danger:hover { background: rgba(218, 54, 51, 0.1); }
-
-        /* --- VISUALS (CSS ART) --- */
-        
-        /* 1. Radar / Thermal View */
-        .radar-view {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 2px solid var(--accent-red);
-            background: radial-gradient(circle, transparent 20%, rgba(218, 54, 51, 0.1) 20%);
-            position: relative;
-            margin: 20px auto;
-            overflow: hidden;
-        }
-        .radar-line {
-            width: 50%;
-            height: 2px;
-            background: var(--accent-red);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform-origin: 0 0;
-            animation: scan 2s infinite linear;
-        }
-        .heat-spot {
-            width: 10px;
-            height: 10px;
-            background: red;
-            border-radius: 50%;
-            position: absolute;
-            top: 30%;
-            left: 70%;
-            box-shadow: 0 0 10px red;
-            cursor: pointer;
-        }
-
-        /* 2. Frequency Waves */
-        .wave-container {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            height: 60px;
-            align-items: center;
-            margin: 20px 0;
-        }
-        .bar {
-            width: 6px;
-            background: var(--accent-cyan);
-            animation: sound 1s infinite ease-in-out;
-        }
-        
-        /* 3. Fog Effect */
-        .fog-overlay {
-            position: relative;
-            height: 100px;
-            background: #222;
-            border: 1px solid #555;
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
+            perspective: 1000px;
             overflow: hidden;
         }
-        .fog-cloud {
+
+        /* --- GENERIC SCENE STYLES --- */
+        .scene {
             position: absolute;
             width: 100%;
             height: 100%;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(8px);
-            transition: opacity 1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Default Carriage Background */
+            background: linear-gradient(to bottom, #2c3e50, #1a252f);
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
         }
-        .hidden-code { font-size: 2rem; letter-spacing: 5px; font-weight: bold; color: white; }
-
-        /* 4. Microscope View (Needle) */
-        .microscope {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            border: 5px solid #444;
-            margin: 0 auto;
-            background: #fff;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-        }
-        .needle-smooth {
-            width: 100%;
-            height: 10px;
-            background: #333;
-            position: absolute;
-            top: 60%;
-            transform: rotate(-15deg);
-        }
-        .needle-serrated {
-            width: 100%;
-            height: 10px;
-            background: repeating-linear-gradient(45deg, #333, #333 5px, #fff 5px, #fff 7px);
-            position: absolute;
-            top: 40%;
-            transform: rotate(-15deg);
-        }
-
-        /* --- ANIMATIONS --- */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes sound { 0%, 100% { height: 10px; } 50% { height: 50px; } }
         
-        .shake { animation: shake 0.5s; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+        /* Dialog Box for Context */
+        .dialog-box {
+            position: absolute;
+            bottom: 20px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid var(--accent);
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
+            text-align: center;
+            z-index: 90;
+        }
+
+        /* --- LEVEL 1: THE NEEDLE (DRAG & DROP) --- */
+        #l1-arm {
+            width: 300px; height: 100px; background: #dca; border-radius: 50px; position: relative;
+            box-shadow: inset 0 -10px rgba(0,0,0,0.2);
+        }
+        #l1-target-zone {
+            width: 60px; height: 60px; background: rgba(255,0,0,0.3); border-radius: 50%;
+            position: absolute; top: 20px; left: 120px; border: 2px dashed #f00;
+        }
+        #l1-needle-device {
+            width: 150px; height: 40px; background: #555; position: absolute; bottom: 150px; left: 50px;
+            border-radius: 5px; display: flex; align-items: center;
+        }
+        #l1-needle-tip {
+            width: 50px; height: 4px; background: silver; position: absolute; right: -50px;
+        }
+        .draggable-cover {
+            width: 60px; height: 20px; background: var(--accent); border-radius: 10px;
+            position: absolute; bottom: 150px; right: 50px; cursor: grab;
+            box-shadow: 0 0 10px var(--accent);
+            display: flex; justify-content: center; align-items: center; font-size: 0.7rem; color:black; font-weight:bold;
+        }
+
+        /* --- LEVEL 2: THERMAL (FLASHLIGHT HOVER) --- */
+        #l2-container {
+            width: 100%; height: 100%; background: #000; position: relative; cursor: none;
+        }
+        .heat-hazard {
+            position: absolute; width: 100px; height: 100px; background: red; border-radius: 50%;
+            filter: blur(30px); opacity: 0; transition: opacity 0.2s;
+        }
+        .safe-path {
+            position: absolute; width: 80px; height: 80px; background: blue; border-radius: 50%;
+            filter: blur(20px); opacity: 0; transition: opacity 0.2s; cursor: pointer;
+        }
+        #flashlight {
+            position: absolute; width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%);
+            pointer-events: none; transform: translate(-50%, -50%); z-index: 10;
+        }
+
+        /* --- LEVEL 3: FOG (CANVAS WIPE) --- */
+        #l3-door {
+            width: 300px; height: 400px; background: #34495e; border: 5px solid #2c3e50; position: relative;
+            display: flex; justify-content: center; align-items: center;
+        }
+        #l3-keypad {
+            font-size: 3rem; color: var(--accent); letter-spacing: 10px; font-family: monospace;
+        }
+        #fog-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;
+        }
+        #l3-input-area {
+            position: absolute; bottom: -60px; display: flex; gap: 10px;
+        }
+        #l3-code-input { background: #111; color: var(--accent); border: 1px solid var(--accent); padding: 5px; font-size: 1.2rem; width: 100px;}
+
+        /* --- LEVEL 4: DRONE (SLIDER BALANCE) --- */
+        #l4-wind-tunnel {
+            width: 80%; height: 300px; background: linear-gradient(90deg, #333, #444, #333);
+            position: relative; overflow: hidden; border-top: 5px solid #222; border-bottom: 5px solid #222;
+        }
+        .wind-particle {
+            position: absolute; width: 50px; height: 2px; background: rgba(255,255,255,0.5);
+            animation: windMove 1s linear infinite;
+        }
+        #l4-drone {
+            width: 60px; height: 20px; background: #888; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); border-radius: 10px; transition: all 0.3s ease-out;
+        }
+        #l4-drone::before, #l4-drone::after { /* Propellers */
+            content: ''; position: absolute; width: 30px; height: 4px; background: #aaa; top: -10px;
+            animation: spin 0.1s linear infinite;
+        }
+        #l4-drone::before { left: 0; } #l4-drone::after { right: 0; }
+        
+        #l4-controls { position: absolute; bottom: 100px; width: 300px; text-align: center;}
+        input[type=range] { width: 100%; cursor: pointer; }
+
+        /* Animations */
+        @keyframes windMove { from { left: -50px; } to { left: 100%; } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .shake-hard { animation: shake 0.2s infinite; background: var(--danger) !important; }
+        @keyframes shake { 0% { transform: translate(-50%, -50%) rotate(5deg); } 50% { transform: translate(-50%, -50%) rotate(-5deg); } 100% { transform: translate(-50%, -50%) rotate(5deg); } }
+
+        /* --- END SCREEN --- */
+        .end-screen { text-align: center; }
+        .end-screen h1 { font-size: 3rem; }
+        button { background: var(--accent); border: none; padding: 10px 30px; font-size: 1.2rem; cursor: pointer; color: #000; font-weight: bold; margin-top: 20px;}
 
     </style>
 </head>
 <body>
 
-<div id="terminal">
-    <div class="hud">
-        <div class="hud-stat">
-            <span>התקדמות:</span>
-            <div class="progress-bar-container">
-                <div id="progress-fill" class="progress-bar-fill"></div>
-            </div>
-            <span id="car-number">מעבדה</span>
-        </div>
-        <div class="hud-stat">
-            מזרקי נוגדן: <span id="antidote-count" class="antidote-counter">6</span>
+    <div id="hud">
+        <div class="hud-item">מיקום: <span id="loc-text">מעבדה</span></div>
+        <div class="hud-item">
+            נוגדנים: <span id="antidotes-container">
+                <span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span>
+            </span>
         </div>
     </div>
 
-    <div class="screen-content">
-        
-        <div id="intro" class="story-section active">
-            <h2>יומן ניסוי: שלב 0 - המעבדה</h2>
-            <div class="narrative">
-                <p>לפני שאתה מתעורר ברכבת, אתה זוכר את המעבדה הלבנה. ד"ר ארקדיוס עומד מעליך.</p>
-                <p>"בני האדם מגושמים," הוא ממלמל, מכוון אליך מיקרוסקופ ענק. "תראה את היתוש. תראה את החדק שלו. זה לא סתם צינור, זו יצירת מופת."</p>
-                <p>הוא מזריק לך נוזל ירוק זוהר.</p>
-                <p>"זהו סרום סימון. החיישנים ברכבת מכויילים לזהות אותך כמו שהיתוש מזהה קורבן. אבל אם תחשוב כמו יתוש... אולי תצליח לשרוד. יש לך 6 נוגדנים. אל תבזבז אותם על טעויות."</p>
-            </div>
-            <button onclick="nextLevel(1)">התעורר ברכבת</button>
+    <div id="game-view">
         </div>
-
-        <div id="car-1" class="story-section">
-            <h2>קרון 1: הדקירה הבלתי מורגשת</h2>
-            <div class="narrative">
-                <p>אתה מתעורר. ילדה קטנה חוסמת את הדלת. היא צריכה חיסון כדי לזוז, אבל היא בבעתה מהמחט.</p>
-                <p>בארגז הכלים שלך יש שני סוגי מחטים. המיקרוסקופ מראה את המבנה שלהן:</p>
-            </div>
-            <div class="microscope">
-                <div class="needle-smooth" title="מחט חלקה רגילה"></div>
-                <div class="needle-serrated" title="מחט ביומימטית"></div>
-            </div>
-            <div class="puzzle-box">
-                <p>באיזו מחט תבחר כדי שהילדה לא תרגיש את הדקירה?</p>
-                <button class="danger" onclick="wrongAnswer('בחרת במחט החלקה הרגילה. זה כאב לה. היא זזה והמחט נשברה. איבדת מנה.')">מחט חלקה וישרה</button>
-                <button onclick="correctAnswer(2, 'בחרת במחט המשוננת (Micro-serrated). השינון מפחית את המגע עם העצבים. הילדה לא הרגישה כלום.')">מחט משוננת רוטטת</button>
-            </div>
-        </div>
-
-        <div id="car-2" class="story-section">
-            <h2>קרון 2: ראיית חום (Thermal)</h2>
-            <div class="narrative">
-                <p>הקרון חשוך לחלוטין. יש כאן דליפת גז רותח בלתי נראה. אם תעבור דרכה - תמות.</p>
-                <p>יתושים משתמשים בחיישני חום כדי למצוא כלי דם. אתה מפעיל את משקפי ה-IR שלך.</p>
-            </div>
-            <div class="radar-view">
-                <div class="radar-line"></div>
-                <div class="heat-spot" onclick="correctAnswer(3, 'זיהית את מקור החום ועקפת אותו בבטחה.')"></div>
-            </div>
-            <div class="puzzle-box">
-                <p>המשקפיים מראים נקודה אדומה לוהטת בצד ימין. לחץ עליה כדי לסמן למערכת לעקוף אותה.</p>
-            </div>
-        </div>
-
-        <div id="car-3" class="story-section">
-            <h2>קרון 3: משטח המים</h2>
-            <div class="narrative">
-                <p>הקרון הזה מוצף במים חומציים בגובה הקרסול. אי אפשר לדרוך על הרצפה.</p>
-                <p>יש כאן רפסודות זעירות הפועלות על עקרון <strong>מתח הפנים</strong>, כמו רגלי היתוש העומדות על המים.</p>
-            </div>
-            <div class="puzzle-box">
-                <p>איך עליך להניח את הרגליים/רפסודות כדי לא לשקוע?</p>
-                <button class="danger" onclick="wrongAnswer('הפעלת כוח ממוקד מדי. מתח הפנים נשבר. שקעת למים החומציים.')">דריכה חזקה ונקודתית</button>
-                <button onclick="correctAnswer(4, 'פיזרת את המשקל על שטח פנים רחב תוך ניצול קשרי המימן במים. אתה צף.')">פיזור משקל אופקי (Hydrophobic legs)</button>
-            </div>
-        </div>
-
-        <div id="car-4" class="story-section">
-            <h2>קרון 4: ייצוב טיסה</h2>
-            <div class="narrative">
-                <p>מאווררי ענק יוצרים רוח הוריקן. אתה חייב לשגר רחפן זעיר לצד השני כדי ללחוץ על הכפתור.</p>
-                <p>רחפנים רגילים מתרסקים. עליך להפעיל את מצב "Halteres" (בוכניות האיזון של היתוש).</p>
-            </div>
-            <div class="wave-container">
-                <div class="bar" style="animation-duration: 0.2s"></div>
-                <div class="bar" style="animation-duration: 0.5s"></div>
-                <div class="bar" style="animation-duration: 0.3s"></div>
-                <div class="bar" style="animation-duration: 0.2s"></div>
-            </div>
-            <div class="puzzle-box">
-                <p>הכנס את תדר הרטט הנכון (בין 500 ל-600 הרץ) לייצוב:</p>
-                <input type="number" id="freq-input" placeholder="Hz" style="background:#000; color:#fff; border:1px solid #555; padding:5px;">
-                <button onclick="checkFreq()">שגר רחפן</button>
-            </div>
-        </div>
-
-        <div id="car-5" class="story-section">
-            <h2>קרון 5: חדר השינה</h2>
-            <div class="narrative">
-                <p>שומרים רובוטיים ישנים בקרון. הם רגישים לתנועה.</p>
-                <p>היתוש ממריא בצורה ייחודית: הוא קודם כל מנופף בכנפיים ורק אז דוחף עם הרגליים, כדי למנוע "בעיטה" מורגשת בעור.</p>
-            </div>
-            <div class="puzzle-box">
-                <p>איך תתגנב מעל הלוחיות הרגישות ברצפה?</p>
-                <button class="danger" onclick="wrongAnswer('דחיפה חזקה הפעילה את החיישנים. השומרים התעוררו.')">קפיצה מהירה (דחיפת רגליים)</button>
-                <button onclick="correctAnswer(6, 'המראה רכה. קודם יצרת עילוי, ורק אז ניתקת מגע. החיישנים לא זיהו לחץ.')">המראה מבוססת כנפיים (Wing-first)</button>
-            </div>
-        </div>
-
-        <div id="car-6" class="story-section">
-            <h2>קרון 6: גנטיקה ומיון</h2>
-            <div class="narrative">
-                <p>אתה בחדר מלא במיכלי יתושים משוכפלים. הדלת תיפתח רק אם תזהה את היתוש ש<strong>לא</strong> עוקץ.</p>
-                <p>ידע כללי ביומימטי: רק הנקבות עוקצות (זקוקות לחלבון לביצים). הזכרים ניזונים מצוף.</p>
-            </div>
-            <div class="puzzle-box">
-                <p>איזה מיכל תשחרר כדי שיהיה בטוח לעבור?</p>
-                <button class="danger" onclick="wrongAnswer('שחררת נקבות! הן רעבות לדם. היית צריך להזריק נוגדן.')">מיכל יתושים עם בטן אדומה (נקבות)</button>
-                <button onclick="correctAnswer(7, 'נכון! הזכרים אינם עוקצים. המעבר בטוח.')">מיכל יתושים עם מחושים נוצתיים (זכרים)</button>
-            </div>
-        </div>
-
-        <div id="car-7" class="story-section">
-            <h2>קרון 7: הערפל</h2>
-            <div class="narrative">
-                <p>הקוד לדלת כתוב על הזכוכית, אבל הכל מכוסה אדים. ניגוב רגיל רק מורח את המים.</p>
-                <p>השתמש בתרסיס ננו-מטרי (השראת עיני יתוש) הדוחה מים באופן מוחלט.</p>
-            </div>
-            <div class="fog-overlay" onclick="clearFog(this)">
-                <div class="fog-cloud"></div>
-                <div class="hidden-code">8841</div>
-            </div>
-            <div class="puzzle-box">
-                <p>לחץ על הערפל כדי להפעיל את הציפוי ההידרופובי.</p>
-                <p>מה הקוד?</p>
-                <input type="text" id="code-input" style="background:#000; color:#fff; border:1px solid #555; padding:5px;">
-                <button onclick="checkCode()">פתח דלת</button>
-            </div>
-        </div>
-
-        <div id="car-8" class="story-section">
-            <h2>קרון 8: התנגשות</h2>
-            <div class="narrative">
-                <p>מסדרון צר מלא בקרני לייזר נעים במהירות. קשה לחשב את המסלול.</p>
-                <p>יתושים משתמשים במחושים כדי לחוש שינויים בלחץ האוויר סביב חפצים מתקרבים, עוד לפני שהם נוגעים בהם.</p>
-            </div>
-            <div class="puzzle-box">
-                <p>המערכת מזהה "דחיסת אוויר" משמאל. לאן תזוז?</p>
-                <button class="danger" onclick="wrongAnswer('זזת שמאלה ישר לתוך הלייזר.')">שמאלה</button>
-                <button onclick="correctAnswer(9, 'הרגשת את לחץ האוויר וזזת ימינה בזמן.')">ימינה</button>
-            </div>
-        </div>
-
-        <div id="car-9" class="story-section">
-            <h2>קרון 9: המלכודת הכימית</h2>
-            <div class="narrative">
-                <p>שני פתחי אוורור. אחד מוביל החוצה, השני מוביל למיכל גז. אין שילוט.</p>
-                <p>היתוש מזהה CO2 (פחמן דו-חמצני) ממרחקים כדי למצוא חיים. כאן, אתה מחפש אוויר צח (פחות CO2).</p>
-            </div>
-            <div class="puzzle-box">
-                <div style="display:flex; justify-content:space-around;">
-                    <div style="text-align:center">
-                        <div>פתח א'</div>
-                        <div style="color:red">CO2: 4500ppm</div>
-                    </div>
-                    <div style="text-align:center">
-                        <div>פתח ב'</div>
-                        <div style="color:green">CO2: 400ppm</div>
-                    </div>
-                </div>
-                <p>לאן תלך?</p>
-                <button class="danger" onclick="wrongAnswer('הלכת למקור ה-CO2 הגבוה. זה היה אגזוז המנוע. נחנקת.')">פתח א'</button>
-                <button onclick="correctAnswer(10, 'זיהית את ריכוז ה-CO2 הנמוך של האוויר הצח.')">פתח ב'</button>
-            </div>
-        </div>
-
-        <div id="car-10" class="story-section">
-            <h2>קרון 10: ד"ר ארקדיוס</h2>
-            <div class="narrative">
-                <p>הגעת לקטר. ארקדיוס יושב בחושך. "אתה שומע את זה?" הוא לוחש.</p>
-                <p>יתושים שומעים באמצעות איבר ג'ונסטון במחושים, המכויל לתדרים ספציפיים.</p>
-                <p>יש כאן שלושה מפסקים. רק אחד משמיע זמזום בתדר 400Hz (תדר הנקבה). השאר הם מלכודות.</p>
-            </div>
-            <div class="wave-container">
-                <button onclick="playAudio(1)">מתג 1 (200Hz)</button>
-                <button onclick="playAudio(2)">מתג 2 (400Hz)</button>
-                <button onclick="playAudio(3)">מתג 3 (800Hz)</button>
-            </div>
-            <div class="puzzle-box">
-                <p>איזה מתג תשבור?</p>
-                <button class="danger" onclick="wrongAnswer('תדר נמוך מדי. זה היה מלכודת.')">מתג 1</button>
-                <button onclick="finishGame()">מתג 2</button>
-                <button class="danger" onclick="wrongAnswer('תדר גבוה מדי. התחשמלת.')">מתג 3</button>
-            </div>
-        </div>
-
-        <div id="screen-win" class="story-section">
-            <h1 style="color:var(--accent-green)">ניצחון ביומימטי!</h1>
-            <p>שברת את המתג הנכון. הרכבת עוצרת. הדלתות נפתחות.</p>
-            <p>הבנת את המכונה של הטבע, והשתמשת בה כדי להביס את המכונה של האדם.</p>
-            <p>נוגדנים שנותרו: <span id="final-score"></span>/6</p>
-            <button onclick="location.reload()">שחק שוב</button>
-        </div>
-
-        <div id="screen-lose" class="story-section">
-            <h1 style="color:var(--accent-red)">כישלון מערכתי</h1>
-            <p>אזלו הנוגדנים. הרעל הכריע אותך.</p>
-            <p>ד"ר ארקדיוס רושם ביומן: "נסיין 894 נכשל בהסתגלות."</p>
-            <button onclick="location.reload()">נסה שוב</button>
-        </div>
-
-    </div>
-</div>
 
 <script>
-    // Game State
-    let state = {
-        antidotes: 6,
-        currentLevel: 0
+    // --- STATE ---
+    let gameState = {
+        level: 0,
+        antidotes: 6
+    };
+    const gameView = document.getElementById('game-view');
+    const locText = document.getElementById('loc-text');
+    const antidotesContainer = document.getElementById('antidotes-container');
+
+    // --- CORE FUNCTIONS ---
+    function updateHUD() {
+        const icons = antidotesContainer.children;
+        for (let i = 0; i < 6; i++) {
+            if (i < gameState.antidotes) {
+                icons[i].classList.remove('antidote-lost');
+                icons[i].classList.add('antidote-icon');
+            } else {
+                icons[i].classList.remove('antidote-icon');
+                icons[i].classList.add('antidote-lost');
+            }
+        }
+        if (gameState.antidotes <= 0) loadLevel('lose');
+    }
+
+    function fail() {
+        gameState.antidotes--;
+        updateHUD();
+        // Visual feedback flash
+        gameView.style.boxShadow = "inset 0 0 100px var(--danger)";
+        setTimeout(() => gameView.style.boxShadow = "none", 500);
+    }
+
+    function nextLevel() {
+        gameState.level++;
+        loadLevel(gameState.level);
+    }
+
+    function setDialog(text) {
+        const dialog = document.querySelector('.dialog-box');
+        if(dialog) dialog.innerText = text;
+    }
+
+    // --- LEVEL RENDERERS ---
+
+    const levels = {
+        0: () => { // INTRO
+            locText.innerText = "מעבדה";
+            gameView.innerHTML = `
+                <div class="scene" style="background: #ccc;">
+                    <h1 style="color:#111">פרויקט CULEX</h1>
+                    <div class="dialog-box">ברוך הבא לניסוי. עליך לשרוד את הרכבת באמצעות עקרונות הביומימיקרי של היתוש. הכל כאן ויזואלי. אל תחשוב - תפעל.</div>
+                    <button onclick="nextLevel()" style="position:absolute; top:60%;">התחל</button>
+                </div>
+            `;
+        },
+        1: () => { // NEEDLE DRAG
+            locText.innerText = "קרון 1";
+            gameView.innerHTML = `
+                <div class="scene">
+                    <div id="l1-arm"><div id="l1-target-zone"></div></div>
+                    <div id="l1-needle-device">
+                        <div id="l1-needle-tip"></div>
+                    </div>
+                    <div class="draggable-cover" draggable="true" id="bio-cover">כיסוי רוטט</div>
+                    <div class="dialog-box">הילדה מפחדת מהמחט החשופה. גרור את הכיסוי הביומימטי (הרוטט) אל קצה המחט כדי להסוות אותה לפני ההזרקה.</div>
+                </div>
+            `;
+            
+            const cover = document.getElementById('bio-cover');
+            const target = document.getElementById('l1-needle-tip');
+            const device = document.getElementById('l1-needle-device');
+            const armTarget = document.getElementById('l1-target-zone');
+
+            cover.addEventListener('dragstart', e => {
+                e.dataTransfer.setData('text/plain', null); // Required for Firefox
+                setTimeout(() => cover.style.display = 'none', 0);
+            });
+
+            cover.addEventListener('dragend', () => cover.style.display = 'flex');
+
+            target.addEventListener('dragover', e => e.preventDefault());
+            target.addEventListener('drop', e => {
+                e.preventDefault();
+                // Success visualization: Cover attaches to needle
+                target.style.background = 'var(--accent)';
+                target.style.width = '60px';
+                target.style.borderRadius = '10px';
+                cover.remove();
+                setDialog("המחט מוסווית. כעת לחץ על המכשיר כדי להזריק.");
+
+                // Phase 2: Click to inject
+                device.style.cursor = 'pointer';
+                device.onclick = () => {
+                    device.style.transform = "translate(70px, -130px)";
+                    setTimeout(() => {
+                        if(target.style.background === 'var(--accent)') {
+                            nextLevel();
+                        }
+                    }, 500);
+                };
+            });
+
+            // Trap: clicking needle without cover
+            device.onclick = () => {
+                 device.style.transform = "translate(70px, -130px)";
+                 setTimeout(() => {
+                     fail();
+                     setDialog("טעות! הזרקת עם מחט חשופה. הילדה זזה והמחט נשברה.");
+                     device.style.transform = "translate(0, 0)"; // Reset
+                 }, 500);
+            };
+        },
+        2: () => { // THERMAL FLASHLIGHT
+            locText.innerText = "קרון 4 (תרמי)";
+            gameView.innerHTML = `
+                <div class="scene" id="l2-container">
+                    <div id="flashlight"></div>
+                    <div class="heat-hazard" style="top:20%; left:30%"></div>
+                    <div class="heat-hazard" style="top:60%; left:70%"></div>
+                    <div class="heat-hazard" style="top:80%; left:20%"></div>
+                    <div class="safe-path" id="l2-goal" style="top:40%; left:50%"></div>
+                    <div class="dialog-box" style="pointer-events:none;">הקרון חשוך ומלא בקיטור רותח. הזז את העכבר כדי להשתמש בראייה התרמית. מצא את האזור הקר (הכחול) ולחץ עליו. האדום יהרוג אותך.</div>
+                </div>
+            `;
+
+            const container = document.getElementById('l2-container');
+            const flashlight = document.getElementById('flashlight');
+            const hazards = document.querySelectorAll('.heat-hazard');
+            const safe = document.querySelector('.safe-path');
+
+            container.addEventListener('mousemove', e => {
+                const rect = container.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                flashlight.style.left = x + 'px';
+                flashlight.style.top = y + 'px';
+
+                // Reveal elements near flashlight
+                [...hazards, safe].forEach(el => {
+                    const elRect = el.getBoundingClientRect();
+                    const elX = elRect.left + elRect.width/2 - rect.left;
+                    const elY = elRect.top + elRect.height/2 - rect.top;
+                    const dist = Math.sqrt((x-elX)**2 + (y-elY)**2);
+                    el.style.opacity = dist < 100 ? 1 : 0;
+                });
+            });
+
+            hazards.forEach(h => h.addEventListener('click', () => {
+                fail();
+                setDialog("נכנסת לזרם קיטור רותח! נסה שוב.");
+            }));
+
+            safe.addEventListener('click', nextLevel);
+        },
+        3: () => { // FOG WIPE
+            locText.innerText = "קרון 7 (ערפל)";
+            gameView.innerHTML = `
+                <div class="scene">
+                    <div id="l3-door">
+                        <div id="l3-keypad">4921</div>
+                        <canvas id="fog-canvas" width="300" height="400"></canvas>
+                    </div>
+                    <div id="l3-input-area">
+                        <input type="text" id="l3-code-input" placeholder="קוד" maxlength="4">
+                        <button onclick="checkCodeL3()">פתח</button>
+                    </div>
+                    <div class="dialog-box">הדלת נעולה והקוד מכוסה אדים. גרור את העכבר על הזכוכית כדי לנגב את האדים ולגלות את הקוד. מהר, הם חוזרים!</div>
+                </div>
+            `;
+
+            const canvas = document.getElementById('fog-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Fill with fog
+            ctx.fillStyle = 'rgba(200, 210, 220, 0.95)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            let isDrawing = false;
+
+            canvas.onmousedown = () => isDrawing = true;
+            canvas.onmouseup = () => isDrawing = false;
+            canvas.onmousemove = (e) => {
+                if (!isDrawing) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(x, y, 25, 0, Math.PI * 2);
+                ctx.fill();
+            };
+
+            // Regenerate fog (challenge mechanic)
+            setInterval(() => {
+                 ctx.globalCompositeOperation = 'source-over';
+                 ctx.fillStyle = 'rgba(200, 210, 220, 0.05)';
+                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }, 100);
+
+            window.checkCodeL3 = () => {
+                const input = document.getElementById('l3-code-input');
+                if (input.value === '4921') nextLevel();
+                else {
+                    fail(); input.value=''; setDialog("קוד שגוי.");
+                }
+            };
+        },
+        4: () => { // DRONE STABILIZER
+            locText.innerText = "קרון 9 (רוח)";
+            gameView.innerHTML = `
+                <div class="scene">
+                    <div id="l4-wind-tunnel">
+                        ${Array(10).fill('<div class="wind-particle" style="top:'+Math.random()*100+'%; animation-delay:-'+Math.random()+'s"></div>').join('')}
+                        <div id="l4-drone"></div>
+                    </div>
+                    <div id="l4-controls">
+                        <input type="range" id="l4-slider" min="0" max="100" value="0">
+                        <p>תדר ייצוב: <span id="freq-val">0</span>Hz</p>
+                    </div>
+                     <div class="dialog-box" style="bottom: 150px;">יש רוח חזקה. הרחפן לא יציב. הזז את הסליידר כדי למצוא את תדר הרטט (כמו של היתוש) שייצב אותו במרכז.</div>
+                </div>
+            `;
+            
+            const slider = document.getElementById('l4-slider');
+            const drone = document.getElementById('l4-drone');
+            const freqVal = document.getElementById('freq-val');
+            let stableTimer;
+
+            slider.oninput = (e) => {
+                const val = parseInt(e.target.value);
+                freqVal.innerText = val * 10; // Simulate Hz
+                
+                // Target range: 55-65 on slider (550-650Hz)
+                if (val > 55 && val < 65) {
+                    drone.style.top = '50%';
+                    drone.classList.remove('shake-hard');
+                    drone.style.background = 'var(--accent)';
+                    
+                    clearTimeout(stableTimer);
+                    stableTimer = setTimeout(() => {
+                        setDialog("הרחפן יציב! עובר לקרון הבא...");
+                        setTimeout(nextLevel, 1500);
+                    }, 1000); // Must hold stable for 1s
+
+                } else {
+                    // Unstable visualization
+                    const offset = (val - 60) * 2; // Calculate offset from center
+                    drone.style.top = `${50 + offset}%`;
+                    drone.classList.add('shake-hard');
+                    drone.style.background = 'var(--danger)';
+                    clearTimeout(stableTimer);
+                }
+            };
+            // Trigger initial shake
+            slider.dispatchEvent(new Event('input'));
+        },
+        'win': () => {
+             gameView.innerHTML = `
+                <div class="scene end-screen" style="background: #002200;">
+                    <h1 style="color:var(--accent)">ניצחון!</h1>
+                    <p>שרדת את הרכבת באמצעות עקרונות הביומימיקרי.</p>
+                    <p>נוגדנים שנותרו: ${gameState.antidotes}</p>
+                    <button onclick="location.reload()">שחק שוב</button>
+                </div>
+            `;
+        },
+        'lose': () => {
+             gameView.innerHTML = `
+                <div class="scene end-screen" style="background: #220000;">
+                    <h1 style="color:var(--danger)">נכשלת</h1>
+                    <p>אזלו הנוגדנים.</p>
+                    <button onclick="location.reload()">נסה שוב</button>
+                </div>
+            `;
+        }
     };
 
-    // DOM Elements
-    const elAntidotes = document.getElementById('antidote-count');
-    const elProgressBar = document.getElementById('progress-fill');
-    const elCarNum = document.getElementById('car-number');
-
-    function updateHUD() {
-        elAntidotes.innerText = state.antidotes;
-        const progress = (state.currentLevel / 10) * 100;
-        elProgressBar.style.width = `${progress}%`;
-        
-        if (state.antidotes <= 0) {
-            showScreen('screen-lose');
-        }
+    function loadLevel(lvl) {
+        if (levels[lvl]) levels[lvl]();
+        else if (lvl > 4) loadLevel('win');
     }
 
-    function showScreen(id) {
-        document.querySelectorAll('.story-section').forEach(el => el.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function nextLevel(levelNum) {
-        state.currentLevel = levelNum;
-        elCarNum.innerText = `קרון ${levelNum}`;
-        updateHUD();
-        showScreen(`car-${levelNum}`);
-    }
-
-    function correctAnswer(nextLevelNum, msg) {
-        alert("הצלחה: " + msg);
-        if (nextLevelNum > 10) {
-            finishGame();
-        } else {
-            nextLevel(nextLevelNum);
-        }
-    }
-
-    function wrongAnswer(msg) {
-        alert("שגיאה: " + msg + " (איבדת נוגדן)");
-        state.antidotes--;
-        updateHUD();
-        document.getElementById('terminal').classList.add('shake');
-        setTimeout(() => document.getElementById('terminal').classList.remove('shake'), 500);
-    }
-
-    // Specific Puzzle Logic
-    
-    // Car 4: Freq
-    function checkFreq() {
-        const val = parseInt(document.getElementById('freq-input').value);
-        if (val >= 500 && val <= 600) {
-            correctAnswer(5, "התדר התייצב. הרחפן חצה את הרוח.");
-        } else {
-            wrongAnswer("תדר לא יציב. הרחפן התרסק.");
-        }
-    }
-
-    // Car 7: Fog
-    function clearFog(el) {
-        el.querySelector('.fog-cloud').style.opacity = '0';
-    }
-
-    function checkCode() {
-        if (document.getElementById('code-input').value === '8841') {
-            correctAnswer(8, "הדלת נפתחה.");
-        } else {
-            wrongAnswer("קוד שגוי.");
-        }
-    }
-
-    // Car 10: Audio simulation
-    function playAudio(type) {
-        // Just visual simulation via alert for simplicity in this file
-        if (type === 2) alert("*זמזום יתוש מדויק בתדר 400Hz*");
-        else alert("*רעש סטטי צורם*");
-    }
-
-    function finishGame() {
-        document.getElementById('final-score').innerText = state.antidotes;
-        showScreen('screen-win');
-    }
+    // START GAME
+    loadLevel(0);
 
 </script>
-
 </body>
 </html>
