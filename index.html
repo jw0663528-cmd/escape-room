@@ -3,289 +3,395 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Biomimicry Express Journey</title>
+    <title>Biomimicry Express: Full Journey</title>
     <style>
         :root {
-            --overlay-bg: rgba(44, 28, 18, 0.9);
-            --text-color: #f0e6d2;
-            --accent-color: #e7b36a;
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --accent: #4caf50; /* Green for nature/biomimicry */
+            --highlight: #ff9800;
+            --error: #f44336;
         }
 
         body {
             margin: 0;
-            padding: 0;
-            height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', sans-serif;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            background-color: #1a1a1a;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
+            height: 100vh;
+            box-sizing: border-box;
         }
 
-        #game-container {
+        /* --- LAYOUT --- */
+        #main-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 95vw;
+            max-width: 1400px;
+            gap: 15px;
+        }
+
+        /* --- 1. GAME VIEW (IMAGE) --- */
+        #game-viewport {
             position: relative;
             width: 100%;
-            max-width: 1200px;
+            /* Force 16:9 aspect ratio to match the image exactly */
             aspect-ratio: 16 / 9;
-            /* Using the image source provided in the prompt's HTML snippet */
             background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png');
             background-size: cover;
             background-position: center;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            border-radius: 12px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 2px solid #333;
             overflow: hidden;
+            cursor: crosshair;
         }
 
-        /* --- HUD --- */
-        #hud {
+        /* --- HOTSPOTS (Interactable Areas) --- */
+        .hotspot {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: var(--overlay-bg);
-            color: var(--text-color);
-            padding: 15px 25px;
-            border-radius: 8px;
-            border: 2px solid var(--accent-color);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
-            max-width: 300px;
+            z-index: 10;
+            cursor: pointer;
+            /* Hidden by default, toggle class to see them for debugging */
+            background-color: rgba(255, 255, 255, 0); 
+            transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        /* Debug mode style */
+        .hotspot.debug-visible {
+            background-color: rgba(0, 255, 0, 0.2); /* Semi-transparent green */
+            border: 2px dashed #fff;
+        }
+
+        /* Wrong click feedback */
+        .hotspot.shake {
+            animation: shake 0.4s ease-in-out;
+            background-color: rgba(255, 0, 0, 0.4) !important;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* --- 2. CONTROL PANEL (Text) --- */
+        #control-panel {
+            background-color: var(--panel-bg);
+            padding: 20px 30px;
+            border-radius: 12px;
+            border-left: 5px solid var(--accent);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 120px;
+        }
+
+        #mission-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
         #mission-title {
-            margin: 0 0 10px 0;
-            color: var(--accent-color);
-            font-size: 1.2rem;
+            font-size: 1.4rem;
+            color: var(--highlight);
+            margin: 0;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        #mission-text {
-            font-size: 0.95rem;
-            line-height: 1.4;
+        #progress-counter {
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #888;
         }
 
-        /* --- INTERACTIVE HOTSPOTS --- */
-        .hotspot {
-            position: absolute;
-            /* Using opacity 0 makes them invisible but clickable. 
-               Change to opacity: 0.3 and bg-color: red to debug positions. */
-            opacity: 0; 
-            cursor: pointer;
-            display: none; /* Hidden by default until activated */
+        #mission-instruction {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: #ddd;
         }
 
-        /* Coordinates mapped to the specific image provided */
-        #spot-cat {
-            top: 16%;
-            left: 21%;
-            width: 10%;
-            height: 10%;
-            border-radius: 50%;
-        }
-
-        #spot-hat {
-            top: 27%;
-            left: 68%;
-            width: 9%;
-            height: 17%;
-            transform: rotate(-10deg);
-        }
-
-        #spot-window {
-            top: 20%;
-            left: 36%;
-            width: 27%;
-            height: 40%;
-        }
-
-        /* --- DIALOG MODAL --- */
-        #dialog-overlay {
-            position: absolute;
+        /* --- MODAL (Success Message) --- */
+        #modal-overlay {
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0,0,0,0.8);
             display: flex;
             justify-content: center;
             align-items: center;
-            visibility: hidden;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s;
             z-index: 100;
         }
 
-        #dialog-overlay.active {
-            visibility: visible;
+        #modal-overlay.active {
             opacity: 1;
+            pointer-events: auto;
         }
 
-        #dialog-box {
-            background: var(--overlay-bg);
-            border: 3px solid var(--accent-color);
+        #modal-box {
+            background: #252525;
+            width: 500px;
+            max-width: 90%;
             padding: 30px;
-            border-radius: 12px;
-            max-width: 600px;
+            border-radius: 15px;
+            border: 2px solid var(--accent);
             text-align: center;
-            color: var(--text-color);
             transform: translateY(20px);
             transition: transform 0.3s;
         }
 
-        #dialog-overlay.active #dialog-box {
+        #modal-overlay.active #modal-box {
             transform: translateY(0);
         }
 
-        #dialog-title {
-            color: var(--accent-color);
-            margin-top: 0;
-        }
-
-        #dialog-content {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        #dialog-btn {
-            background: var(--accent-color);
+        #modal-title { color: var(--accent); margin-top: 0; font-size: 1.8rem; }
+        #modal-text { font-size: 1.1rem; color: #ccc; line-height: 1.6; margin-bottom: 30px; }
+        
+        #next-btn {
+            background: var(--accent);
+            color: white;
             border: none;
-            padding: 10px 25px;
-            font-size: 1rem;
-            font-weight: bold;
-            color: #2c1c12;
-            cursor: pointer;
+            padding: 12px 30px;
+            font-size: 1.1rem;
             border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
             transition: background 0.2s;
         }
+        #next-btn:hover { background: #43a047; }
 
-        #dialog-btn:hover {
-            background: #ffcc80;
+        /* --- HOTSPOT COORDINATES (Based on your image) --- */
+        /* Note: Using percentages allows it to scale with the image */
+        
+        #spot-cat { top: 14%; left: 20%; width: 11%; height: 13%; }
+        #spot-bags { top: 11%; left: 5%; width: 14%; height: 16%; }
+        #spot-map { top: 35%; left: 9%; width: 18%; height: 23%; }
+        #spot-sticky { top: 36%; left: 29%; width: 5%; height: 18%; } /* The notes next to map */
+        #spot-window { top: 22%; left: 35%; width: 28%; height: 38%; }
+        #spot-poster { top: 44%; left: 65%; width: 9%; height: 20%; }
+        #spot-hat { top: 26%; left: 67%; width: 8%; height: 15%; }
+        #spot-door { top: 18%; left: 78%; width: 20%; height: 75%; }
+
+        /* Footer / Debug */
+        #footer-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 5px;
         }
+        #debug-btn {
+            background: transparent;
+            border: 1px solid #444;
+            color: #666;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        #debug-btn:hover { color: #fff; border-color: #fff; }
 
     </style>
 </head>
 <body>
 
-<div id="game-container">
-    <div id="hud">
-        <h3 id="mission-title">Mission 1: Departure</h3>
-        <p id="mission-text">Welcome to the Biomimicry Express. We use nature's secrets to survive the journey. First task: We have a nervous passenger needing a painless injection. Look around the cabin for inspiration on how to perform a needle strike without waking someone up.</p>
+<div id="main-wrapper">
+    
+    <div id="game-viewport">
+        <div id="spot-cat" class="hotspot" title="Sleeping Cat"></div>
+        <div id="spot-bags" class="hotspot" title="Leather Bags"></div>
+        <div id="spot-map" class="hotspot" title="World Map"></div>
+        <div id="spot-sticky" class="hotspot" title="Sticky Notes"></div>
+        <div id="spot-window" class="hotspot" title="Main Window"></div>
+        <div id="spot-poster" class="hotspot" title="Adventure Poster"></div>
+        <div id="spot-hat" class="hotspot" title="Conductor Hat"></div>
+        <div id="spot-door" class="hotspot" title="Sliding Door"></div>
     </div>
 
-    <div id="spot-cat" class="hotspot"></div>
-    
-    <div id="spot-hat" class="hotspot"></div>
-
-    <div id="spot-window" class="hotspot"></div>
-
-
-    <div id="dialog-overlay">
-        <div id="dialog-box">
-            <h2 id="dialog-title">Biomimicry Insight Found!</h2>
-            <p id="dialog-content">Content goes here.</p>
-            <button id="dialog-btn">Continue Journey</button>
+    <div id="control-panel">
+        <div id="mission-header">
+            <h2 id="mission-title">Mission Initializing...</h2>
+            <div id="progress-counter">0 / 7</div>
         </div>
+        <div id="mission-instruction">Loading mission parameters...</div>
+    </div>
+
+    <div id="footer-controls">
+        <button id="debug-btn" onclick="toggleDebug()">Toggle Hitboxes (Cheat Mode)</button>
+    </div>
+</div>
+
+<div id="modal-overlay">
+    <div id="modal-box">
+        <h2 id="modal-title">Insight Acquired!</h2>
+        <p id="modal-text">Biomimicry connection established.</p>
+        <button id="next-btn">Next Mission</button>
     </div>
 </div>
 
 <script>
-    // Game State
-    let currentMissionIndex = 0;
-
-    // DOM Elements
-    const hudTitle = document.getElementById('mission-title');
-    const hudText = document.getElementById('mission-text');
-    const dialogOverlay = document.getElementById('dialog-overlay');
-    const dialogTitle = document.getElementById('dialog-title');
-    const dialogContent = document.getElementById('dialog-content');
-    const dialogBtn = document.getElementById('dialog-btn');
-
-    const hotspots = {
-        cat: document.getElementById('spot-cat'),
-        hat: document.getElementById('spot-hat'),
-        window: document.getElementById('spot-window'),
-    };
-
-    // Mission Data (Based on previous mosquito biomimicry context)
+    // --- GAME DATA ---
     const missions = [
         {
+            id: 1,
+            targetID: 'spot-cat',
             title: "Mission 1: The Painless Strike",
-            instruction: "We need to administer a painless injection to a nervous passenger. Find inspiration in the cabin for stealthy, unnoticed contact.",
-            activeHotspot: 'cat',
-            successTitle: "Insight: The Stealth Needle",
-            successText: "Excellent. Observing the sleeping cat reminds us of the mosquito's proboscis. By using a micro-serrated needle that vibrates, and applying a numbing saliva anesthetic, we can perform injections that are virtually painless. The passenger didn't feel a thing.",
+            desc: "A passenger requires a medical injection, but they are terrified of pain. Find an example of a creature (or object representing it) that can pierce skin without waking a sleeping host.",
+            successTitle: "The Stealth Needle",
+            successDesc: "Correct! The sleeping cat represents stealth. Like the mosquito, which uses a serrated, vibrating proboscis to reduce friction and skin contact, modern 'microneedles' are designed to be painless—just like a cat's undetected nap."
         },
         {
-            title: "Mission 2: Tunnel Vision",
-            instruction: "We are entering a pitch-black tunnel with hazardous gas readings. Our standard navigation is down. Find something related to guidance or sensing to help us navigate the dark.",
-            activeHotspot: 'hat',
-            successTitle: "Insight: Chemical Sensors",
-            successText: "Correct. The conductor's hat represents guidance. Like a mosquito uses antennae to detect CO2 and heat plumes in the dark to find a host, we will switch our train sensors to detect thermal gradients and chemical markers to navigate the tunnel safely.",
+            id: 2,
+            targetID: 'spot-hat',
+            title: "Mission 2: Navigation in the Dark",
+            desc: "We are entering a dark tunnel. Our GPS is down. We need to sense chemical signals and heat to find our way. Click the object that represents 'Command and Sensing'.",
+            successTitle: "Antennae Sensors",
+            successDesc: "Excellent. The Conductor's Hat symbolizes guidance. Mosquitos navigate using highly sensitive antennae that detect CO2 and heat. Engineers mimic this to create drones that 'sniff out' survivors in disaster zones."
         },
         {
-            title: "Mission 3: High Winds Ahead",
-            instruction: "We've exited the tunnel into a storm. We need to launch a small repair drone outside, but the winds are too strong for standard stabilizers. Look outside for inspiration on stable flight.",
-            activeHotspot: 'window',
-            successTitle: "Insight: Gyroscopic Stabilizers",
-            successText: "Looking out the window at the turbulent air, we remember how mosquitos fly in rain. They use 'halteres'—tiny vibrating structures behind their wings—as gyroscopes for rapid stabilization. We've applied this principle to the drone. It's stable and launching now.",
+            id: 3,
+            targetID: 'spot-window',
+            title: "Mission 3: Stabilizing Flight",
+            desc: "A storm is hitting the train! We need to launch a drone to check the tracks, but the wind is too strong. Look outside for the source of the turbulence to calibrate the stabilizers.",
+            successTitle: "Gyroscopic Halteres",
+            successDesc: "You looked at the turbulent view. Mosquitos have tiny organs called 'halteres' that vibrate to detect rotation, acting like gyroscopes. This technology allows drones to stay stable even in the chaotic winds shown outside."
         },
         {
-            title: "Journey Complete",
-            instruction: "You have successfully utilized biomimicry principles to navigate the dangers of the journey. Welcome to your destination.",
-            activeHotspot: null, // No active hotspot for final state
-            successTitle: "",
-            successText: "",
+            id: 4,
+            targetID: 'spot-map',
+            title: "Mission 4: Thermal Tracking",
+            desc: "We need to find the next heat source (a station) over a long distance. Locate the object used for planning long-distance travel.",
+            successTitle: "Thermal Imaging",
+            successDesc: "The World Map! Mosquitos can detect a blood vessel's heat from a distance. By mimicking their thermal vision, we created heat-seeking cameras for medical diagnostics and search-and-rescue maps."
+        },
+        {
+            id: 5,
+            targetID: 'spot-bags',
+            title: "Mission 5: Lightweight Storage",
+            desc: "We need to carry more fuel without weighing down the train. Find the object that represents storage and carrying capacity.",
+            successTitle: "Expandable Abdomen",
+            successDesc: "The Luggage Bags. A mosquito's abdomen can expand significantly to hold blood without bursting, while remaining light. Scientists copy this structure to create expandable, lightweight fuel tanks for aircraft."
+        },
+        {
+            id: 6,
+            targetID: 'spot-door',
+            title: "Mission 6: The Protective Sheath",
+            desc: "The train's external sensors are fragile. We need a mechanism that protects them when not in use, but retracts when needed. Find the mechanism that opens and closes.",
+            successTitle: "Labium Retraction",
+            successDesc: "The Sliding Door. When a mosquito bites, a protective sheath (labium) bends back to let the needle enter. This retraction mechanism inspired flexible sheaths for delicate surgical probes."
+        },
+        {
+            id: 7,
+            targetID: 'spot-poster',
+            title: "Mission 7: Visual Processing",
+            desc: "Final Mission: We need a 360-degree view of the surroundings to avoid obstacles. Find the object that promotes looking at visual scenery.",
+            successTitle: "Compound Eyes",
+            successDesc: "The 'Next Stop Adventure' Poster! Mosquitos use compound eyes for a wide field of view and rapid motion detection. This inspired the creation of multi-lens cameras for autonomous vehicles."
         }
     ];
 
-    // Initialize Game
-    function initGame() {
+    // --- STATE MANAGEMENT ---
+    let currentMissionIndex = 0;
+    
+    // --- DOM ELEMENTS ---
+    const dom = {
+        title: document.getElementById('mission-title'),
+        desc: document.getElementById('mission-instruction'),
+        counter: document.getElementById('progress-counter'),
+        modal: document.getElementById('modal-overlay'),
+        modalTitle: document.getElementById('modal-title'),
+        modalText: document.getElementById('modal-text'),
+        nextBtn: document.getElementById('next-btn'),
+        hotspots: document.querySelectorAll('.hotspot')
+    };
+
+    // --- INITIALIZATION ---
+    function init() {
         loadMission(0);
         
-        // Event Listeners for Hotspots
-        for (const key in hotspots) {
-            hotspots[key].addEventListener('click', () => checkSolution(key));
-        }
+        // Add click listeners to all hotspots
+        dom.hotspots.forEach(spot => {
+            spot.addEventListener('click', (e) => handleObjectClick(e.target.id));
+        });
 
-        dialogBtn.addEventListener('click', nextMission);
+        // Next button listener
+        dom.nextBtn.addEventListener('click', advanceMission);
     }
 
+    // --- CORE LOGIC ---
     function loadMission(index) {
+        if (index >= missions.length) {
+            gameComplete();
+            return;
+        }
+
+        const m = missions[index];
+        dom.title.innerText = m.title;
+        dom.desc.innerText = m.desc;
+        dom.counter.innerText = `${index + 1} / ${missions.length}`;
         currentMissionIndex = index;
-        const mission = missions[index];
+    }
 
-        hudTitle.innerText = mission.title;
-        hudText.innerText = mission.instruction;
+    function handleObjectClick(clickedID) {
+        const currentMission = missions[currentMissionIndex];
 
-        // Hide all hotspots first
-        for (const key in hotspots) {
-            hotspots[key].style.display = 'none';
-        }
-
-        // Activate only the relevant hotspot for this mission
-        if (mission.activeHotspot) {
-            hotspots[mission.activeHotspot].style.display = 'block';
+        if (clickedID === currentMission.targetID) {
+            // Correct!
+            showSuccessModal(currentMission);
+        } else {
+            // Wrong!
+            triggerShake(clickedID);
         }
     }
 
-    function checkSolution(clickedHotspotKey) {
-        const mission = missions[currentMissionIndex];
+    function triggerShake(elementID) {
+        const el = document.getElementById(elementID);
+        el.classList.add('shake');
+        // Allow re-shake after animation plays
+        setTimeout(() => el.classList.remove('shake'), 400);
+    }
+
+    function showSuccessModal(mission) {
+        dom.modalTitle.innerText = mission.successTitle;
+        dom.modalText.innerText = mission.successDesc;
+        dom.modal.classList.add('active');
+    }
+
+    function advanceMission() {
+        dom.modal.classList.remove('active');
+        loadMission(currentMissionIndex + 1);
+    }
+
+    function gameComplete() {
+        dom.title.innerText = "JOURNEY COMPLETE";
+        dom.desc.innerText = "You have successfully mastered the principles of biomimicry. The train has arrived safely at the station.";
+        dom.counter.innerText = "DONE";
         
-        if (clickedHotspotKey === mission.activeHotspot) {
-            // Success! Show dialog
-            dialogTitle.innerText = mission.successTitle;
-            dialogContent.innerText = mission.successText;
-            dialogOverlay.classList.add('active');
-        }
+        // Disable interactions
+        dom.hotspots.forEach(spot => spot.style.pointerEvents = 'none');
     }
 
-    function nextMission() {
-        dialogOverlay.classList.remove('active');
-        if (currentMissionIndex < missions.length - 1) {
-            loadMission(currentMissionIndex + 1);
-        }
+    // --- DEBUGGING ---
+    window.toggleDebug = function() {
+        dom.hotspots.forEach(spot => {
+            spot.classList.toggle('debug-visible');
+        });
     }
 
-    // Start
-    initGame();
+    // Start the game
+    init();
 
 </script>
 
