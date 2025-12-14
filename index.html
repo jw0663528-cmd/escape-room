@@ -3,863 +3,847 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROJECT CULEX: Biomimicry Research Initiative</title>
+    <title>OPERATION CULEX: ULTIMATE EDITION</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
     <style>
         /* * ==========================================================================
-         * GLOBAL VARIABLES & RESET
+         * 1. CORE VARIABLES & RESET
          * ==========================================================================
          */
         :root {
-            /* Colors */
-            --bg-dark: #050505;
-            --panel-bg: #111115;
-            --panel-border: #333;
+            --c-bg-dark: #050505;
+            --c-panel: #0a0b10;
+            --c-border: #2a2b30;
             
-            --text-main: #a8b2d1;
-            --text-bright: #e6f1ff;
-            
-            --accent-green: #00ff9d; /* Success / Bio */
-            --accent-blue: #00e5ff;  /* Tech / Day */
-            --accent-amber: #ffaa00; /* Warning / Night */
-            --accent-red: #ff3333;   /* Error */
-            
-            /* CRT Effects */
-            --scanline-color: rgba(0, 0, 0, 0.5);
-            --glow-spread: 5px;
+            --c-text-main: #a8b2d1;
+            --c-text-dim: #5a6070;
+            --c-text-bright: #ffffff;
+
+            /* HUD Colors */
+            --c-primary: #00f2ff; /* Cyan - UI */
+            --c-success: #00ff9d; /* Green - Bio */
+            --c-warn: #ffae00;    /* Orange - Alert */
+            --c-danger: #ff2a2a;  /* Red - Critical */
+            --c-rare: #b300ff;    /* Purple - Special */
+
+            /* Layout */
+            --sidebar-width: 380px;
+            --header-height: 60px;
         }
 
-        * {
-            box-sizing: border-box;
-            user-select: none; /* Prevent text selection for game feel */
-        }
-
+        * { box-sizing: border-box; user-select: none; }
+        
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            margin: 0; padding: 0;
+            background-color: var(--c-bg-dark);
+            color: var(--c-text-main);
             font-family: 'Rajdhani', sans-serif;
-            height: 100vh;
-            width: 100vw;
+            height: 100vh; width: 100vw;
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
 
         /* * ==========================================================================
-         * MAIN LAYOUT GRID
+         * 2. BOOT SEQUENCE SCREEN
          * ==========================================================================
          */
-        #terminal-wrapper {
+        #boot-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--c-primary);
+        }
+
+        .boot-log { width: 600px; height: 300px; overflow: hidden; font-size: 14px; line-height: 1.5; opacity: 0.8; }
+        .boot-loader {
+            width: 300px; height: 4px; background: #333; margin-top: 20px; position: relative;
+        }
+        .boot-bar {
+            width: 0%; height: 100%; background: var(--c-success);
+            transition: width 3s ease-out;
+            box-shadow: 0 0 10px var(--c-success);
+        }
+
+        /* * ==========================================================================
+         * 3. MAIN GAME LAYOUT
+         * ==========================================================================
+         */
+        #game-wrapper {
+            width: 100%; height: 100%;
             display: grid;
-            grid-template-columns: 1fr 350px; /* Game View | Sidebar */
-            width: 98vw;
-            height: 96vh;
-            background: var(--panel-bg);
-            border: 2px solid var(--panel-border);
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
+            grid-template-columns: 1fr var(--sidebar-width);
+            grid-template-rows: var(--header-height) 1fr;
+            opacity: 0; transition: opacity 1s; /* Fade in after boot */
         }
 
-        /* * ==========================================================================
-         * LEFT COLUMN: VISUALIZATIONS (GAME VIEW)
-         * ==========================================================================
-         */
+        /* Top Header Bar */
+        #top-bar {
+            grid-column: 1 / -1;
+            background: var(--c-panel);
+            border-bottom: 1px solid var(--c-border);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 30px;
+            z-index: 50;
+        }
+
+        .brand-title {
+            font-family: 'Orbitron', sans-serif; font-size: 24px; letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--c-primary), #fff);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .sys-status { font-family: 'Share Tech Mono'; font-size: 14px; color: var(--c-success); }
+        .sys-status.alert { color: var(--c-danger); animation: blink 1s infinite; }
+
+        /* Left Column: Viewport */
         #viewport {
             position: relative;
             background: #000;
             overflow: hidden;
-            cursor: crosshair;
-            border-right: 2px solid var(--panel-border);
+            border-right: 1px solid var(--c-border);
         }
 
-        /* The Background Image Layers */
-        .bg-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: opacity 2s ease-in-out;
-            opacity: 0;
-            z-index: 1;
-        }
-
-        /* Layer definitions */
-        #bg-day {
-            background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png');
-            opacity: 1; /* Default visible */
-        }
-
-        #bg-night {
-            background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png');
-        }
-
-        #bg-lab {
-            background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png');
-            z-index: 100; /* On top when active */
-            pointer-events: none; /* Initially allow clicks through? No, blocks game when active */
-        }
-
-        /* Particle Canvas Layer */
-        #particle-canvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 5; /* Above BG, below hotspots */
-            pointer-events: none;
-        }
-
-        /* Hotspot Container */
-        #hotspot-layer {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10;
-        }
-
-        /* * ==========================================================================
-         * RIGHT COLUMN: CONTROL PANEL (SIDEBAR)
-         * ==========================================================================
-         */
-        #dashboard {
-            display: flex;
-            flex-direction: column;
-            background: #0a0a0e;
+        /* Right Column: Sidebar */
+        #sidebar {
+            background: rgba(10, 11, 16, 0.95);
+            display: flex; flex-direction: column;
+            border-left: 1px solid var(--c-border);
             padding: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* CRT Scanline Overlay for Sidebar */
-        #dashboard::before {
-            content: " ";
-            display: block;
-            position: absolute;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-
-        /* -- Sidebar Components -- */
-
-        /* 1. Header / Clock */
-        .panel-section {
-            border: 1px solid #333;
-            background: rgba(0,0,0,0.3);
-            padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
-            position: relative;
-            z-index: 3;
-        }
-
-        .section-title {
-            font-family: 'Share Tech Mono', monospace;
-            color: #666;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            display: block;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
-        }
-
-        #clock-display {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 2.5rem;
-            color: var(--accent-blue);
-            text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
-            text-align: center;
-            letter-spacing: 3px;
-        }
-
-        #day-cycle-indicator {
-            text-align: center;
-            font-size: 0.8rem;
-            color: #888;
-            margin-top: 5px;
-            text-transform: uppercase;
-        }
-
-        /* 2. Mission Status */
-        #mission-card {
-            border-left: 3px solid var(--accent-blue);
-            transition: border-color 0.5s;
-        }
-        
-        #mission-name {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-bright);
-            margin-bottom: 5px;
-        }
-
-        #mission-brief {
-            font-size: 0.9rem;
-            line-height: 1.4;
-            color: #aaa;
-            min-height: 60px;
-        }
-
-        /* 3. Data Bank (Inventory) */
-        #databank-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 5px;
-            margin-top: 10px;
-        }
-
-        .data-slot {
-            aspect-ratio: 1;
-            border: 1px solid #333;
-            background: #111;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.8rem;
-            color: #444;
-            transition: all 0.3s;
-        }
-
-        .data-slot.acquired {
-            background: rgba(0, 255, 157, 0.1);
-            border-color: var(--accent-green);
-            color: var(--accent-green);
-            box-shadow: 0 0 5px rgba(0, 255, 157, 0.3);
-        }
-
-        /* 4. System Log (Terminal) */
-        #log-container {
-            flex-grow: 1;
-            background: #000;
-            border: 1px solid #333;
-            padding: 10px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 0.8rem;
-            color: #888;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column-reverse; /* New items at bottom (visually handled via prepend) */
-        }
-
-        .log-entry {
-            margin-bottom: 5px;
-            border-bottom: 1px solid #111;
-            padding-bottom: 2px;
-        }
-        .log-entry.success { color: var(--accent-green); }
-        .log-entry.warn { color: var(--accent-amber); }
-        .log-entry.error { color: var(--accent-red); }
-        .log-entry.info { color: var(--accent-blue); }
-
-        /* 5. Footer Controls */
-        #controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        
-        .btn {
-            background: transparent;
-            border: 1px solid #444;
-            color: #666;
-            padding: 5px 10px;
-            font-family: 'Share Tech Mono', monospace;
-            cursor: pointer;
-            font-size: 0.7rem;
-            transition: all 0.2s;
-            text-transform: uppercase;
-        }
-        .btn:hover {
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
+            backdrop-filter: blur(10px);
+            z-index: 40;
         }
 
         /* * ==========================================================================
-         * INTERACTIVE ELEMENTS (HOTSPOTS & UI)
+         * 4. VIEWPORT LAYERS & VISUALS
          * ==========================================================================
          */
+        .layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 1.5s; background-size: cover; background-position: center; }
         
-        /* The clickable areas */
+        #bg-day { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); opacity: 1; }
+        #bg-night { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); opacity: 0; }
+        #bg-lab { background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png'); opacity: 0; }
+
+        #fx-canvas { pointer-events: none; z-index: 5; opacity: 0.7; }
+        
+        #scan-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 242, 255, 0.05),
+                rgba(0, 242, 255, 0.05) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none; z-index: 6; opacity: 0; transition: opacity 0.3s;
+        }
+        #scan-overlay.active { opacity: 1; }
+
+        /* * ==========================================================================
+         * 5. INTERACTIVE HOTSPOTS
+         * ==========================================================================
+         */
         .hotspot {
             position: absolute;
-            border-radius: 50%;
-            cursor: none; /* Handled by custom cursor/tooltip */
             z-index: 20;
-            transition: all 0.3s ease;
-            /* Debug Visibility (Toggled via JS) */
-            border: 1px dashed rgba(255,255,255,0); 
+            cursor: pointer;
+            opacity: 0; /* Hidden unless scanned or hovered */
+            transition: all 0.3s;
+            border: 1px dashed rgba(255,255,255,0.2);
         }
 
-        /* Hover effect */
-        .hotspot:hover {
-            box-shadow: 0 0 15px var(--accent-blue), inset 0 0 10px var(--accent-blue);
-            border-color: rgba(0, 229, 255, 0.5);
-            background: rgba(0, 229, 255, 0.1);
-        }
+        /* Scanner Logic */
+        .scanner-active .hotspot { opacity: 0.3; background: rgba(0, 242, 255, 0.1); border-color: var(--c-primary); }
+        .hotspot:hover { opacity: 1 !important; box-shadow: 0 0 15px var(--c-primary); border: 1px solid #fff; background: rgba(0, 242, 255, 0.2); }
 
-        /* Scanning Animation (Ring) */
-        .scanning-ring {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%; height: 100%;
-            border: 2px solid var(--accent-green);
-            border-radius: 50%;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        @keyframes scanPulse {
-            0% { width: 0%; height: 0%; opacity: 1; }
-            100% { width: 150%; height: 150%; opacity: 0; }
-        }
-        
-        .scanning .scanning-ring {
-            animation: scanPulse 1s ease-out infinite;
-        }
-
-        /* Custom Tooltip */
-        #tooltip {
-            position: fixed;
-            z-index: 9999;
-            background: rgba(10, 10, 15, 0.95);
-            border: 1px solid var(--accent-blue);
-            color: var(--text-bright);
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            font-family: 'Share Tech Mono', monospace;
-            pointer-events: none;
-            opacity: 0;
-            transform: translate(15px, 15px);
-            white-space: nowrap;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
-        }
-        
-        #tooltip::before {
-            content: "SCANNING TARGET...";
-            display: block;
-            font-size: 0.6rem;
-            color: #666;
-            margin-bottom: 2px;
-        }
-
-        /* Hotspot specific styles (positions) */
-        /* Using percentages for responsive scaling within the container */
-        #spot-cat    { top: 14%; left: 20%; width: 12%; height: 14%; }
-        #spot-map    { top: 35%; left: 9%;  width: 18%; height: 23%; }
+        /* Positioning (Percentages) */
+        /* Train */
+        #spot-cat { top: 14%; left: 20%; width: 12%; height: 14%; }
+        #spot-map { top: 35%; left: 9%; width: 18%; height: 23%; }
         #spot-window { top: 22%; left: 35%; width: 28%; height: 38%; }
-        #spot-hat    { top: 26%; left: 67%; width: 10%; height: 16%; }
-        #spot-door   { top: 18%; left: 78%; width: 20%; height: 75%; }
-        
-        /* Error Shake Animation */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); border-color: var(--accent-red); box-shadow: 0 0 10px var(--accent-red);}
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
-        }
-        .shake { animation: shake 0.5s; }
+        #spot-hat { top: 26%; left: 67%; width: 10%; height: 16%; }
+        #spot-door { top: 18%; left: 78%; width: 20%; height: 75%; }
+        /* Lab */
+        #spot-flask { top: 55%; left: 25%; width: 15%; height: 25%; }
+        #spot-jar { top: 15%; left: 60%; width: 25%; height: 55%; }
+        #spot-notes { top: 70%; left: 45%; width: 20%; height: 15%; }
 
         /* * ==========================================================================
-         * END GAME OVERLAY
+         * 6. UI PANELS (SIDEBAR)
          * ==========================================================================
          */
-        #lab-ui {
-            position: absolute;
-            bottom: 50px; left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            background: rgba(0, 20, 10, 0.9);
-            border: 2px solid var(--accent-green);
-            padding: 30px;
-            text-align: center;
-            opacity: 0;
-            transition: opacity 2s;
-            pointer-events: none; /* Initially */
-            z-index: 101;
+        .panel { background: rgba(255,255,255,0.03); border: 1px solid var(--c-border); padding: 15px; margin-bottom: 15px; border-radius: 6px; }
+        .panel h3 { margin: 0 0 10px 0; font-family: 'Orbitron'; font-size: 14px; color: var(--c-primary); letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; }
+
+        /* Scanner Toggle */
+        #scanner-btn {
+            width: 100%; padding: 15px;
+            background: transparent; border: 1px solid var(--c-primary); color: var(--c-primary);
+            font-family: 'Share Tech Mono'; font-size: 16px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; text-transform: uppercase; margin-bottom: 20px;
+        }
+        #scanner-btn:hover, #scanner-btn.active { background: var(--c-primary); color: #000; box-shadow: 0 0 15px var(--c-primary); }
+
+        /* Mission Log */
+        #objective-text { font-size: 14px; line-height: 1.4; color: #fff; }
+
+        /* Inventory Grid */
+        #inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .inv-slot { aspect-ratio: 1; background: #000; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 20px; transition: 0.3s; position: relative; }
+        .inv-slot.filled { border-color: var(--c-success); box-shadow: inset 0 0 10px rgba(0,255,157,0.2); }
+        .inv-tooltip { 
+            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+            background: #000; border: 1px solid #fff; padding: 5px; font-size: 10px; 
+            width: 100px; text-align: center; display: none; z-index: 100;
+        }
+        .inv-slot:hover .inv-tooltip { display: block; }
+
+        /* DataBank (Journal) */
+        #databank { height: 150px; overflow-y: auto; font-family: 'Share Tech Mono'; font-size: 12px; color: #888; }
+        .log-entry { margin-bottom: 8px; border-left: 2px solid #333; padding-left: 8px; }
+        .log-entry.new { border-color: var(--c-success); color: var(--c-success); }
+
+        /* * ==========================================================================
+         * 7. MINI-GAMES & MODALS
+         * ==========================================================================
+         */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .game-window {
+            width: 600px; height: 400px;
+            background: #111; border: 2px solid var(--c-primary);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+            padding: 20px; position: relative;
+            display: flex; flex-direction: column;
+        }
+        .game-header { font-family: 'Orbitron'; font-size: 20px; color: var(--c-primary); margin-bottom: 20px; text-align: center;}
+        .close-modal { position: absolute; top: 10px; right: 15px; cursor: pointer; color: #666; font-size: 20px; }
+        .close-modal:hover { color: #fff; }
+
+        /* --- Mini-Game 1: Frequency Tuner (Window) --- */
+        #tuner-game { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #wave-canvas { width: 100%; height: 150px; background: #000; border: 1px solid #333; margin-bottom: 20px; }
+        input[type=range] { width: 80%; cursor: pointer; }
+        #tuner-status { margin-top: 10px; font-family: 'Share Tech Mono'; color: var(--c-warn); }
+
+        /* --- Mini-Game 2: Keypad Hack (Door) --- */
+        #keypad-game { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 250px; margin: 0 auto; }
+        .key-btn { 
+            padding: 20px; background: #222; border: 1px solid #444; color: #fff; 
+            font-family: 'Orbitron'; font-size: 18px; cursor: pointer; transition: 0.2s; 
+        }
+        .key-btn:hover { background: var(--c-primary); color: #000; }
+        #keypad-display { 
+            grid-column: 1 / -1; background: #000; color: var(--c-primary); 
+            font-family: 'Share Tech Mono'; font-size: 24px; padding: 10px; text-align: center; border: 1px solid #444;
         }
 
-        #lab-ui.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        /* --- Mini-Game 3: Chemical Mixer (Flask) --- */
+        #chem-game { display: flex; justify-content: space-around; padding-top: 50px; }
+        .chem-btn { width: 80px; height: 100px; border: 2px solid #fff; cursor: pointer; position: relative; overflow: hidden; }
+        .chem-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; opacity: 0.5; transition: height 0.5s; }
+        #beaker-main { width: 120px; height: 150px; border: 3px solid #fff; border-radius: 0 0 20px 20px; position: relative; overflow: hidden; }
+        #beaker-fill { position: absolute; bottom: 0; width: 100%; height: 0%; background: #333; transition: all 0.5s; }
+
+        /* Victory Screen */
+        #victory-screen { text-align: center; }
+        #victory-screen h1 { color: var(--c-success); font-size: 40px; margin-bottom: 20px; text-shadow: 0 0 20px var(--c-success); }
         
-        .victory-title {
-            color: var(--accent-green);
-            font-size: 2rem;
-            margin-bottom: 10px;
-            text-shadow: 0 0 15px var(--accent-green);
-        }
-
-        .restart-btn {
-            background: var(--accent-green);
-            color: #000;
-            font-weight: bold;
-            border: none;
-            padding: 10px 30px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            margin-top: 20px;
-            font-family: 'Share Tech Mono', monospace;
-        }
-        .restart-btn:hover { background: #fff; }
+        /* Utility */
+        .hidden { display: none !important; }
+        
+        /* Animations */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
     </style>
 </head>
 <body>
 
-    <div id="tooltip">TARGET NAME</div>
+    <div id="boot-screen">
+        <div class="boot-log" id="boot-log"></div>
+        <div class="boot-loader"><div class="boot-bar" id="boot-bar"></div></div>
+    </div>
 
-    <div id="terminal-wrapper">
+    <div id="game-wrapper">
         
-        <div id="viewport">
-            <canvas id="particle-canvas"></canvas>
+        <header id="top-bar">
+            <div class="brand-title">CULEX_OS <span style="font-size:12px; vertical-align:middle;">v9.4</span></div>
+            <div id="sys-status" class="sys-status">SYSTEM NORMAL</div>
+        </header>
+
+        <main id="viewport">
+            <canvas id="fx-canvas"></canvas>
+            <div id="scan-overlay"></div>
             
-            <div id="bg-lab" class="bg-layer"></div>
-            <div id="bg-night" class="bg-layer"></div>
-            <div id="bg-day" class="bg-layer"></div>
-            
+            <div id="bg-lab" class="layer"></div>
+            <div id="bg-night" class="layer"></div>
+            <div id="bg-day" class="layer"></div>
+
             <div id="hotspot-layer">
-                <div id="spot-cat" class="hotspot" data-name="Felis Catus">
-                    <div class="scanning-ring"></div>
-                </div>
-                <div id="spot-map" class="hotspot" data-name="Topographical Map">
-                    <div class="scanning-ring"></div>
-                </div>
-                <div id="spot-window" class="hotspot" data-name="Exterior View">
-                    <div class="scanning-ring"></div>
-                </div>
-                <div id="spot-hat" class="hotspot" data-name="Uniform Cap">
-                    <div class="scanning-ring"></div>
-                </div>
-                <div id="spot-door" class="hotspot" data-name="Restricted Access">
-                    <div class="scanning-ring"></div>
-                </div>
+                <div id="spot-cat" class="hotspot" data-ref="cat"></div>
+                <div id="spot-map" class="hotspot" data-ref="map"></div>
+                <div id="spot-window" class="hotspot" data-ref="window"></div>
+                <div id="spot-hat" class="hotspot" data-ref="hat"></div>
+                <div id="spot-door" class="hotspot" data-ref="door"></div>
+
+                <div id="spot-flask" class="hotspot hidden" data-ref="flask"></div>
+                <div id="spot-jar" class="hotspot hidden" data-ref="jar"></div>
+                <div id="spot-notes" class="hotspot hidden" data-ref="notes"></div>
+            </div>
+        </main>
+
+        <aside id="sidebar">
+            <button id="scanner-btn" onclick="Game.toggleScanner()">Toggle Scanner [OFF]</button>
+
+            <div class="panel">
+                <h3>Current Directive</h3>
+                <div id="objective-text">Initializing...</div>
             </div>
 
-            <div id="lab-ui">
-                <h1 class="victory-title">ACCESS GRANTED</h1>
-                <p>Welcome to the Biomimicry Laboratory.</p>
-                <p>All theoretical data has been verified. Research phase initiated.</p>
-                <button class="restart-btn" onclick="location.reload()">REBOOT SYSTEM</button>
-            </div>
-        </div>
-
-        <div id="dashboard">
-            <div class="panel-section">
-                <span class="section-title">Local Time</span>
-                <div id="clock-display">12:00</div>
-                <div id="day-cycle-indicator">Daylight Cycle Active</div>
+            <div class="panel" style="flex-grow:1; display:flex; flex-direction:column;">
+                <h3>Research Journal</h3>
+                <div id="databank">
+                    </div>
             </div>
 
-            <div class="panel-section" id="mission-card">
-                <span class="section-title">Active Directive</span>
-                <div id="mission-name">Loading...</div>
-                <div id="mission-brief">Initializing mission parameters...</div>
-            </div>
-
-            <div class="panel-section">
-                <span class="section-title">Data Bank</span>
-                <div id="databank-grid">
-                    <div class="data-slot" id="slot-0">01</div>
-                    <div class="data-slot" id="slot-1">02</div>
-                    <div class="data-slot" id="slot-2">03</div>
-                    <div class="data-slot" id="slot-3">04</div>
-                    <div class="data-slot" id="slot-4">KEY</div>
+            <div class="panel">
+                <h3>Inventory</h3>
+                <div id="inv-grid">
+                    <div class="inv-slot" id="slot-0"></div>
+                    <div class="inv-slot" id="slot-1"></div>
+                    <div class="inv-slot" id="slot-2"></div>
+                    <div class="inv-slot" id="slot-3"></div>
+                    <div class="inv-slot" id="slot-4"></div>
+                    <div class="inv-slot" id="slot-5"></div>
+                    <div class="inv-slot" id="slot-6"></div>
+                    <div class="inv-slot" id="slot-7"></div>
                 </div>
             </div>
+        </aside>
+    </div>
 
-            <span class="section-title" style="margin-top:auto;">System Log</span>
-            <div id="log-container">
+    <div id="game-modal" class="modal-overlay">
+        <div class="game-window">
+            <div class="close-modal" onclick="Modal.close()">×</div>
+            <div class="game-header" id="modal-title">SYSTEM ACCESS</div>
+            
+            <div id="modal-content" style="flex:1; position:relative;">
+                
+                <div id="tuner-game" class="minigame hidden">
+                    <p style="color:#aaa; text-align:center;">Match the resonance frequency to stabilize the drone.</p>
+                    <canvas id="wave-canvas"></canvas>
+                    <input type="range" min="1" max="100" value="50" id="wave-slider">
+                    <div id="tuner-status">SIGNAL: WEAK</div>
                 </div>
 
-            <div id="controls">
-                <button class="btn" onclick="Game.toggleDebug()">[DBG] Hitboxes</button>
-                <button class="btn" onclick="Game.toggleMute()">[AUD] Mute</button>
+                <div id="keypad-game" class="minigame hidden">
+                    <div id="keypad-display">_ _ _ _</div>
+                    <button class="key-btn" onclick="Keypad.press(1)">1</button>
+                    <button class="key-btn" onclick="Keypad.press(2)">2</button>
+                    <button class="key-btn" onclick="Keypad.press(3)">3</button>
+                    <button class="key-btn" onclick="Keypad.press(4)">4</button>
+                    <button class="key-btn" onclick="Keypad.press(5)">5</button>
+                    <button class="key-btn" onclick="Keypad.press(6)">6</button>
+                    <button class="key-btn" onclick="Keypad.press(7)">7</button>
+                    <button class="key-btn" onclick="Keypad.press(8)">8</button>
+                    <button class="key-btn" onclick="Keypad.press(9)">9</button>
+                </div>
+
+                <div id="chem-game" class="minigame hidden">
+                    <div style="text-align:center; position:absolute; top:0; width:100%;">Mix Green (Bio) + Blue (Tech)</div>
+                    <div class="chem-btn" onclick="Chem.add('red')" style="border-color:#f00;"><div class="chem-fill" style="background:#f00;"></div></div>
+                    <div id="beaker-main"><div id="beaker-fill"></div></div>
+                    <div class="chem-btn" onclick="Chem.add('blue')" style="border-color:#00f;"><div class="chem-fill" style="background:#00f;"></div></div>
+                    <div class="chem-btn" onclick="Chem.add('green')" style="border-color:#0f0;"><div class="chem-fill" style="background:#0f0;"></div></div>
+                </div>
+
+                <div id="riddle-container" class="minigame hidden">
+                    <p id="riddle-text" style="font-size:16px; line-height:1.5; color:#fff; margin-bottom:20px;"></p>
+                    <input type="text" id="riddle-input" style="width:100%; padding:10px; background:#000; color:var(--c-primary); border:1px solid #333; font-family:'Share Tech Mono'; font-size:18px;">
+                    <button onclick="Riddle.check()" style="margin-top:10px; padding:10px 20px; background:var(--c-primary); border:none; font-weight:bold; cursor:pointer;">SUBMIT</button>
+                    <p id="riddle-err" style="color:var(--c-danger); margin-top:10px;"></p>
+                </div>
+
+                <div id="victory-screen" class="minigame hidden">
+                    <h1>MISSION SUCCESS</h1>
+                    <p>Dr. Arcadius's swarm has been neutralized.</p>
+                    <p>Biomimicry data successfully archived.</p>
+                    <button onclick="location.reload()" style="margin-top:30px; padding:15px 40px; background:var(--c-success); border:none; font-weight:bold; cursor:pointer;">REBOOT SIMULATION</button>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        /**
-         * ==========================================================================
-         * GAME CONFIGURATION & DATA
-         * ==========================================================================
-         */
-        const Config = {
-            dayStart: 6,
-            nightStart: 18,
-            timeSpeed: 10000, // 10s real time = 1 hour game time
-            startHour: 10,
-            bgDay: 'bg-day',
-            bgNight: 'bg-night',
-            bgLab: 'bg-lab'
+        // --- ASSETS & CONFIG ---
+        const ITEMS = {
+            needle: { icon: '💉', name: 'Micro-Needle', desc: 'Inspired by Mosquito Proboscis' },
+            sensor: { icon: '📡', name: 'Thermal Sensor', desc: 'Heat seeking technology' },
+            gyro: { icon: '⚖️', name: 'Gyro-Halteres', desc: 'Flight stabilization' },
+            chem: { icon: '👃', name: 'Chem-Receptor', desc: 'Chemical detection unit' },
+            formula: { icon: '📜', name: 'Arcadius Notes', desc: 'Toxin Formula' },
+            antidote: { icon: '🧪', name: 'The Cure', desc: 'Synthesized Antidote' },
+            drone: { icon: '🦟', name: 'B-Drone', desc: 'Bio-Mimetic Delivery System' } // Player starts with this
         };
 
-        const Missions = [
-            {
-                id: 0,
-                targetId: 'spot-cat',
-                name: "PROTOCOL: PAINLESS",
-                desc: "Objective: Locate biological subject capable of stealthy fluid extraction without triggering host pain response.",
-                successMsg: "ANALYSIS COMPLETE: Cat sleeping habits referenced. Connection to Mosquito proboscis stealth verified. Microneedle technology unlocked.",
-                dataSlot: 0
-            },
-            {
-                id: 1,
-                targetId: 'spot-map',
-                name: "PROTOCOL: TRACKING",
-                desc: "Objective: Identify long-range navigation tools. We require heat-seeking capability for target acquisition.",
-                successMsg: "ANALYSIS COMPLETE: Global map scanned. Thermal imaging sensors calibrated based on vector navigation patterns.",
-                dataSlot: 1
-            },
-            {
-                id: 2,
-                targetId: 'spot-window',
-                name: "PROTOCOL: STABILITY",
-                desc: "Objective: Exterior conditions are turbulent. Identify atmospheric reference points to stabilize drone flight.",
-                successMsg: "ANALYSIS COMPLETE: Storm patterns analyzed. Gyroscopic Halteres mechanism activated for flight stabilization.",
-                dataSlot: 2
-            },
-            {
-                id: 3,
-                targetId: 'spot-hat',
-                name: "PROTOCOL: SENSORS",
-                desc: "Objective: Visibility dropping. Locate symbol of authority/guidance to calibrate chemical sensors.",
-                successMsg: "ANALYSIS COMPLETE: Conductor Hat identified. Chemical receptors online. Navigation systems fully operational.",
-                dataSlot: 3
-            },
-            {
-                id: 4,
-                targetId: 'spot-door',
-                name: "PROTOCOL: BREACH",
-                desc: "Objective: All biometric keys acquired. Locate the sealed entry point to the Research Lab.",
-                successMsg: "ACCESS GRANTED. OPENING LAB DOORS...",
-                dataSlot: 4
-            }
-        ];
+        // --- GLOBAL STATE ---
+        const State = {
+            phase: 'TRAIN', // TRAIN -> LAB
+            inventory: ['drone'],
+            isScannerOn: false,
+            isNight: false,
+            progress: 0,
+            solved: []
+        };
 
-        /**
-         * ==========================================================================
-         * SYSTEMS
-         * ==========================================================================
-         */
-
-        /* --- 1. TIME SYSTEM --- */
-        class TimeSystem {
-            constructor() {
-                this.hour = Config.startHour;
-                this.minute = 0;
-                this.isNight = false;
-                this.timer = null;
-            }
-
-            start() {
-                this.updateClock();
-                this.timer = setInterval(() => {
-                    this.tick();
-                }, Config.timeSpeed);
-            }
-
-            tick() {
-                this.hour++;
-                if (this.hour >= 24) this.hour = 0;
-                this.checkPhase();
-                this.updateClock();
-            }
-
-            checkPhase() {
-                const wasNight = this.isNight;
-                // Night is 18:00 (6PM) to 06:00 (6AM)
-                this.isNight = (this.hour >= Config.nightStart || this.hour < Config.dayStart);
-                
-                if (this.isNight !== wasNight) {
-                    Game.onPhaseChange(this.isNight);
+        // --- BOOT SEQUENCE ---
+        function runBoot() {
+            const log = document.getElementById('boot-log');
+            const bar = document.getElementById('boot-bar');
+            const lines = [
+                "Initializing Kernel...",
+                "Loading Bio-Mimetic Drivers...",
+                "Connecting to BSF-01 Remote Link...",
+                "Downloading Environmental Textures...",
+                "Calibrating Sensors...",
+                "System Ready."
+            ];
+            
+            let i = 0;
+            const interval = setInterval(() => {
+                if(i >= lines.length) {
+                    clearInterval(interval);
+                    setTimeout(startGame, 500);
+                    return;
                 }
-            }
+                const p = document.createElement('div');
+                p.innerText = "> " + lines[i];
+                log.appendChild(p);
+                log.scrollTop = log.scrollHeight;
+                i++;
+            }, 300);
 
-            updateClock() {
-                const h = this.hour.toString().padStart(2, '0');
-                const m = this.minute.toString().padStart(2, '0');
-                document.getElementById('clock-display').innerText = `${h}:${m}`;
-                
-                const phaseText = this.isNight ? "NIGHT OPS ACTIVE" : "DAYLIGHT CYCLE ACTIVE";
-                const phaseEl = document.getElementById('day-cycle-indicator');
-                phaseEl.innerText = phaseText;
-                phaseEl.style.color = this.isNight ? "var(--accent-amber)" : "var(--accent-blue)";
-            }
+            // Animate Bar
+            setTimeout(() => { bar.style.width = "100%"; }, 100);
         }
 
-        /* --- 2. LOG SYSTEM (TYPEWRITER) --- */
-        class LogSystem {
-            constructor() {
-                this.container = document.getElementById('log-container');
-            }
-
-            add(msg, type = 'info') {
-                const entry = document.createElement('div');
-                entry.className = `log-entry ${type}`;
-                
-                // Timestamp
-                const now = new Date();
-                const ts = `${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-                
-                entry.innerHTML = `[${ts}] > ${msg}`;
-                this.container.prepend(entry);
-                
-                // Limit log size
-                if(this.container.children.length > 20) {
-                    this.container.removeChild(this.container.lastChild);
-                }
-            }
+        function startGame() {
+            document.getElementById('boot-screen').style.display = 'none';
+            document.getElementById('game-wrapper').style.opacity = 1;
+            Game.init();
         }
 
-        /* --- 3. PARTICLE SYSTEM (CANVAS) --- */
-        class ParticleSystem {
-            constructor() {
-                this.canvas = document.getElementById('particle-canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.particles = [];
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
-                
-                this.mode = 'dust'; // 'dust' or 'fireflies'
-            }
-
-            resize() {
-                this.canvas.width = this.canvas.offsetWidth;
-                this.canvas.height = this.canvas.offsetHeight;
-            }
-
-            setMode(mode) {
-                this.mode = mode;
-                // Reset particles on mode switch for dramatic effect
-                this.particles = [];
-                this.initParticles(50);
-            }
-
-            initParticles(count) {
-                for(let i=0; i<count; i++) {
-                    this.particles.push(this.createParticle());
-                }
-            }
-
-            createParticle() {
-                return {
-                    x: Math.random() * this.canvas.width,
-                    y: Math.random() * this.canvas.height,
-                    size: Math.random() * 2 + 0.5,
-                    speedX: (Math.random() - 0.5) * 0.5,
-                    speedY: (Math.random() - 0.5) * 0.5,
-                    alpha: Math.random(),
-                    phase: Math.random() * Math.PI * 2
-                };
-            }
-
-            update() {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                
-                const isFirefly = (this.mode === 'fireflies');
-                const color = isFirefly ? '255, 200, 50' : '200, 220, 255';
-                
-                this.particles.forEach(p => {
-                    // Move
-                    p.x += p.speedX;
-                    p.y += p.speedY;
-
-                    // Float logic
-                    if(isFirefly) {
-                        p.alpha = 0.5 + 0.5 * Math.sin(Date.now() * 0.005 + p.phase);
-                        p.y -= 0.2; // Float up
-                    } else {
-                        // Dust logic (subtle twinkle)
-                        p.alpha = 0.2 + 0.1 * Math.sin(Date.now() * 0.002 + p.phase);
-                    }
-
-                    // Wrap
-                    if(p.x < 0) p.x = this.canvas.width;
-                    if(p.x > this.canvas.width) p.x = 0;
-                    if(p.y < 0) p.y = this.canvas.height;
-                    if(p.y > this.canvas.height) p.y = 0;
-
-                    // Draw
-                    this.ctx.beginPath();
-                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    this.ctx.fillStyle = `rgba(${color}, ${p.alpha})`;
-                    this.ctx.fill();
-                });
-
-                requestAnimationFrame(() => this.update());
-            }
-        }
-
-        /* --- 4. GAME ENGINE (CONTROLLER) --- */
+        // --- GAME ENGINE ---
         const Game = {
-            missionIdx: 0,
-            timeSys: new TimeSystem(),
-            logSys: new LogSystem(),
-            particleSys: new ParticleSystem(),
-            debugMode: false,
-
             init() {
-                this.logSys.add("System Initialized.", "info");
-                this.logSys.add("Loading bio-data archives...", "info");
+                Inventory.render();
+                Journal.add("Mission started. Phase 1: Infiltration.", true);
+                Journal.add("Objective: Gather 4 biomimetic components.");
                 
-                this.timeSys.start();
-                this.particleSys.initParticles(60);
-                this.particleSys.update(); // start loop
-
-                this.setupInteractions();
-                this.loadMission(0);
-            },
-
-            loadMission(idx) {
-                if(idx >= Missions.length) return; // Win state handled elsewhere
-
-                this.missionIdx = idx;
-                const m = Missions[idx];
+                this.updateObjective();
+                Fx.init(); // Start particles
                 
-                document.getElementById('mission-name').innerText = m.name;
-                document.getElementById('mission-brief').innerText = m.desc;
-                
-                // Visual cue on mission change
-                const card = document.getElementById('mission-card');
-                card.style.borderColor = 'var(--text-bright)';
-                setTimeout(() => card.style.borderColor = 'var(--accent-blue)', 500);
-            },
-
-            onPhaseChange(isNight) {
-                const bgDay = document.getElementById(Config.bgDay);
-                const bgNight = document.getElementById(Config.bgNight);
-                const clockDisp = document.getElementById('clock-display');
-
-                if (isNight) {
-                    bgNight.style.opacity = 1;
-                    bgDay.style.opacity = 0;
-                    this.particleSys.setMode('fireflies');
-                    this.logSys.add("Light levels dropping. Night vision enabled.", "warn");
-                    clockDisp.style.color = "var(--accent-amber)";
-                    clockDisp.style.textShadow = "0 0 10px rgba(255, 170, 0, 0.5)";
-                } else {
-                    bgDay.style.opacity = 1;
-                    bgNight.style.opacity = 0;
-                    this.particleSys.setMode('dust');
-                    this.logSys.add("Sunlight detected. Solar arrays active.", "info");
-                    clockDisp.style.color = "var(--accent-blue)";
-                    clockDisp.style.textShadow = "0 0 10px rgba(0, 229, 255, 0.5)";
-                }
-            },
-
-            setupInteractions() {
-                const hotspots = document.querySelectorAll('.hotspot');
-                const tooltip = document.getElementById('tooltip');
-
-                // Mouse Movement for Tooltip
-                document.addEventListener('mousemove', (e) => {
-                    // Offset tooltip slightly
-                    tooltip.style.left = (e.clientX + 15) + 'px';
-                    tooltip.style.top = (e.clientY + 15) + 'px';
+                // Add Click Listeners
+                document.querySelectorAll('.hotspot').forEach(el => {
+                    el.addEventListener('click', (e) => this.handleObjectClick(e.target));
                 });
 
-                hotspots.forEach(spot => {
-                    // Hover
-                    spot.addEventListener('mouseenter', () => {
-                        tooltip.innerHTML = spot.getAttribute('data-name');
-                        tooltip.style.opacity = 1;
-                    });
-                    spot.addEventListener('mouseleave', () => {
-                        tooltip.style.opacity = 0;
-                    });
-
-                    // Click
-                    spot.addEventListener('click', () => {
-                        this.handleScan(spot);
-                    });
-                });
+                // Start Clock
+                setInterval(this.tickClock, 1000);
             },
 
-            handleScan(element) {
-                const currentMission = Missions[this.missionIdx];
+            tickClock() {
+                // Simulate time passing. Night cycle every 30s.
+                const now = new Date();
+                const sec = now.getSeconds();
                 
-                // Add scanning visual class
-                element.classList.add('scanning');
-                this.logSys.add(`Scanning target: ${element.getAttribute('data-name')}...`);
-
-                setTimeout(() => {
-                    element.classList.remove('scanning');
-                    
-                    if (element.id === currentMission.targetId) {
-                        this.onMissionSuccess(currentMission);
-                    } else {
-                        this.onMissionFail(element);
+                // Night Cycle Logic
+                if (State.phase === 'TRAIN') {
+                    if (sec > 30 && !State.isNight) {
+                        State.isNight = true;
+                        document.getElementById('bg-day').style.opacity = 0;
+                        document.getElementById('bg-night').style.opacity = 1;
+                        document.getElementById('sys-status').innerText = "LOW LIGHT MODE";
+                        document.getElementById('sys-status').classList.add('alert');
+                    } else if (sec <= 30 && State.isNight) {
+                        State.isNight = false;
+                        document.getElementById('bg-day').style.opacity = 1;
+                        document.getElementById('bg-night').style.opacity = 0;
+                        document.getElementById('sys-status').innerText = "SYSTEM NORMAL";
+                        document.getElementById('sys-status').classList.remove('alert');
                     }
-                }, 800); // Scan duration
-            },
-
-            onMissionSuccess(mission) {
-                this.logSys.add(mission.successMsg, "success");
-                
-                // Update Databank
-                const slot = document.getElementById(`slot-${mission.dataSlot}`);
-                if(slot) slot.classList.add('acquired');
-
-                this.missionIdx++;
-
-                if (this.missionIdx >= Missions.length) {
-                    this.triggerWinState();
-                } else {
-                    this.loadMission(this.missionIdx);
                 }
             },
 
-            onMissionFail(element) {
-                element.classList.add('shake');
-                setTimeout(() => element.classList.remove('shake'), 500);
-                this.logSys.add("Negative match. Target properties incompatible.", "error");
-            },
-
-            triggerWinState() {
-                this.logSys.add("ALL SECURITY PROTOCOLS BYPASSED.", "success");
+            toggleScanner() {
+                State.isScannerOn = !State.isScannerOn;
+                const btn = document.getElementById('scanner-btn');
+                const overlay = document.getElementById('scan-overlay');
                 
-                // Show Lab BG
-                const labBg = document.getElementById(Config.bgLab);
-                labBg.style.opacity = 1;
-
-                // Show UI
-                const ui = document.getElementById('lab-ui');
-                ui.classList.add('active');
-
-                // Update Dashboard text
-                document.getElementById('mission-name').innerText = "STATUS: COMPLETE";
-                document.getElementById('mission-brief').innerText = "Laboratory access authorized.";
-                document.getElementById('mission-card').style.borderColor = "var(--accent-green)";
+                if (State.isScannerOn) {
+                    btn.classList.add('active');
+                    btn.innerText = "Scanner [ON]";
+                    overlay.classList.add('active');
+                    document.body.classList.add('scanner-active');
+                    Journal.add("Scanner activated. Heat signatures visible.");
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerText = "Scanner [OFF]";
+                    overlay.classList.remove('active');
+                    document.body.classList.remove('scanner-active');
+                }
             },
 
-            toggleDebug() {
-                this.debugMode = !this.debugMode;
-                const spots = document.querySelectorAll('.hotspot');
-                spots.forEach(s => {
-                    s.style.border = this.debugMode ? "1px dashed #0f0" : "1px dashed rgba(0,0,0,0)";
-                    s.style.background = this.debugMode ? "rgba(0, 255, 0, 0.1)" : "transparent";
-                });
-                this.logSys.add(`Debug Mode: ${this.debugMode ? "ON" : "OFF"}`, "warn");
+            handleObjectClick(target) {
+                // Only allow click if scanner is ON (except for door/obvious things)
+                if (!State.isScannerOn && target.id !== 'spot-door') {
+                    Journal.add("Cannot analyze. Enable Scanner first.", false);
+                    return;
+                }
+
+                const ref = target.dataset.ref;
+                
+                // Check if already solved
+                if (State.solved.includes(ref)) return;
+
+                // Route to Logic
+                switch(ref) {
+                    case 'cat':
+                        Riddle.open("Stealth Analysis", "I pierce skin without waking the host. My design minimizes friction. What am I?", "needle", ITEMS.needle, ref);
+                        break;
+                    case 'map':
+                        Riddle.open("Navigation Data", "I allow tracking of heat signatures over long distances using vectors. What system am I?", "thermal", ITEMS.sensor, ref);
+                        break;
+                    case 'hat':
+                        Riddle.open("Sensor Calibration", "I guide the way. I sit above the eyes. I represent chemical sensing authority.", "hat", ITEMS.chem, ref);
+                        break;
+                    case 'window':
+                        // Launch Frequency Minigame
+                        Modal.open("Atmospheric Stabilization", "tuner-game");
+                        Tuner.start(target);
+                        break;
+                    case 'door':
+                        // Check if we have all 4 items
+                        const req = ['needle', 'sensor', 'gyro', 'chem'];
+                        const hasAll = req.every(i => State.inventory.includes(i));
+                        if(hasAll) {
+                            Modal.open("Security Override", "keypad-game");
+                        } else {
+                            Journal.add("Door Locked. Requires 4 components.", false);
+                        }
+                        break;
+                    case 'notes':
+                        Riddle.open("Research Decryption", "The key to the cure is the color of life mixed with the color of technology.", "formula", ITEMS.formula, ref);
+                        break;
+                    case 'flask':
+                        if(!State.inventory.includes('formula')) {
+                            Journal.add("Need formula to operate synth.", false);
+                            return;
+                        }
+                        Modal.open("Antidote Synthesis", "chem-game");
+                        break;
+                    case 'jar':
+                        if(State.inventory.includes('antidote')) {
+                            Modal.open("DEPLOYMENT", "victory-screen");
+                        } else {
+                            Journal.add("Target locked. Antidote required.", false);
+                        }
+                        break;
+                }
             },
 
-            toggleMute() {
-                this.logSys.add("Audio output toggled (Simulated).", "info");
+            updateObjective() {
+                const txt = document.getElementById('objective-text');
+                if (State.phase === 'TRAIN') {
+                    const count = 4 - (State.inventory.length - 1); // -1 for drone
+                    if(count > 0) txt.innerText = `Find ${count} more components to unlock the door.`;
+                    else txt.innerText = "Components acquired. BREACH THE DOOR.";
+                } else {
+                    txt.innerText = "Find the Formula. Mix the Antidote. Destroy the Swarm.";
+                }
+            },
+
+            transitionToLab() {
+                State.phase = 'LAB';
+                document.getElementById('viewport').style.opacity = 0;
+                setTimeout(() => {
+                    // Hide train spots, show lab spots
+                    document.querySelectorAll('.train-obj').forEach(e => e.classList.add('hidden'));
+                    document.querySelectorAll('.lab-obj').forEach(e => e.classList.remove('hidden'));
+                    
+                    document.getElementById('bg-lab').style.opacity = 1;
+                    document.getElementById('viewport').style.opacity = 1;
+                    
+                    Journal.add("Phase 1 Complete. Entering Lab.", true);
+                    Game.updateObjective();
+                }, 1000);
             }
         };
 
-        // Start Game
-        window.onload = () => Game.init();
+        // --- INVENTORY SYSTEM ---
+        const Inventory = {
+            render() {
+                const slots = document.querySelectorAll('.inv-slot');
+                // Clear
+                slots.forEach(s => { s.innerHTML = ''; s.classList.remove('filled'); });
+                
+                // Fill
+                State.inventory.forEach((itemId, idx) => {
+                    if(idx < 8) {
+                        const item = Object.values(ITEMS).find(i => i.id === itemId); // find by id string
+                        // For simplicity, we mapped IDs directly in ITEMS keys in Logic above, but let's do a lookup
+                        let itemData = null;
+                        for(let k in ITEMS) { if(ITEMS[k].id === itemId) itemData = ITEMS[k]; }
+
+                        if(itemData) {
+                            slots[idx].innerHTML = itemData.icon + `<div class="inv-tooltip">${itemData.name}</div>`;
+                            slots[idx].classList.add('filled');
+                        }
+                    }
+                });
+            },
+            add(itemObj) {
+                if(!State.inventory.includes(itemObj.id)) {
+                    State.inventory.push(itemObj.id);
+                    this.render();
+                    Journal.add(`Acquired: ${itemObj.name}`, true);
+                    Game.updateObjective();
+                }
+            }
+        };
+
+        // --- JOURNAL SYSTEM ---
+        const Journal = {
+            add(msg, isNew = false) {
+                const db = document.getElementById('databank');
+                const div = document.createElement('div');
+                div.className = 'log-entry' + (isNew ? ' new' : '');
+                div.innerText = `> ${msg}`;
+                db.prepend(div);
+            }
+        };
+
+        // --- MODAL SYSTEM ---
+        const Modal = {
+            open(title, contentId) {
+                document.getElementById('game-modal').classList.add('active');
+                document.getElementById('modal-title').innerText = title;
+                
+                // Hide all minigames
+                document.querySelectorAll('.minigame').forEach(el => el.classList.add('hidden'));
+                // Show requested
+                document.getElementById(contentId).classList.remove('hidden');
+            },
+            close() {
+                document.getElementById('game-modal').classList.remove('active');
+            }
+        };
+
+        // --- RIDDLE LOGIC ---
+        const Riddle = {
+            currentRef: null,
+            currentReward: null,
+            answerKey: null,
+
+            open(title, text, answerKey, reward, ref) {
+                this.currentRef = ref;
+                this.currentReward = reward;
+                this.answerKey = answerKey; // simple keyword check
+                
+                const box = document.getElementById('riddle-text');
+                box.innerText = text;
+                document.getElementById('riddle-input').value = "";
+                document.getElementById('riddle-err').innerText = "";
+                
+                Modal.open(title, "riddle-container");
+            },
+
+            check() {
+                const val = document.getElementById('riddle-input').value.toLowerCase();
+                // Loose check
+                if(val.includes('mosquito') || val.includes('needle') || val.includes('thermal') || val.includes('map') || val.includes('cloud') || val.includes('hat') || val.includes('evil') || val.includes('formula')) {
+                    // Just force success for demo based on context, in real game check specific string
+                    // Actually let's do specific:
+                    let success = false;
+                    // Cheat map for demo robustness:
+                    if(this.answerKey === 'needle' && (val.includes('mosquito') || val.includes('needle'))) success = true;
+                    if(this.answerKey === 'thermal' && (val.includes('map') || val.includes('thermal'))) success = true;
+                    if(this.answerKey === 'cloud' && (val.includes('cloud') || val.includes('wind') || val.includes('storm'))) success = true;
+                    if(this.answerKey === 'hat' && (val.includes('hat') || val.includes('cap'))) success = true;
+                    if(this.answerKey === 'formula' && (val.includes('evil') || val.includes('live'))) success = true;
+
+                    if(success) {
+                        State.solved.push(this.currentRef);
+                        Inventory.add(this.currentReward);
+                        Modal.close();
+                        // Hide the hotspot visually
+                        document.querySelector(`[data-ref="${this.currentRef}"]`).style.display = 'none';
+                    } else {
+                        document.getElementById('riddle-err').innerText = "Incorrect. Try again.";
+                    }
+                } else {
+                     document.getElementById('riddle-err').innerText = "Incorrect. Try again.";
+                }
+            }
+        };
+
+        // --- MINIGAME 1: TUNER (Canvas) ---
+        const Tuner = {
+            target: null,
+            start(domTarget) {
+                this.target = domTarget;
+                const canvas = document.getElementById('wave-canvas');
+                const ctx = canvas.getContext('2d');
+                const slider = document.getElementById('wave-slider');
+                const status = document.getElementById('tuner-status');
+                
+                let val = 50;
+                slider.oninput = (e) => val = e.target.value;
+
+                function draw() {
+                    if(!document.getElementById('tuner-game').offsetParent) return; // Stop if hidden
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(0,0,300,150);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#0f0';
+                    
+                    ctx.beginPath();
+                    // Target Wave (Fixed)
+                    for(let x=0; x<300; x++) {
+                        let y = 75 + Math.sin(x * 0.1) * 30;
+                        if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                    }
+                    ctx.stroke();
+
+                    // User Wave
+                    ctx.strokeStyle = '#00e5ff';
+                    ctx.beginPath();
+                    let freq = val * 0.005; // 0.05 to 0.5
+                    for(let x=0; x<300; x++) {
+                        let y = 75 + Math.sin(x * (0.05 + (val-50)*0.002)) * 30;
+                        if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                    }
+                    ctx.stroke();
+
+                    // Check Match
+                    if(val > 23 && val < 27) { // Sweet spot
+                        status.innerText = "SIGNAL: LOCKED";
+                        status.style.color = "#0f0";
+                        setTimeout(() => {
+                            Modal.close();
+                            if(!State.solved.includes('window')) {
+                                State.solved.push('window');
+                                Inventory.add(ITEMS.gyro);
+                                document.querySelector(`[data-ref="window"]`).style.display = 'none';
+                            }
+                        }, 1000);
+                    } else {
+                        status.innerText = "SIGNAL: WEAK";
+                        status.style.color = "#f00";
+                    }
+                    requestAnimationFrame(draw);
+                }
+                draw();
+            }
+        };
+
+        // --- MINIGAME 2: KEYPAD ---
+        const Keypad = {
+            code: "3141", // Pi :)
+            current: "",
+            press(num) {
+                this.current += num;
+                document.getElementById('keypad-display').innerText = this.current;
+                if(this.current.length === 4) {
+                    if(this.current === this.code) {
+                        Modal.close();
+                        Game.transitionToLab();
+                    } else {
+                        this.current = "";
+                        document.getElementById('keypad-display').innerText = "ERR";
+                        setTimeout(() => document.getElementById('keypad-display').innerText = "_ _ _ _", 500);
+                    }
+                }
+            }
+        };
+
+        // --- MINIGAME 3: CHEMISTRY ---
+        const Chem = {
+            mix: [],
+            add(color) {
+                this.mix.push(color);
+                const beaker = document.getElementById('beaker-fill');
+                beaker.style.height = (this.mix.length * 33) + "%";
+                
+                // Color mixing logic
+                if(this.mix.length === 1) beaker.style.background = color;
+                else beaker.style.background = "linear-gradient(to top, " + this.mix.join(',') + ")";
+
+                if(this.mix.length === 2) {
+                    // Check Recipe: Green + Blue
+                    if(this.mix.includes('green') && this.mix.includes('blue') && !this.mix.includes('red')) {
+                        setTimeout(() => {
+                            Modal.close();
+                            Inventory.add(ITEMS.antidote);
+                            Journal.add("Antidote Synthesized.", true);
+                            Game.updateObjective();
+                        }, 1000);
+                    } else {
+                        setTimeout(() => {
+                             this.mix = [];
+                             beaker.style.height = "0%";
+                             Journal.add("Mixture unstable. Dumped.", false);
+                        }, 1000);
+                    }
+                }
+            }
+        };
+
+        // --- PARTICLE FX ---
+        const Fx = {
+            init() {
+                const cvs = document.getElementById('fx-canvas');
+                const ctx = cvs.getContext('2d');
+                cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+                
+                const particles = [];
+                for(let i=0; i<50; i++) particles.push({
+                    x: Math.random()*cvs.width, y: Math.random()*cvs.height,
+                    vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5,
+                    size: Math.random()*2
+                });
+
+                function loop() {
+                    ctx.clearRect(0,0,cvs.width,cvs.height);
+                    ctx.fillStyle = State.isNight ? "rgba(255, 200, 50, 0.5)" : "rgba(255, 255, 255, 0.3)"; // Fireflies vs Dust
+                    
+                    particles.forEach(p => {
+                        p.x += p.vx; p.y += p.vy;
+                        if(p.x < 0) p.x = cvs.width; if(p.x > cvs.width) p.x = 0;
+                        if(p.y < 0) p.y = cvs.height; if(p.y > cvs.height) p.y = 0;
+                        
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                        ctx.fill();
+                    });
+                    requestAnimationFrame(loop);
+                }
+                loop();
+            }
+        };
+
+        // START
+        window.onload = runBoot;
 
     </script>
 </body>
