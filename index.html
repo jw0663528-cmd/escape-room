@@ -3,420 +3,543 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פרויקט קולקס | חדר בריחה ביומימטי</title>
+    <title>פרויקט CULEX | סימולציית הישרדות</title>
     <style>
+        /* --- CORE STYLES --- */
         :root {
-            --primary-color: #00ff41; /* Green Terminal */
-            --secondary-color: #0c0c0c; /* Black Background */
-            --danger-color: #ff3333;
-            --accent-color: #008f11;
-            --glass-panel: rgba(0, 20, 0, 0.85);
-            --font-main: 'Courier New', Courier, monospace;
-        }
-
-        * {
-            box-sizing: border-box;
-            user-select: none;
+            --bg-color: #050a0f;
+            --terminal-bg: #0d1117;
+            --text-color: #c9d1d9;
+            --accent-cyan: #58a6ff;
+            --accent-green: #2ea043;
+            --accent-red: #da3633;
+            --glass: rgba(22, 27, 34, 0.95);
+            --font-mono: 'Courier New', Courier, monospace;
         }
 
         body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-mono);
             margin: 0;
-            padding: 0;
-            background-color: var(--secondary-color);
-            color: var(--primary-color);
-            font-family: var(--font-main);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background-image: radial-gradient(circle, #112211 0%, #000000 100%);
-        }
-
-        /* --- UI Elements --- */
-        #game-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
             padding: 20px;
-            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at 50% 50%, #161b22 0%, #000000 100%);
         }
 
-        .screen {
-            background: var(--glass-panel);
-            border: 2px solid var(--accent-color);
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
-            display: none; /* Hidden by default */
-            animation: fadeIn 0.5s ease-in-out;
-            max-height: 80vh;
-            overflow-y: auto;
+        /* --- GAME CONTAINER --- */
+        #terminal {
+            width: 100%;
+            max-width: 900px;
+            background: var(--terminal-bg);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(88, 166, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
         }
 
-        .screen.active {
-            display: block;
-        }
-
-        h1, h2 {
-            text-transform: uppercase;
-            border-bottom: 1px dashed var(--primary-color);
-            padding-bottom: 10px;
-            text-shadow: 0 0 5px var(--primary-color);
-        }
-
-        p {
-            line-height: 1.6;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-
-        .status-bar {
+        /* --- HEADER & HUD --- */
+        .hud {
+            background: #161b22;
+            padding: 15px;
+            border-bottom: 1px solid #30363d;
             display: flex;
             justify-content: space-between;
-            padding: 10px 20px;
-            background: #001100;
-            border-bottom: 2px solid var(--accent-color);
-            font-weight: bold;
-            font-size: 1.2rem;
+            align-items: center;
         }
 
-        .stat-item span {
-            color: white;
-        }
-
-        /* --- Components --- */
-        button {
-            background: transparent;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 10px 20px;
-            font-family: var(--font-main);
-            font-size: 1rem;
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.3s;
-        }
-
-        button:hover {
-            background: var(--primary-color);
-            color: black;
-            box-shadow: 0 0 10px var(--primary-color);
-        }
-
-        input[type="text"], input[type="number"] {
-            background: black;
-            border: 1px solid var(--primary-color);
-            color: var(--primary-color);
-            padding: 10px;
-            font-family: var(--font-main);
-            font-size: 1rem;
-            width: 200px;
-            text-align: center;
-        }
-
-        input:focus {
-            outline: none;
-            box-shadow: 0 0 10px var(--accent-color);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* --- Puzzle Specifics --- */
-        .puzzle-options {
+        .hud-stat {
+            font-size: 0.9rem;
             display: flex;
-            flex-direction: column;
+            align-items: center;
             gap: 10px;
         }
 
-        .foggy-glass {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
+        .progress-bar-container {
+            width: 200px;
+            height: 10px;
+            background: #30363d;
             border-radius: 5px;
-            text-align: center;
-            filter: blur(8px); /* The Blur Effect */
-            transition: filter 2s ease;
-            cursor: pointer;
-            border: 1px solid white;
-            color: white;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--accent-cyan);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .antidote-counter {
+            color: var(--accent-green);
             font-weight: bold;
-            font-size: 2rem;
-            margin: 20px 0;
-            user-select: none;
+            font-size: 1.2rem;
+            text-shadow: 0 0 10px rgba(46, 160, 67, 0.5);
         }
 
-        .foggy-glass.cleared {
-            filter: blur(0px);
-            background: rgba(0, 50, 0, 0.5);
+        /* --- MAIN SCREEN AREA --- */
+        .screen-content {
+            flex-grow: 1;
+            padding: 30px;
+            overflow-y: auto;
+            position: relative;
         }
 
-        .switch-board {
-            display: flex;
-            justify-content: space-around;
+        .story-section {
+            display: none;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .story-section.active {
+            display: block;
+        }
+
+        h2 { color: var(--accent-cyan); border-bottom: 1px dashed #30363d; padding-bottom: 10px; }
+        .narrative { line-height: 1.6; margin-bottom: 20px; font-size: 1.1rem; }
+        .highlight { color: var(--accent-cyan); font-weight: bold; }
+        
+        /* --- INTERACTIVE ELEMENTS --- */
+        .puzzle-box {
+            background: rgba(48, 54, 61, 0.3);
+            border: 1px solid var(--accent-cyan);
+            padding: 20px;
+            border-radius: 8px;
             margin-top: 20px;
         }
 
-        .switch-btn {
-            width: 80px;
-            height: 80px;
+        button {
+            background: transparent;
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 10px 20px;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.2s;
+            border-radius: 4px;
+        }
+
+        button:hover { background: rgba(46, 160, 67, 0.1); }
+        button.danger { border-color: var(--accent-red); color: var(--accent-red); }
+        button.danger:hover { background: rgba(218, 54, 51, 0.1); }
+
+        /* --- VISUALS (CSS ART) --- */
+        
+        /* 1. Radar / Thermal View */
+        .radar-view {
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
-            border: 2px solid var(--primary-color);
+            border: 2px solid var(--accent-red);
+            background: radial-gradient(circle, transparent 20%, rgba(218, 54, 51, 0.1) 20%);
+            position: relative;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .radar-line {
+            width: 50%;
+            height: 2px;
+            background: var(--accent-red);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-origin: 0 0;
+            animation: scan 2s infinite linear;
+        }
+        .heat-spot {
+            width: 10px;
+            height: 10px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            top: 30%;
+            left: 70%;
+            box-shadow: 0 0 10px red;
+            cursor: pointer;
+        }
+
+        /* 2. Frequency Waves */
+        .wave-container {
             display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            gap: 5px;
+            height: 60px;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .bar {
+            width: 6px;
+            background: var(--accent-cyan);
+            animation: sound 1s infinite ease-in-out;
+        }
+        
+        /* 3. Fog Effect */
+        .fog-overlay {
+            position: relative;
+            height: 100px;
+            background: #222;
+            border: 1px solid #555;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .fog-cloud {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            transition: opacity 1s;
+        }
+        .hidden-code { font-size: 2rem; letter-spacing: 5px; font-weight: bold; color: white; }
+
+        /* 4. Microscope View (Needle) */
+        .microscope {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 5px solid #444;
+            margin: 0 auto;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+        .needle-smooth {
+            width: 100%;
+            height: 10px;
+            background: #333;
+            position: absolute;
+            top: 60%;
+            transform: rotate(-15deg);
+        }
+        .needle-serrated {
+            width: 100%;
+            height: 10px;
+            background: repeating-linear-gradient(45deg, #333, #333 5px, #fff 5px, #fff 7px);
+            position: absolute;
+            top: 40%;
+            transform: rotate(-15deg);
         }
 
-        /* --- Animations --- */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes sound { 0%, 100% { height: 10px; } 50% { height: 50px; } }
+        
+        .shake { animation: shake 0.5s; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
 
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
-        }
-
-        .shake {
-            animation: shake 0.4s ease-in-out;
-            border-color: var(--danger-color);
-            color: var(--danger-color);
-        }
-
-        /* --- Responsive --- */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.5rem; }
-            .status-bar { font-size: 0.9rem; }
-        }
     </style>
 </head>
 <body>
 
-    <div class="status-bar">
-        <div class="stat-item">מיקום: <span id="location-display">כניסה</span></div>
-        <div class="stat-item">נוגדנים: <span id="antidote-display">6</span>/6</div>
+<div id="terminal">
+    <div class="hud">
+        <div class="hud-stat">
+            <span>התקדמות:</span>
+            <div class="progress-bar-container">
+                <div id="progress-fill" class="progress-bar-fill"></div>
+            </div>
+            <span id="car-number">מעבדה</span>
+        </div>
+        <div class="hud-stat">
+            מזרקי נוגדן: <span id="antidote-count" class="antidote-counter">6</span>
+        </div>
     </div>
 
-    <div id="game-container">
-
-        <div id="screen-intro" class="screen active">
-            <h1>פרויקט קולקס</h1>
-            <p>שלום, נסיין מספר 894.</p>
-            <p>אתה נמצא ברכבת המאיצה לעבר הלא נודע. יש 10 קרונות. בחצי מהם יש גז עצבים קטלני.</p>
-            <p>לרשותך 6 מנות נוגדן בלבד. הטעויות כאן עולות ביוקר.</p>
-            <p>הכלי היחיד שלך להישרדות הוא הביומימיקרי: ללמוד מהיתוש כדי לשרוד את המלכודת.</p>
-            <button onclick="startGame()">התחל סימולציה</button>
-        </div>
-
-        <div id="screen-car1" class="screen">
-            <h2>קרון 1: פחד</h2>
-            <p>הטיימר רץ. ילדה קטנה בשם מאיה יושבת על הרצפה וחוסמת את המעבר. היא צריכה את הנוגדן כדי לעבור לקרון הבא, אבל היא בועטת וצורחת מפחד מהמזרק.</p>
-            <p><strong>איך תשכנע אותה לקבל את הזריקה?</strong></p>
-            <div class="puzzle-options">
-                <button onclick="checkAnswer1(1)">"מאיה, אין ברירה! תחזיקי חזק, זה יכאב רק לשנייה."</button>
-                <button onclick="checkAnswer1(2)">"תראי, המזרק הזה הוא כמו חדק של ייתוש. הוא רוטט ודק מאוד, את אפילו לא תרגישי."</button>
-                <button onclick="checkAnswer1(3)">"אם לא תזוזי הגז יגיע. קחי סוכרייה ותני לי את היד."</button>
+    <div class="screen-content">
+        
+        <div id="intro" class="story-section active">
+            <h2>יומן ניסוי: שלב 0 - המעבדה</h2>
+            <div class="narrative">
+                <p>לפני שאתה מתעורר ברכבת, אתה זוכר את המעבדה הלבנה. ד"ר ארקדיוס עומד מעליך.</p>
+                <p>"בני האדם מגושמים," הוא ממלמל, מכוון אליך מיקרוסקופ ענק. "תראה את היתוש. תראה את החדק שלו. זה לא סתם צינור, זו יצירת מופת."</p>
+                <p>הוא מזריק לך נוזל ירוק זוהר.</p>
+                <p>"זהו סרום סימון. החיישנים ברכבת מכויילים לזהות אותך כמו שהיתוש מזהה קורבן. אבל אם תחשוב כמו יתוש... אולי תצליח לשרוד. יש לך 6 נוגדנים. אל תבזבז אותם על טעויות."</p>
             </div>
-            <p id="feedback-1" style="margin-top:10px; font-weight:bold;"></p>
+            <button onclick="nextLevel(1)">התעורר ברכבת</button>
         </div>
 
-        <div id="screen-car4" class="screen">
-            <h2>קרון 4: ניווט עיוור</h2>
-            <p>הגעתם לפיצול. המסדרון מלא בעשן סמיך. אי אפשר לראות כלום. יש לך רחפן זעיר (MAV) בערכה.</p>
-            <p>כדי שהרחפן יתייצב בתוך זרמי האוויר והעשן, עליך לכייל את תדר המנוע שלו לתדר נפנוף הכנפיים של היתוש.</p>
-            <p><em>רמז: יתושים מנפנפים בכנפיים בתדר גבוה מאוד, בין 500 ל-700 הרץ. הכיול המדויק לרחפן זה הוא האמצע בדיוק.</em></p>
-            
-            <div style="text-align: center; margin-top: 20px;">
-                <input type="number" id="drone-input" placeholder="הכנס תדר (Hz)">
-                <button onclick="checkDrone()">שגר רחפן</button>
+        <div id="car-1" class="story-section">
+            <h2>קרון 1: הדקירה הבלתי מורגשת</h2>
+            <div class="narrative">
+                <p>אתה מתעורר. ילדה קטנה חוסמת את הדלת. היא צריכה חיסון כדי לזוז, אבל היא בבעתה מהמחט.</p>
+                <p>בארגז הכלים שלך יש שני סוגי מחטים. המיקרוסקופ מראה את המבנה שלהן:</p>
+            </div>
+            <div class="microscope">
+                <div class="needle-smooth" title="מחט חלקה רגילה"></div>
+                <div class="needle-serrated" title="מחט ביומימטית"></div>
+            </div>
+            <div class="puzzle-box">
+                <p>באיזו מחט תבחר כדי שהילדה לא תרגיש את הדקירה?</p>
+                <button class="danger" onclick="wrongAnswer('בחרת במחט החלקה הרגילה. זה כאב לה. היא זזה והמחט נשברה. איבדת מנה.')">מחט חלקה וישרה</button>
+                <button onclick="correctAnswer(2, 'בחרת במחט המשוננת (Micro-serrated). השינון מפחית את המגע עם העצבים. הילדה לא הרגישה כלום.')">מחט משוננת רוטטת</button>
             </div>
         </div>
 
-        <div id="screen-car7" class="screen">
-            <h2>קרון 7: ראייה בלתי אפשרית</h2>
-            <p>הדלת לקרון הבא נעולה בקוד דיגיטלי. הקוד כתוב על דופן הזכוכית, אבל החדר מלא באדים רותחים והזכוכית מכוסה לחלוטין באדים.</p>
-            <p>בתיק שלך יש תרסיס המבוסס על <strong>עיני היתוש</strong> (ננו-מבנה דוחה מים).</p>
-            <p>לחץ על הזכוכית כדי לרסס את החומר ולחשוף את הקוד.</p>
-            
-            <div id="foggy-glass" class="foggy-glass" onclick="clearFog()">
-                CODE: 8432
+        <div id="car-2" class="story-section">
+            <h2>קרון 2: ראיית חום (Thermal)</h2>
+            <div class="narrative">
+                <p>הקרון חשוך לחלוטין. יש כאן דליפת גז רותח בלתי נראה. אם תעבור דרכה - תמות.</p>
+                <p>יתושים משתמשים בחיישני חום כדי למצוא כלי דם. אתה מפעיל את משקפי ה-IR שלך.</p>
             </div>
+            <div class="radar-view">
+                <div class="radar-line"></div>
+                <div class="heat-spot" onclick="correctAnswer(3, 'זיהית את מקור החום ועקפת אותו בבטחה.')"></div>
+            </div>
+            <div class="puzzle-box">
+                <p>המשקפיים מראים נקודה אדומה לוהטת בצד ימין. לחץ עליה כדי לסמן למערכת לעקוף אותה.</p>
+            </div>
+        </div>
 
-            <p>הכנס את הקוד שגילית:</p>
-            <div style="text-align: center;">
-                <input type="text" id="code-input" placeholder="קוד הדלת">
+        <div id="car-3" class="story-section">
+            <h2>קרון 3: משטח המים</h2>
+            <div class="narrative">
+                <p>הקרון הזה מוצף במים חומציים בגובה הקרסול. אי אפשר לדרוך על הרצפה.</p>
+                <p>יש כאן רפסודות זעירות הפועלות על עקרון <strong>מתח הפנים</strong>, כמו רגלי היתוש העומדות על המים.</p>
+            </div>
+            <div class="puzzle-box">
+                <p>איך עליך להניח את הרגליים/רפסודות כדי לא לשקוע?</p>
+                <button class="danger" onclick="wrongAnswer('הפעלת כוח ממוקד מדי. מתח הפנים נשבר. שקעת למים החומציים.')">דריכה חזקה ונקודתית</button>
+                <button onclick="correctAnswer(4, 'פיזרת את המשקל על שטח פנים רחב תוך ניצול קשרי המימן במים. אתה צף.')">פיזור משקל אופקי (Hydrophobic legs)</button>
+            </div>
+        </div>
+
+        <div id="car-4" class="story-section">
+            <h2>קרון 4: ייצוב טיסה</h2>
+            <div class="narrative">
+                <p>מאווררי ענק יוצרים רוח הוריקן. אתה חייב לשגר רחפן זעיר לצד השני כדי ללחוץ על הכפתור.</p>
+                <p>רחפנים רגילים מתרסקים. עליך להפעיל את מצב "Halteres" (בוכניות האיזון של היתוש).</p>
+            </div>
+            <div class="wave-container">
+                <div class="bar" style="animation-duration: 0.2s"></div>
+                <div class="bar" style="animation-duration: 0.5s"></div>
+                <div class="bar" style="animation-duration: 0.3s"></div>
+                <div class="bar" style="animation-duration: 0.2s"></div>
+            </div>
+            <div class="puzzle-box">
+                <p>הכנס את תדר הרטט הנכון (בין 500 ל-600 הרץ) לייצוב:</p>
+                <input type="number" id="freq-input" placeholder="Hz" style="background:#000; color:#fff; border:1px solid #555; padding:5px;">
+                <button onclick="checkFreq()">שגר רחפן</button>
+            </div>
+        </div>
+
+        <div id="car-5" class="story-section">
+            <h2>קרון 5: חדר השינה</h2>
+            <div class="narrative">
+                <p>שומרים רובוטיים ישנים בקרון. הם רגישים לתנועה.</p>
+                <p>היתוש ממריא בצורה ייחודית: הוא קודם כל מנופף בכנפיים ורק אז דוחף עם הרגליים, כדי למנוע "בעיטה" מורגשת בעור.</p>
+            </div>
+            <div class="puzzle-box">
+                <p>איך תתגנב מעל הלוחיות הרגישות ברצפה?</p>
+                <button class="danger" onclick="wrongAnswer('דחיפה חזקה הפעילה את החיישנים. השומרים התעוררו.')">קפיצה מהירה (דחיפת רגליים)</button>
+                <button onclick="correctAnswer(6, 'המראה רכה. קודם יצרת עילוי, ורק אז ניתקת מגע. החיישנים לא זיהו לחץ.')">המראה מבוססת כנפיים (Wing-first)</button>
+            </div>
+        </div>
+
+        <div id="car-6" class="story-section">
+            <h2>קרון 6: גנטיקה ומיון</h2>
+            <div class="narrative">
+                <p>אתה בחדר מלא במיכלי יתושים משוכפלים. הדלת תיפתח רק אם תזהה את היתוש ש<strong>לא</strong> עוקץ.</p>
+                <p>ידע כללי ביומימטי: רק הנקבות עוקצות (זקוקות לחלבון לביצים). הזכרים ניזונים מצוף.</p>
+            </div>
+            <div class="puzzle-box">
+                <p>איזה מיכל תשחרר כדי שיהיה בטוח לעבור?</p>
+                <button class="danger" onclick="wrongAnswer('שחררת נקבות! הן רעבות לדם. היית צריך להזריק נוגדן.')">מיכל יתושים עם בטן אדומה (נקבות)</button>
+                <button onclick="correctAnswer(7, 'נכון! הזכרים אינם עוקצים. המעבר בטוח.')">מיכל יתושים עם מחושים נוצתיים (זכרים)</button>
+            </div>
+        </div>
+
+        <div id="car-7" class="story-section">
+            <h2>קרון 7: הערפל</h2>
+            <div class="narrative">
+                <p>הקוד לדלת כתוב על הזכוכית, אבל הכל מכוסה אדים. ניגוב רגיל רק מורח את המים.</p>
+                <p>השתמש בתרסיס ננו-מטרי (השראת עיני יתוש) הדוחה מים באופן מוחלט.</p>
+            </div>
+            <div class="fog-overlay" onclick="clearFog(this)">
+                <div class="fog-cloud"></div>
+                <div class="hidden-code">8841</div>
+            </div>
+            <div class="puzzle-box">
+                <p>לחץ על הערפל כדי להפעיל את הציפוי ההידרופובי.</p>
+                <p>מה הקוד?</p>
+                <input type="text" id="code-input" style="background:#000; color:#fff; border:1px solid #555; padding:5px;">
                 <button onclick="checkCode()">פתח דלת</button>
             </div>
         </div>
 
-        <div id="screen-car10" class="screen">
-            <h2>קרון 10: חושך מוחלט</h2>
-            <p>הגעת למדען המטורף, ד"ר ארקדיוס. החדר חשוך לגמרי. הוא מחזיק את המפתח.</p>
-            <p>יש 3 מתגים על הקיר מולך. אחד מדליק את האור ומסיים את המשחק, השניים האחרים משחררים גז.</p>
-            <p>אתה משתמש במיקרופון הכיווני (בהשראת איבר ג'ונסטון במחושים). אתה שומע את תקתוק השעון שלו.</p>
-            <p style="border: 1px solid var(--primary-color); padding: 10px; font-family: monospace;">
-                > ניתוח אודיו...<br>
-                > אות מזוהה: 20dB<br>
-                > כיוון מקור: 270 מעלות (צד שמאל)<br>
-            </p>
-            <p>איזה מתג תלחץ?</p>
-
-            <div class="switch-board">
-                <div class="switch-btn" onclick="checkSwitch('left')" style="cursor:pointer;">L</div>
-                <div class="switch-btn" onclick="checkSwitch('center')" style="cursor:pointer;">C</div>
-                <div class="switch-btn" onclick="checkSwitch('right')" style="cursor:pointer;">R</div>
+        <div id="car-8" class="story-section">
+            <h2>קרון 8: התנגשות</h2>
+            <div class="narrative">
+                <p>מסדרון צר מלא בקרני לייזר נעים במהירות. קשה לחשב את המסלול.</p>
+                <p>יתושים משתמשים במחושים כדי לחוש שינויים בלחץ האוויר סביב חפצים מתקרבים, עוד לפני שהם נוגעים בהם.</p>
+            </div>
+            <div class="puzzle-box">
+                <p>המערכת מזהה "דחיסת אוויר" משמאל. לאן תזוז?</p>
+                <button class="danger" onclick="wrongAnswer('זזת שמאלה ישר לתוך הלייזר.')">שמאלה</button>
+                <button onclick="correctAnswer(9, 'הרגשת את לחץ האוויר וזזת ימינה בזמן.')">ימינה</button>
             </div>
         </div>
 
-        <div id="screen-win" class="screen">
-            <h1 style="color: var(--primary-color);">משימה הושלמה</h1>
-            <p>האורות נדלקים. ארקדיוס נלכד. הצלת את הנוסעים.</p>
-            <p>הוכחת שהבנה עמוקה של הטבע היא הכלי החזק ביותר.</p>
-            <p><strong>סטטוס סופי:</strong> <span id="final-score"></span> נוגדנים נותרו.</p>
+        <div id="car-9" class="story-section">
+            <h2>קרון 9: המלכודת הכימית</h2>
+            <div class="narrative">
+                <p>שני פתחי אוורור. אחד מוביל החוצה, השני מוביל למיכל גז. אין שילוט.</p>
+                <p>היתוש מזהה CO2 (פחמן דו-חמצני) ממרחקים כדי למצוא חיים. כאן, אתה מחפש אוויר צח (פחות CO2).</p>
+            </div>
+            <div class="puzzle-box">
+                <div style="display:flex; justify-content:space-around;">
+                    <div style="text-align:center">
+                        <div>פתח א'</div>
+                        <div style="color:red">CO2: 4500ppm</div>
+                    </div>
+                    <div style="text-align:center">
+                        <div>פתח ב'</div>
+                        <div style="color:green">CO2: 400ppm</div>
+                    </div>
+                </div>
+                <p>לאן תלך?</p>
+                <button class="danger" onclick="wrongAnswer('הלכת למקור ה-CO2 הגבוה. זה היה אגזוז המנוע. נחנקת.')">פתח א'</button>
+                <button onclick="correctAnswer(10, 'זיהית את ריכוז ה-CO2 הנמוך של האוויר הצח.')">פתח ב'</button>
+            </div>
+        </div>
+
+        <div id="car-10" class="story-section">
+            <h2>קרון 10: ד"ר ארקדיוס</h2>
+            <div class="narrative">
+                <p>הגעת לקטר. ארקדיוס יושב בחושך. "אתה שומע את זה?" הוא לוחש.</p>
+                <p>יתושים שומעים באמצעות איבר ג'ונסטון במחושים, המכויל לתדרים ספציפיים.</p>
+                <p>יש כאן שלושה מפסקים. רק אחד משמיע זמזום בתדר 400Hz (תדר הנקבה). השאר הם מלכודות.</p>
+            </div>
+            <div class="wave-container">
+                <button onclick="playAudio(1)">מתג 1 (200Hz)</button>
+                <button onclick="playAudio(2)">מתג 2 (400Hz)</button>
+                <button onclick="playAudio(3)">מתג 3 (800Hz)</button>
+            </div>
+            <div class="puzzle-box">
+                <p>איזה מתג תשבור?</p>
+                <button class="danger" onclick="wrongAnswer('תדר נמוך מדי. זה היה מלכודת.')">מתג 1</button>
+                <button onclick="finishGame()">מתג 2</button>
+                <button class="danger" onclick="wrongAnswer('תדר גבוה מדי. התחשמלת.')">מתג 3</button>
+            </div>
+        </div>
+
+        <div id="screen-win" class="story-section">
+            <h1 style="color:var(--accent-green)">ניצחון ביומימטי!</h1>
+            <p>שברת את המתג הנכון. הרכבת עוצרת. הדלתות נפתחות.</p>
+            <p>הבנת את המכונה של הטבע, והשתמשת בה כדי להביס את המכונה של האדם.</p>
+            <p>נוגדנים שנותרו: <span id="final-score"></span>/6</p>
             <button onclick="location.reload()">שחק שוב</button>
         </div>
 
-        <div id="screen-lose" class="screen">
-            <h1 style="color: var(--danger-color);">נכשלת</h1>
-            <p>אזלו הנוגדנים. הגז השתלט על מערכת העצבים שלכם.</p>
-            <p>הניסוי של ד"ר ארקדיוס הצליח, אבל אתם לא שרדתם כדי לספר.</p>
+        <div id="screen-lose" class="story-section">
+            <h1 style="color:var(--accent-red)">כישלון מערכתי</h1>
+            <p>אזלו הנוגדנים. הרעל הכריע אותך.</p>
+            <p>ד"ר ארקדיוס רושם ביומן: "נסיין 894 נכשל בהסתגלות."</p>
             <button onclick="location.reload()">נסה שוב</button>
         </div>
 
     </div>
+</div>
 
-    <script>
-        // Game State
-        let antidotes = 6;
-        let currentScreen = 'screen-intro';
+<script>
+    // Game State
+    let state = {
+        antidotes: 6,
+        currentLevel: 0
+    };
+
+    // DOM Elements
+    const elAntidotes = document.getElementById('antidote-count');
+    const elProgressBar = document.getElementById('progress-fill');
+    const elCarNum = document.getElementById('car-number');
+
+    function updateHUD() {
+        elAntidotes.innerText = state.antidotes;
+        const progress = (state.currentLevel / 10) * 100;
+        elProgressBar.style.width = `${progress}%`;
         
-        // DOM Elements
-        const antidotesDisplay = document.getElementById('antidote-display');
-        const locationDisplay = document.getElementById('location-display');
-
-        // Functions
-        function updateStats(locationName) {
-            antidotesDisplay.innerText = antidotes;
-            if(antidotes <= 0) {
-                showScreen('screen-lose');
-                return;
-            }
-            if(locationName) {
-                locationDisplay.innerText = locationName;
-            }
+        if (state.antidotes <= 0) {
+            showScreen('screen-lose');
         }
+    }
 
-        function showScreen(screenId) {
-            // Hide all screens
-            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-            // Show target screen
-            const target = document.getElementById(screenId);
-            if(target) {
-                target.classList.add('active');
-                currentScreen = screenId;
-            }
+    function showScreen(id) {
+        document.querySelectorAll('.story-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function nextLevel(levelNum) {
+        state.currentLevel = levelNum;
+        elCarNum.innerText = `קרון ${levelNum}`;
+        updateHUD();
+        showScreen(`car-${levelNum}`);
+    }
+
+    function correctAnswer(nextLevelNum, msg) {
+        alert("הצלחה: " + msg);
+        if (nextLevelNum > 10) {
+            finishGame();
+        } else {
+            nextLevel(nextLevelNum);
         }
+    }
 
-        function startGame() {
-            showScreen('screen-car1');
-            updateStats('קרון 1');
+    function wrongAnswer(msg) {
+        alert("שגיאה: " + msg + " (איבדת נוגדן)");
+        state.antidotes--;
+        updateHUD();
+        document.getElementById('terminal').classList.add('shake');
+        setTimeout(() => document.getElementById('terminal').classList.remove('shake'), 500);
+    }
+
+    // Specific Puzzle Logic
+    
+    // Car 4: Freq
+    function checkFreq() {
+        const val = parseInt(document.getElementById('freq-input').value);
+        if (val >= 500 && val <= 600) {
+            correctAnswer(5, "התדר התייצב. הרחפן חצה את הרוח.");
+        } else {
+            wrongAnswer("תדר לא יציב. הרחפן התרסק.");
         }
+    }
 
-        function reduceAntidote() {
-            antidotes--;
-            updateStats();
-            // Visual feedback
-            document.body.style.boxShadow = "inset 0 0 50px red";
-            setTimeout(() => {
-                document.body.style.boxShadow = "none";
-            }, 500);
+    // Car 7: Fog
+    function clearFog(el) {
+        el.querySelector('.fog-cloud').style.opacity = '0';
+    }
+
+    function checkCode() {
+        if (document.getElementById('code-input').value === '8841') {
+            correctAnswer(8, "הדלת נפתחה.");
+        } else {
+            wrongAnswer("קוד שגוי.");
         }
+    }
 
-        // --- Puzzle 1 Logic (Maya) ---
-        function checkAnswer1(option) {
-            const feedback = document.getElementById('feedback-1');
-            if (option === 2) {
-                // Correct
-                feedback.style.color = 'var(--primary-color)';
-                feedback.innerText = "מאיה נרגעה: 'זה באמת לא כאב!'. הדלת נפתחה.";
-                setTimeout(() => {
-                    showScreen('screen-car4');
-                    updateStats('קרון 4');
-                }, 2000);
-            } else {
-                // Wrong
-                feedback.style.color = 'var(--danger-color)';
-                if (option === 1) feedback.innerText = "היא נכנסה לטראומה וזזה ברגע האחרון. בזבזת מנה.";
-                if (option === 3) feedback.innerText = "אין זמן לסוכריות! הגז חודר. בזבזת מנה בלחץ.";
-                reduceAntidote();
-            }
-        }
+    // Car 10: Audio simulation
+    function playAudio(type) {
+        // Just visual simulation via alert for simplicity in this file
+        if (type === 2) alert("*זמזום יתוש מדויק בתדר 400Hz*");
+        else alert("*רעש סטטי צורם*");
+    }
 
-        // --- Puzzle 2 Logic (Drone) ---
-        function checkDrone() {
-            const input = document.getElementById('drone-input');
-            const val = parseInt(input.value);
-            
-            if (val === 600) {
-                alert("הרחפן התייצב! חיישני ה-CO2 מזהים מעבר בטוח.");
-                showScreen('screen-car7');
-                updateStats('קרון 7');
-            } else {
-                input.classList.add('shake');
-                setTimeout(() => input.classList.remove('shake'), 500);
-                alert("כיול שגוי. הרחפן התרסק בקיר. אתה חייב להזריק נוגדן נגד הגז שדלף.");
-                reduceAntidote();
-                input.value = '';
-            }
-        }
+    function finishGame() {
+        document.getElementById('final-score').innerText = state.antidotes;
+        showScreen('screen-win');
+    }
 
-        // --- Puzzle 3 Logic (Fog/Eyes) ---
-        function clearFog() {
-            const glass = document.getElementById('foggy-glass');
-            if (!glass.classList.contains('cleared')) {
-                glass.classList.add('cleared');
-                // Play a sound effect logic could go here
-            }
-        }
+</script>
 
-        function checkCode() {
-            const input = document.getElementById('code-input');
-            if (input.value === '8432') {
-                showScreen('screen-car10');
-                updateStats('קרון 10 - חדר בקרה');
-            } else {
-                input.classList.add('shake');
-                setTimeout(() => input.classList.remove('shake'), 500);
-                alert("קוד שגוי. הדלת נעולה. מנת נוגדן בוזבזה בניסיון פריצה כושל.");
-                reduceAntidote();
-            }
-        }
-
-        // --- Puzzle 4 Logic (Sound) ---
-        function checkSwitch(direction) {
-            if (direction === 'left') {
-                document.getElementById('final-score').innerText = antidotes;
-                showScreen('screen-win');
-                updateStats('חופש');
-            } else {
-                alert("שמעת רעש של גז משתחרר... זה היה המתג הלא נכון!");
-                reduceAntidote();
-                // If they survive the mistake (have antidotes left), they can try again
-                if (antidotes > 0) {
-                    alert("שרדת את הגז, נסה שוב להקשיב לכיוון.");
-                }
-            }
-        }
-
-    </script>
 </body>
 </html>
