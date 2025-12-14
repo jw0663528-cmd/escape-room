@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פרויקט קולקס | חוויה ויזואלית</title>
+    <title>פרויקט קולקס | רכבת האימים</title>
     <style>
         :root {
-            --main-bg: #111;
-            --hud-bg: #222;
+            --main-bg: #050505;
+            --hud-bg: #1a1a1a;
             --accent: #00ff55;
             --danger: #ff3300;
+            --metal-dark: #2c3e50;
+            --metal-light: #bdc3c7;
         }
         body {
             margin: 0;
             background: var(--main-bg);
             color: #eee;
-            font-family: sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -24,16 +26,18 @@
 
         /* --- HUD --- */
         #hud {
-            background: var(--hud-bg);
-            padding: 15px;
+            background: linear-gradient(to bottom, #2a2a2a, #111);
+            padding: 10px 20px;
             display: flex;
             justify-content: space-between;
-            border-bottom: 2px solid #444;
+            border-bottom: 3px solid #444;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
             z-index: 100;
+            font-family: monospace;
         }
-        .hud-item { font-size: 1.2rem; font-weight: bold; }
-        .antidote-icon { color: var(--accent); margin-right: 5px; }
-        .antidote-lost { color: #555; }
+        .hud-item { font-size: 1.1rem; font-weight: bold; color: var(--metal-light); }
+        .antidote-icon { color: var(--accent); margin-right: 2px; text-shadow: 0 0 5px var(--accent); }
+        .antidote-lost { color: #333; }
 
         /* --- GAME VIEW CONTAINER --- */
         #game-view {
@@ -42,11 +46,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            perspective: 1000px;
+            perspective: 800px; /* Deep perspective for train car look */
             overflow: hidden;
+            background: #000;
         }
 
-        /* --- GENERIC SCENE STYLES --- */
+        /* --- TRAIN CAR BASE AESTHETIC --- */
         .scene {
             position: absolute;
             width: 100%;
@@ -54,123 +59,218 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Default Carriage Background */
-            background: linear-gradient(to bottom, #2c3e50, #1a252f);
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+            /* The metal train structure */
+            background: 
+                /* Ceiling lights */
+                linear-gradient(to right, transparent 45%, rgba(255,255,255,0.8) 50%, transparent 55%),
+                /* Wall Structure */
+                linear-gradient(to bottom, #1a252f 0%, #2c3e50 20%, #2c3e50 80%, #111 100%);
+            background-size: 100% 10px, 100% 100%;
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
+            overflow: hidden;
+        }
+
+        /* Fake windows giving sense of speed */
+        .scene::before, .scene::after {
+            content: '';
+            position: absolute;
+            top: 30%;
+            width: 100px;
+            height: 150px;
+            background: linear-gradient(to bottom, #000, #112);
+            border: 5px solid #555;
+            box-shadow: 0 0 20px rgba(200,200,255,0.1);
+            animation: passingLights 0.2s infinite linear;
+        }
+        .scene::before { left: -20px; transform: perspective(500px) rotateY(30deg); }
+        .scene::after { right: -20px; transform: perspective(500px) rotateY(-30deg); }
+
+        @keyframes passingLights {
+            0% { background: linear-gradient(to bottom, #000 0%, #112 100%); }
+            50% { background: linear-gradient(to bottom, #000 40%, #fff 50%, #000 60%); }
+            100% { background: linear-gradient(to bottom, #000 0%, #112 100%); }
         }
         
-        /* Dialog Box for Context */
+        /* Dialog Box */
         .dialog-box {
             position: absolute;
-            bottom: 20px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid var(--accent);
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 600px;
+            bottom: 30px;
+            background: linear-gradient(to right, rgba(0,0,0,0.9), rgba(44, 62, 80, 0.9));
+            border-top: 2px solid var(--accent);
+            border-bottom: 2px solid var(--accent);
+            padding: 15px 30px;
+            border-radius: 5px;
+            max-width: 700px;
             text-align: center;
             z-index: 90;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            font-size: 1.1rem;
         }
 
-        /* --- LEVEL 1: THE NEEDLE (DRAG & DROP) --- */
+        /* ================= LEVEL SPECIFIC STYLES ================= */
+
+        /* --- LEVEL 1: NEEDLE ON A METAL TABLE --- */
+        .metal-table {
+            width: 600px; height: 300px;
+            background: repeating-linear-gradient(45deg, #333, #333 10px, #444 10px, #444 20px);
+            border: 5px solid #555;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center; position: relative;
+            transform: perspective(800px) rotateX(20deg); /* Angled table */
+        }
         #l1-arm {
-            width: 300px; height: 100px; background: #dca; border-radius: 50px; position: relative;
-            box-shadow: inset 0 -10px rgba(0,0,0,0.2);
+            width: 280px; height: 90px; background: #cbb; border-radius: 45px; position: relative;
+            box-shadow: inset 0 -5px rgba(0,0,0,0.2), 5px 5px 10px rgba(0,0,0,0.3);
+            top: -50px;
         }
         #l1-target-zone {
-            width: 60px; height: 60px; background: rgba(255,0,0,0.3); border-radius: 50%;
-            position: absolute; top: 20px; left: 120px; border: 2px dashed #f00;
+            width: 50px; height: 50px; background: rgba(255,0,0,0.2); border-radius: 50%;
+            position: absolute; top: 20px; left: 110px; border: 2px dashed #a33;
         }
         #l1-needle-device {
-            width: 150px; height: 40px; background: #555; position: absolute; bottom: 150px; left: 50px;
-            border-radius: 5px; display: flex; align-items: center;
+            width: 140px; height: 30px; background: linear-gradient(to bottom, #666, #444); position: absolute; bottom: 30px; left: 100px;
+            border-radius: 4px; display: flex; align-items: center; border: 1px solid #777;
+            box-shadow: 2px 5px 10px rgba(0,0,0,0.4);
         }
         #l1-needle-tip {
-            width: 50px; height: 4px; background: silver; position: absolute; right: -50px;
+            width: 60px; height: 3px; background: silver; position: absolute; right: -60px;
         }
         .draggable-cover {
-            width: 60px; height: 20px; background: var(--accent); border-radius: 10px;
-            position: absolute; bottom: 150px; right: 50px; cursor: grab;
+            width: 70px; height: 18px; background: repeating-linear-gradient(90deg, var(--accent), var(--accent) 5px, #00cc44 5px, #00cc44 10px);
+            border-radius: 10px;
+            position: absolute; bottom: 35px; right: 120px; cursor: grab;
             box-shadow: 0 0 10px var(--accent);
-            display: flex; justify-content: center; align-items: center; font-size: 0.7rem; color:black; font-weight:bold;
+            display: flex; justify-content: center; align-items: center; font-size: 0.6rem; color:black; font-weight:bold;
+            animation: tinyShake 0.1s infinite;
         }
+        @keyframes tinyShake { 0% {transform: translateY(0);} 50% {transform: translateY(1px);} 100% {transform: translateY(0);} }
 
-        /* --- LEVEL 2: THERMAL (FLASHLIGHT HOVER) --- */
+        /* --- LEVEL 2: THERMAL DARK CAR --- */
+        .dark-car {
+            background: #050505 !important; /* Override default lights */
+            box-shadow: inset 0 0 200px #000;
+        }
+        .dark-car::before, .dark-car::after { display: none; } /* No windows here */
+
         #l2-container {
-            width: 100%; height: 100%; background: #000; position: relative; cursor: none;
+            width: 90%; height: 90%; position: relative; cursor: none;
+            background: 
+                /* Pipes pattern */
+                repeating-linear-gradient(90deg, #111, #111 50px, #1a1a1a 50px, #1a1a1a 60px),
+                repeating-linear-gradient(0deg, #111, #111 50px, #1a1a1a 50px, #1a1a1a 60px);
         }
         .heat-hazard {
-            position: absolute; width: 100px; height: 100px; background: red; border-radius: 50%;
-            filter: blur(30px); opacity: 0; transition: opacity 0.2s;
+            position: absolute; width: 120px; height: 120px; background: radial-gradient(circle, red, transparent); 
+            filter: blur(20px); opacity: 0; transition: opacity 0.3s;
         }
         .safe-path {
-            position: absolute; width: 80px; height: 80px; background: blue; border-radius: 50%;
-            filter: blur(20px); opacity: 0; transition: opacity 0.2s; cursor: pointer;
+            position: absolute; width: 100px; height: 100px; background: radial-gradient(circle, blue, transparent);
+            filter: blur(15px); opacity: 0; transition: opacity 0.3s; cursor: pointer;
         }
         #flashlight {
-            position: absolute; width: 200px; height: 200px; border-radius: 50%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0) 70%);
+            position: absolute; width: 250px; height: 250px; border-radius: 50%;
+            /* Thermal coloring */
+            background: radial-gradient(circle, rgba(50,255,50,0.2) 0%, rgba(0,50,0,0.1) 60%, rgba(0,0,0,0.9) 70%);
             pointer-events: none; transform: translate(-50%, -50%); z-index: 10;
+            border: 1px dashed var(--accent);
         }
 
-        /* --- LEVEL 3: FOG (CANVAS WIPE) --- */
-        #l3-door {
-            width: 300px; height: 400px; background: #34495e; border: 5px solid #2c3e50; position: relative;
+        /* --- LEVEL 3: FOGGY END DOOR --- */
+        #l3-door-frame {
+            width: 320px; height: 450px; 
+            background: linear-gradient(to right, #333, #555, #333);
+            border: 8px solid #222;
+            border-radius: 10px;
+            position: relative;
             display: flex; justify-content: center; align-items: center;
+            box-shadow: inset 0 0 50px #000;
+            transform: perspective(500px) translateZ(-100px); /* Pushed back */
         }
-        #l3-keypad {
-            font-size: 3rem; color: var(--accent); letter-spacing: 10px; font-family: monospace;
+        .door-handle {
+            position: absolute; right: 20px; top: 50%; width: 20px; height: 80px; background: silver; border-radius: 5px;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+        }
+        #l3-keypad-display {
+            font-size: 3.5rem; color: var(--accent); letter-spacing: 15px; font-family: 'Courier New', monospace;
+            text-shadow: 0 0 10px var(--accent);
         }
         #fog-canvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair;
+            position: absolute; top: 10%; left: 10%; width: 80%; height: 60%; cursor: crosshair;
+            border: 4px solid #222; background: #444;
         }
         #l3-input-area {
-            position: absolute; bottom: -60px; display: flex; gap: 10px;
+            position: absolute; bottom: -70px; display: flex; gap: 10px;
+            background: #222; padding: 10px; border-radius: 5px; border: 2px solid #555;
         }
-        #l3-code-input { background: #111; color: var(--accent); border: 1px solid var(--accent); padding: 5px; font-size: 1.2rem; width: 100px;}
+        #l3-code-input { background: #111; color: var(--accent); border: 1px solid var(--accent); padding: 8px; font-size: 1.3rem; width: 120px; text-align: center; font-family: monospace;}
+        .train-btn { background: linear-gradient(to bottom, #444, #222); color: var(--metal-light); border: 1px solid #555; padding: 0 20px; cursor: pointer; font-weight: bold;}
+        .train-btn:hover { background: var(--accent); color: #000; }
 
-        /* --- LEVEL 4: DRONE (SLIDER BALANCE) --- */
+        /* --- LEVEL 4: DRONE AISLE --- */
+        .aisle-view {
+            flex-direction: column;
+             /* Floor texture perspective */
+             background: 
+                linear-gradient(to bottom, transparent 60%, #111 100%),
+                repeating-linear-gradient(90deg, #333, #333 20px, #222 20px, #222 40px) !important;
+             transform: perspective(500px) rotateX(10deg);
+        }
         #l4-wind-tunnel {
-            width: 80%; height: 300px; background: linear-gradient(90deg, #333, #444, #333);
-            position: relative; overflow: hidden; border-top: 5px solid #222; border-bottom: 5px solid #222;
+            width: 90%; height: 350px; 
+            position: relative; overflow: hidden; 
+            border-left: 10px solid #222; border-right: 10px solid #222;
+            background: rgba(0,0,0,0.5);
         }
         .wind-particle {
-            position: absolute; width: 50px; height: 2px; background: rgba(255,255,255,0.5);
-            animation: windMove 1s linear infinite;
+            position: absolute; width: 80px; height: 3px; background: rgba(200,200,255,0.3);
+            box-shadow: 0 0 5px rgba(200,200,255,0.5);
+            animation: windMove 0.8s linear infinite;
         }
         #l4-drone {
-            width: 60px; height: 20px; background: #888; position: absolute; top: 50%; left: 50%;
+            width: 70px; height: 25px; background: linear-gradient(to bottom, #888, #666); position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%); border-radius: 10px; transition: all 0.3s ease-out;
+            border: 2px solid #444; z-index: 10;
         }
         #l4-drone::before, #l4-drone::after { /* Propellers */
-            content: ''; position: absolute; width: 30px; height: 4px; background: #aaa; top: -10px;
-            animation: spin 0.1s linear infinite;
+            content: ''; position: absolute; width: 35px; height: 6px; background: #aaa; top: -12px;
+            animation: spin 0.08s linear infinite; border-radius: 3px;
         }
-        #l4-drone::before { left: 0; } #l4-drone::after { right: 0; }
+        #l4-drone::before { left: -5px; } #l4-drone::after { right: -5px; }
         
-        #l4-controls { position: absolute; bottom: 100px; width: 300px; text-align: center;}
-        input[type=range] { width: 100%; cursor: pointer; }
+        #l4-controls-panel { 
+            position: absolute; bottom: 20px; width: 400px; text-align: center;
+            background: #222; padding: 20px; border: 3px solid #444; border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.7);
+        }
+        input[type=range] { width: 100%; cursor: pointer; accent-color: var(--accent); }
+        #freq-display { font-family: monospace; font-size: 1.2rem; color: var(--accent); }
 
         /* Animations */
-        @keyframes windMove { from { left: -50px; } to { left: 100%; } }
+        @keyframes windMove { from { left: -100px; opacity: 0;} to { left: 100%; opacity: 1;} }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-        .shake-hard { animation: shake 0.2s infinite; background: var(--danger) !important; }
+        .shake-hard { animation: shake 0.2s infinite; border-color: var(--danger) !important; background: var(--danger) !important;}
         @keyframes shake { 0% { transform: translate(-50%, -50%) rotate(5deg); } 50% { transform: translate(-50%, -50%) rotate(-5deg); } 100% { transform: translate(-50%, -50%) rotate(5deg); } }
 
-        /* --- END SCREEN --- */
-        .end-screen { text-align: center; }
-        .end-screen h1 { font-size: 3rem; }
-        button { background: var(--accent); border: none; padding: 10px 30px; font-size: 1.2rem; cursor: pointer; color: #000; font-weight: bold; margin-top: 20px;}
+        /* --- END SCREENS --- */
+        .end-screen-content { 
+            background: rgba(0,0,0,0.8); padding: 50px; border-radius: 20px; border: 5px solid #444; text-align: center;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        .end-screen h1 { font-size: 3rem; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 5px;}
+        .big-btn { background: var(--accent); border: none; padding: 15px 40px; font-size: 1.5rem; cursor: pointer; color: #000; font-weight: bold; margin-top: 30px; border-radius: 5px; box-shadow: 0 5px 15px rgba(0,255,85,0.4); transition: 0.3s;}
+        .big-btn:hover { transform: scale(1.05); background: #fff; }
+        .big-btn.red { background: var(--danger); box-shadow: 0 5px 15px rgba(255, 51, 0, 0.4); color: #fff;}
 
     </style>
 </head>
 <body>
 
     <div id="hud">
-        <div class="hud-item">מיקום: <span id="loc-text">מעבדה</span></div>
+        <div class="hud-item">מיקום: <span id="loc-text">START</span></div>
         <div class="hud-item">
             נוגדנים: <span id="antidotes-container">
-                <span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span><span class="antidote-icon">■</span>
+                <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span> <span class="antidote-icon">██</span>
             </span>
         </div>
     </div>
@@ -200,14 +300,13 @@
                 icons[i].classList.add('antidote-lost');
             }
         }
-        if (gameState.antidotes <= 0) loadLevel('lose');
+        if (gameState.antidotes <= 0) setTimeout(() => loadLevel('lose'), 500);
     }
 
     function fail() {
         gameState.antidotes--;
         updateHUD();
-        // Visual feedback flash
-        gameView.style.boxShadow = "inset 0 0 100px var(--danger)";
+        gameView.style.boxShadow = "inset 0 0 150px var(--danger)";
         setTimeout(() => gameView.style.boxShadow = "none", 500);
     }
 
@@ -216,91 +315,103 @@
         loadLevel(gameState.level);
     }
 
-    function setDialog(text) {
+    function setDialog(text, isError=false) {
         const dialog = document.querySelector('.dialog-box');
-        if(dialog) dialog.innerText = text;
+        if(dialog) {
+            dialog.innerText = text;
+            dialog.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
+        }
     }
 
     // --- LEVEL RENDERERS ---
 
     const levels = {
         0: () => { // INTRO
-            locText.innerText = "מעבדה";
+            locText.innerText = "תחנת מוצא";
             gameView.innerHTML = `
-                <div class="scene" style="background: #ccc;">
-                    <h1 style="color:#111">פרויקט CULEX</h1>
-                    <div class="dialog-box">ברוך הבא לניסוי. עליך לשרוד את הרכבת באמצעות עקרונות הביומימיקרי של היתוש. הכל כאן ויזואלי. אל תחשוב - תפעל.</div>
-                    <button onclick="nextLevel()" style="position:absolute; top:60%;">התחל</button>
+                <div class="scene" style="flex-direction: column;">
+                    <h1 style="font-size:4rem; margin-bottom:10px; text-shadow: 0 0 20px var(--accent);">רכבת CULEX</h1>
+                    <div class="dialog-box" style="position:relative; bottom:auto; max-width:800px;">
+                        אתה עומד להיכנס לרכבת ניסיונית. כל קרון הוא מלכודת.<br>
+                        הדרך היחידה לשרוד היא לחשוב כמו יתוש: עדינות, חושים חדים, והתאמות מהירות.<br>
+                        הכל כאן ויזואלי ואינטראקטיבי. אין הוראות.<br>
+                        בהצלחה.
+                    </div>
+                    <button class="big-btn" onclick="nextLevel()">עלה לרכבת</button>
                 </div>
             `;
         },
-        1: () => { // NEEDLE DRAG
-            locText.innerText = "קרון 1";
+        1: () => { // NEEDLE DRAG (ON A TABLE)
+            locText.innerText = "קרון 1: המרפאה";
             gameView.innerHTML = `
                 <div class="scene">
-                    <div id="l1-arm"><div id="l1-target-zone"></div></div>
-                    <div id="l1-needle-device">
-                        <div id="l1-needle-tip"></div>
+                    <div class="metal-table">
+                        <div id="l1-arm"><div id="l1-target-zone"></div></div>
+                        <div id="l1-needle-device">
+                            <div id="l1-needle-tip"></div>
+                        </div>
+                        <div class="draggable-cover" draggable="true" id="bio-cover">>>> רטט >>></div>
                     </div>
-                    <div class="draggable-cover" draggable="true" id="bio-cover">כיסוי רוטט</div>
-                    <div class="dialog-box">הילדה מפחדת מהמחט החשופה. גרור את הכיסוי הביומימטי (הרוטט) אל קצה המחט כדי להסוות אותה לפני ההזרקה.</div>
+                    <div class="dialog-box">הילדה בלחץ. המחט החשופה תכאיב לה והיא תזוז. יש כאן על השולחן כיסוי ביומימטי רוטט (כמו חדק יתוש). אתה יודע מה לעשות איתו.</div>
                 </div>
             `;
             
             const cover = document.getElementById('bio-cover');
             const target = document.getElementById('l1-needle-tip');
             const device = document.getElementById('l1-needle-device');
-            const armTarget = document.getElementById('l1-target-zone');
 
             cover.addEventListener('dragstart', e => {
-                e.dataTransfer.setData('text/plain', null); // Required for Firefox
-                setTimeout(() => cover.style.display = 'none', 0);
+                e.dataTransfer.setData('text/plain', null);
+                setTimeout(() => cover.style.opacity = '0.5', 0);
             });
 
-            cover.addEventListener('dragend', () => cover.style.display = 'flex');
+            cover.addEventListener('dragend', () => cover.style.opacity = '1');
 
             target.addEventListener('dragover', e => e.preventDefault());
             target.addEventListener('drop', e => {
                 e.preventDefault();
-                // Success visualization: Cover attaches to needle
                 target.style.background = 'var(--accent)';
-                target.style.width = '60px';
-                target.style.borderRadius = '10px';
+                target.style.width = '70px';
+                target.style.height = '12px'; target.style.top='-4px';
+                target.style.borderRadius = '5px';
                 cover.remove();
-                setDialog("המחט מוסווית. כעת לחץ על המכשיר כדי להזריק.");
+                setDialog("המחט מוסווית ורוטטת. כעת לחץ על המכשיר כדי להזריק בעדינות.");
 
-                // Phase 2: Click to inject
                 device.style.cursor = 'pointer';
                 device.onclick = () => {
-                    device.style.transform = "translate(70px, -130px)";
+                    device.style.transform = "translate(90px, -150px) rotate(-10deg)";
                     setTimeout(() => {
                         if(target.style.background === 'var(--accent)') {
                             nextLevel();
                         }
-                    }, 500);
+                    }, 600);
                 };
             });
 
-            // Trap: clicking needle without cover
             device.onclick = () => {
-                 device.style.transform = "translate(70px, -130px)";
-                 setTimeout(() => {
-                     fail();
-                     setDialog("טעות! הזרקת עם מחט חשופה. הילדה זזה והמחט נשברה.");
-                     device.style.transform = "translate(0, 0)"; // Reset
-                 }, 500);
+                 if(target.style.background !== 'var(--accent)') {
+                    device.style.transform = "translate(90px, -150px) rotate(-10deg)";
+                    setTimeout(() => {
+                        fail();
+                        setDialog("טעות! הזרקת עם מחט חשופה. הילדה זזה בבהלה. איבדת נוגדן.", true);
+                        device.style.transform = "translate(0, 0)";
+                    }, 600);
+                 }
             };
         },
-        2: () => { // THERMAL FLASHLIGHT
-            locText.innerText = "קרון 4 (תרמי)";
+        2: () => { // THERMAL FLASHLIGHT (DARK PIPES)
+            locText.innerText = "קרון 2: חדר המנועים";
             gameView.innerHTML = `
-                <div class="scene" id="l2-container">
-                    <div id="flashlight"></div>
-                    <div class="heat-hazard" style="top:20%; left:30%"></div>
-                    <div class="heat-hazard" style="top:60%; left:70%"></div>
-                    <div class="heat-hazard" style="top:80%; left:20%"></div>
-                    <div class="safe-path" id="l2-goal" style="top:40%; left:50%"></div>
-                    <div class="dialog-box" style="pointer-events:none;">הקרון חשוך ומלא בקיטור רותח. הזז את העכבר כדי להשתמש בראייה התרמית. מצא את האזור הקר (הכחול) ולחץ עליו. האדום יהרוג אותך.</div>
+                <div class="scene dark-car">
+                    <div id="l2-container">
+                        <div id="flashlight"></div>
+                        <div class="heat-hazard" style="top:15%; left:25%"></div>
+                        <div class="heat-hazard" style="top:55%; left:65%"></div>
+                        <div class="heat-hazard" style="top:75%; left:15%"></div>
+                        <div class="heat-hazard" style="top:30%; left:80%"></div>
+                        <div class="safe-path" id="l2-goal" style="top:45%; left:48%"></div>
+                    </div>
+                    <div class="dialog-box" style="pointer-events:none;">חושך מוחלט. הקרון מלא בצינורות קיטור לוהטים. השתמש בראייה התרמית (הזזת עכבר). אדום = מוות. חפש את השסתום הקר (כחול) ולחץ עליו.</div>
                 </div>
             `;
 
@@ -316,142 +427,146 @@
                 flashlight.style.left = x + 'px';
                 flashlight.style.top = y + 'px';
 
-                // Reveal elements near flashlight
                 [...hazards, safe].forEach(el => {
                     const elRect = el.getBoundingClientRect();
                     const elX = elRect.left + elRect.width/2 - rect.left;
                     const elY = elRect.top + elRect.height/2 - rect.top;
                     const dist = Math.sqrt((x-elX)**2 + (y-elY)**2);
-                    el.style.opacity = dist < 100 ? 1 : 0;
+                    el.style.opacity = Math.max(0, 1 - dist/150); 
                 });
             });
 
             hazards.forEach(h => h.addEventListener('click', () => {
                 fail();
-                setDialog("נכנסת לזרם קיטור רותח! נסה שוב.");
+                setDialog("נכווית מקיטור רותח! המערכת הזריקה נוגדן אוטומטית.", true);
             }));
 
             safe.addEventListener('click', nextLevel);
         },
-        3: () => { // FOG WIPE
-            locText.innerText = "קרון 7 (ערפל)";
+        3: () => { // FOG WIPE (END DOOR)
+            locText.innerText = "קרון 3: דלת המעבר";
             gameView.innerHTML = `
                 <div class="scene">
-                    <div id="l3-door">
-                        <div id="l3-keypad">4921</div>
-                        <canvas id="fog-canvas" width="300" height="400"></canvas>
+                    <div id="l3-door-frame">
+                        <div class="door-handle"></div>
+                        <div id="l3-keypad-display">9X4B</div>
+                        <canvas id="fog-canvas" width="250" height="250"></canvas>
                     </div>
                     <div id="l3-input-area">
-                        <input type="text" id="l3-code-input" placeholder="קוד" maxlength="4">
-                        <button onclick="checkCodeL3()">פתח</button>
+                        <input type="text" id="l3-code-input" placeholder="הכנס קוד" maxlength="4">
+                        <button class="train-btn" onclick="checkCodeL3()">פתח דלת</button>
                     </div>
-                    <div class="dialog-box">הדלת נעולה והקוד מכוסה אדים. גרור את העכבר על הזכוכית כדי לנגב את האדים ולגלות את הקוד. מהר, הם חוזרים!</div>
+                    <div class="dialog-box">הדלת לקרון הבא נעולה. החלון של הלוח הדיגיטלי מכוסה באדים שמסתירים את הקוד. נגב אותם מהר לפני שהם חוזרים.</div>
                 </div>
             `;
 
             const canvas = document.getElementById('fog-canvas');
             const ctx = canvas.getContext('2d');
             
-            // Fill with fog
-            ctx.fillStyle = 'rgba(200, 210, 220, 0.95)';
+            ctx.fillStyle = 'rgba(200, 210, 220, 0.9)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             let isDrawing = false;
-
             canvas.onmousedown = () => isDrawing = true;
             canvas.onmouseup = () => isDrawing = false;
+            canvas.onmouseleave = () => isDrawing = false;
             canvas.onmousemove = (e) => {
                 if (!isDrawing) return;
                 const rect = canvas.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                
                 ctx.globalCompositeOperation = 'destination-out';
-                ctx.beginPath();
-                ctx.arc(x, y, 25, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.fill();
             };
 
-            // Regenerate fog (challenge mechanic)
             setInterval(() => {
                  ctx.globalCompositeOperation = 'source-over';
-                 ctx.fillStyle = 'rgba(200, 210, 220, 0.05)';
+                 ctx.fillStyle = 'rgba(200, 210, 220, 0.08)';
                  ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }, 100);
+            }, 150);
 
             window.checkCodeL3 = () => {
                 const input = document.getElementById('l3-code-input');
-                if (input.value === '4921') nextLevel();
+                if (input.value.toUpperCase() === '9X4B') nextLevel();
                 else {
-                    fail(); input.value=''; setDialog("קוד שגוי.");
+                    fail(); input.value=''; setDialog("קוד שגוי. הדלת נשארת נעולה.", true);
                 }
             };
         },
-        4: () => { // DRONE STABILIZER
-            locText.innerText = "קרון 9 (רוח)";
+        4: () => { // DRONE STABILIZER (AISLE VIEW)
+            locText.innerText = "קרון 4: המסדרון הפרוץ";
             gameView.innerHTML = `
-                <div class="scene">
+                <div class="scene aisle-view">
                     <div id="l4-wind-tunnel">
-                        ${Array(10).fill('<div class="wind-particle" style="top:'+Math.random()*100+'%; animation-delay:-'+Math.random()+'s"></div>').join('')}
+                        ${Array(15).fill('<div class="wind-particle" style="top:'+Math.random()*100+'%; animation-delay:-'+Math.random()*2+'s"></div>').join('')}
                         <div id="l4-drone"></div>
                     </div>
-                    <div id="l4-controls">
+                    <div id="l4-controls-panel">
+                        <p style="margin-top:0; color:#aaa;">בקרת ייצוב תדר (Halteres)</p>
                         <input type="range" id="l4-slider" min="0" max="100" value="0">
-                        <p>תדר ייצוב: <span id="freq-val">0</span>Hz</p>
+                        <p>תדר נוכחי: <span id="freq-display">0</span> Hz</p>
                     </div>
-                     <div class="dialog-box" style="bottom: 150px;">יש רוח חזקה. הרחפן לא יציב. הזז את הסליידר כדי למצוא את תדר הרטט (כמו של היתוש) שייצב אותו במרכז.</div>
+                     <div class="dialog-box" style="bottom: 220px;">החלונות שבורים ויש רוח צד חזקה. עליך להטיס את הרחפן לסוף הקרון. הוא לא יציב. מצא את תדר הרטט הנכון בסליידר (כמו יתוש) כדי לייצב אותו במרכז.</div>
                 </div>
             `;
             
             const slider = document.getElementById('l4-slider');
             const drone = document.getElementById('l4-drone');
-            const freqVal = document.getElementById('freq-val');
+            const freqDisplay = document.getElementById('freq-display');
             let stableTimer;
 
             slider.oninput = (e) => {
                 const val = parseInt(e.target.value);
-                freqVal.innerText = val * 10; // Simulate Hz
+                freqDisplay.innerText = val * 10; 
                 
-                // Target range: 55-65 on slider (550-650Hz)
-                if (val > 55 && val < 65) {
+                // Target range: 580-620Hz
+                if (val >= 58 && val <= 62) {
                     drone.style.top = '50%';
                     drone.classList.remove('shake-hard');
                     drone.style.background = 'var(--accent)';
+                    drone.style.borderColor = '#fff';
                     
                     clearTimeout(stableTimer);
                     stableTimer = setTimeout(() => {
-                        setDialog("הרחפן יציב! עובר לקרון הבא...");
-                        setTimeout(nextLevel, 1500);
-                    }, 1000); // Must hold stable for 1s
+                        setDialog("הרחפן יציב! מתקדם לקצה הקרון...");
+                        drone.style.transition = "left 2s ease-in";
+                        drone.style.left = "120%";
+                        setTimeout(nextLevel, 2000);
+                    }, 800);
 
                 } else {
-                    // Unstable visualization
-                    const offset = (val - 60) * 2; // Calculate offset from center
+                    const offset = (val - 60) * 2.5;
                     drone.style.top = `${50 + offset}%`;
                     drone.classList.add('shake-hard');
                     drone.style.background = 'var(--danger)';
+                    drone.style.borderColor = '#500';
                     clearTimeout(stableTimer);
                 }
             };
-            // Trigger initial shake
             slider.dispatchEvent(new Event('input'));
         },
         'win': () => {
+             locText.innerText = "יעד סופי";
              gameView.innerHTML = `
-                <div class="scene end-screen" style="background: #002200;">
-                    <h1 style="color:var(--accent)">ניצחון!</h1>
-                    <p>שרדת את הרכבת באמצעות עקרונות הביומימיקרי.</p>
-                    <p>נוגדנים שנותרו: ${gameState.antidotes}</p>
-                    <button onclick="location.reload()">שחק שוב</button>
+                <div class="scene" style="background: linear-gradient(to bottom, #003311, #001100);">
+                    <div class="end-screen-content" style="border-color: var(--accent);">
+                        <h1 style="color:var(--accent)">רכבת נעצרה</h1>
+                        <p style="font-size:1.2rem;">הוכחת שהטבע הוא המהנדס האולטימטיבי.</p>
+                        <p style="font-size:1.5rem; margin-top:20px;">נוגדנים שנותרו: <span style="color:var(--accent); font-weight:bold;">${gameState.antidotes}</span></p>
+                        <button class="big-btn" onclick="location.reload()">התחל מחדש</button>
+                    </div>
                 </div>
             `;
         },
         'lose': () => {
+             locText.innerText = "כשל מערכתי";
              gameView.innerHTML = `
-                <div class="scene end-screen" style="background: #220000;">
-                    <h1 style="color:var(--danger)">נכשלת</h1>
-                    <p>אזלו הנוגדנים.</p>
-                    <button onclick="location.reload()">נסה שוב</button>
+                <div class="scene" style="background: linear-gradient(to bottom, #330000, #110000);">
+                    <div class="end-screen-content" style="border-color: var(--danger);">
+                        <h1 style="color:var(--danger)">סוף המשחק</h1>
+                        <p style="font-size:1.5rem;">אזלו הנוגדנים. הרעל הכריע אותך.</p>
+                        <button class="big-btn red" onclick="location.reload()">נסה שוב</button>
+                    </div>
                 </div>
             `;
         }
