@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERATION CULEX: ULTIMATE EDITION</title>
+    <title>מבצע קולקס: מהדורה אולטימטיבית</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 
     <style>
         /* * ==========================================================================
-         * 1. CORE VARIABLES & RESET
+         * 1. CORE VARIABLES & RESET (Direction-agnostic styles)
          * ==========================================================================
          */
         :root {
@@ -44,13 +44,16 @@
             overflow: hidden;
             display: flex; justify-content: center; align-items: center;
         }
+        
+        /* RTL adjustments */
+        header, main, aside, #game-wrapper { direction: rtl; }
 
         /* * ==========================================================================
          * 2. BOOT SEQUENCE SCREEN
          * ==========================================================================
          */
         #boot-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; right: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             font-family: 'Share Tech Mono', monospace;
@@ -68,13 +71,14 @@
         }
 
         /* * ==========================================================================
-         * 3. MAIN GAME LAYOUT
+         * 3. MAIN GAME LAYOUT (RTL Grid)
          * ==========================================================================
          */
         #game-wrapper {
             width: 100%; height: 100%;
             display: grid;
-            grid-template-columns: 1fr var(--sidebar-width);
+            /* In RTL, the right column is the sidebar */
+            grid-template-columns: var(--sidebar-width) 1fr; 
             grid-template-rows: var(--header-height) 1fr;
             opacity: 0; transition: opacity 1s; /* Fade in after boot */
         }
@@ -98,19 +102,21 @@
         .sys-status { font-family: 'Share Tech Mono'; font-size: 14px; color: var(--c-success); }
         .sys-status.alert { color: var(--c-danger); animation: blink 1s infinite; }
 
-        /* Left Column: Viewport */
+        /* Right Column: Viewport (Main Game Area) */
         #viewport {
+            grid-column: 2 / 3; /* Right side in RTL */
             position: relative;
             background: #000;
             overflow: hidden;
-            border-right: 1px solid var(--c-border);
+            border-left: 1px solid var(--c-border);
         }
 
-        /* Right Column: Sidebar */
+        /* Left Column: Sidebar (HUD) */
         #sidebar {
+            grid-column: 1 / 2; /* Left side in RTL */
             background: rgba(10, 11, 16, 0.95);
             display: flex; flex-direction: column;
-            border-left: 1px solid var(--c-border);
+            border-right: 1px solid var(--c-border);
             padding: 20px;
             backdrop-filter: blur(10px);
             z-index: 40;
@@ -120,7 +126,7 @@
          * 4. VIEWPORT LAYERS & VISUALS
          * ==========================================================================
          */
-        .layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 1.5s; background-size: cover; background-position: center; }
+        .layer { position: absolute; top: 0; right: 0; width: 100%; height: 100%; transition: opacity 1.5s; background-size: cover; background-position: center; }
         
         #bg-day { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); opacity: 1; }
         #bg-night { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); opacity: 0; }
@@ -129,7 +135,7 @@
         #fx-canvas { pointer-events: none; z-index: 5; opacity: 0.7; }
         
         #scan-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%;
+            position: absolute; top:0; right:0; width:100%; height:100%;
             background: repeating-linear-gradient(
                 0deg,
                 rgba(0, 242, 255, 0.05),
@@ -142,7 +148,7 @@
         #scan-overlay.active { opacity: 1; }
 
         /* * ==========================================================================
-         * 5. INTERACTIVE HOTSPOTS
+         * 5. INTERACTIVE HOTSPOTS (RTL positioning)
          * ==========================================================================
          */
         .hotspot {
@@ -158,24 +164,29 @@
         .scanner-active .hotspot { opacity: 0.3; background: rgba(0, 242, 255, 0.1); border-color: var(--c-primary); }
         .hotspot:hover { opacity: 1 !important; box-shadow: 0 0 15px var(--c-primary); border: 1px solid #fff; background: rgba(0, 242, 255, 0.2); }
 
-        /* Positioning (Percentages) */
+        /* Positioning (Percentages) - LEFT -> RIGHT is now RIGHT -> LEFT */
         /* Train */
-        #spot-cat { top: 14%; left: 20%; width: 12%; height: 14%; }
-        #spot-map { top: 35%; left: 9%; width: 18%; height: 23%; }
-        #spot-window { top: 22%; left: 35%; width: 28%; height: 38%; }
-        #spot-hat { top: 26%; left: 67%; width: 10%; height: 16%; }
-        #spot-door { top: 18%; left: 78%; width: 20%; height: 75%; }
+        #spot-cat { top: 14%; right: 20%; width: 12%; height: 14%; } /* Cat */
+        #spot-map { top: 35%; right: 9%; width: 18%; height: 23%; } /* Map */
+        #spot-window { top: 22%; right: 35%; width: 28%; height: 38%; } /* Window */
+        #spot-hat { top: 26%; right: 67%; width: 10%; height: 16%; } /* Hat */
+        #spot-door { top: 18%; right: 78%; width: 20%; height: 75%; } /* Door */
         /* Lab */
-        #spot-flask { top: 55%; left: 25%; width: 15%; height: 25%; }
-        #spot-jar { top: 15%; left: 60%; width: 25%; height: 55%; }
-        #spot-notes { top: 70%; left: 45%; width: 20%; height: 15%; }
+        #spot-flask { top: 55%; right: 25%; width: 15%; height: 25%; } /* Flask */
+        #spot-jar { top: 15%; right: 60%; width: 25%; height: 55%; } /* Jar */
+        #spot-notes { top: 70%; right: 45%; width: 20%; height: 15%; } /* Notes */
 
         /* * ==========================================================================
          * 6. UI PANELS (SIDEBAR)
          * ==========================================================================
          */
         .panel { background: rgba(255,255,255,0.03); border: 1px solid var(--c-border); padding: 15px; margin-bottom: 15px; border-radius: 6px; }
-        .panel h3 { margin: 0 0 10px 0; font-family: 'Orbitron'; font-size: 14px; color: var(--c-primary); letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .panel h3 { 
+            margin: 0 0 10px 0; font-family: 'Orbitron'; font-size: 14px; 
+            color: var(--c-primary); letter-spacing: 1px; text-transform: uppercase; 
+            border-bottom: 1px solid #333; padding-bottom: 5px; 
+            text-align: right;
+        }
 
         /* Scanner Toggle */
         #scanner-btn {
@@ -186,31 +197,50 @@
         }
         #scanner-btn:hover, #scanner-btn.active { background: var(--c-primary); color: #000; box-shadow: 0 0 15px var(--c-primary); }
 
-        /* Mission Log */
-        #objective-text { font-size: 14px; line-height: 1.4; color: #fff; }
+        /* Backpack Button & Image */
+        #backpack-area { margin-bottom: 20px; text-align: center; }
+        #backpack-area img { 
+            display: block; width: 100px; height: 100px; object-fit: cover; 
+            margin: 0 auto 10px auto; border: 2px solid var(--c-primary); border-radius: 50%;
+        }
+        #backpack-btn {
+            width: 80%; padding: 10px; background: var(--c-success); border: none; 
+            color: #000; font-family: 'Orbitron'; font-weight: bold; cursor: pointer;
+            border-radius: 4px; transition: 0.2s;
+        }
+        #backpack-btn:hover { background: #00ffc8; box-shadow: 0 0 10px var(--c-success); }
 
-        /* Inventory Grid */
-        #inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .inv-slot { aspect-ratio: 1; background: #000; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 20px; transition: 0.3s; position: relative; }
+
+        /* Mission Log */
+        #objective-text { font-size: 14px; line-height: 1.4; color: #fff; text-align: right; }
+
+        /* DataBank (Journal) */
+        #databank { height: 150px; overflow-y: auto; font-family: 'Share Tech Mono'; font-size: 12px; color: #888; text-align: right; }
+        .log-entry { margin-bottom: 8px; border-right: 2px solid #333; padding-right: 8px; } /* RTL change */
+        .log-entry.new { border-color: var(--c-success); color: var(--c-success); }
+
+        /* Inventory Modal Grid */
+        #inv-grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
+            margin: 20px auto; max-width: 400px;
+        }
+        .inv-slot { aspect-ratio: 1; background: #000; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 24px; transition: 0.3s; position: relative; }
         .inv-slot.filled { border-color: var(--c-success); box-shadow: inset 0 0 10px rgba(0,255,157,0.2); }
         .inv-tooltip { 
             position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
             background: #000; border: 1px solid #fff; padding: 5px; font-size: 10px; 
-            width: 100px; text-align: center; display: none; z-index: 100;
+            width: 120px; text-align: center; display: none; z-index: 100; white-space: nowrap;
         }
         .inv-slot:hover .inv-tooltip { display: block; }
+        #inventory-modal-title { font-size: 16px; margin-bottom: 5px; color: #fff; }
 
-        /* DataBank (Journal) */
-        #databank { height: 150px; overflow-y: auto; font-family: 'Share Tech Mono'; font-size: 12px; color: #888; }
-        .log-entry { margin-bottom: 8px; border-left: 2px solid #333; padding-left: 8px; }
-        .log-entry.new { border-color: var(--c-success); color: var(--c-success); }
 
         /* * ==========================================================================
          * 7. MINI-GAMES & MODALS
          * ==========================================================================
          */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; right: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); z-index: 200;
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: 0.3s;
@@ -226,7 +256,7 @@
             display: flex; flex-direction: column;
         }
         .game-header { font-family: 'Orbitron'; font-size: 20px; color: var(--c-primary); margin-bottom: 20px; text-align: center;}
-        .close-modal { position: absolute; top: 10px; right: 15px; cursor: pointer; color: #666; font-size: 20px; }
+        .close-modal { position: absolute; top: 10px; left: 15px; cursor: pointer; color: #666; font-size: 20px; } /* RTL flip */
         .close-modal:hover { color: #fff; }
 
         /* --- Mini-Game 1: Frequency Tuner (Window) --- */
@@ -250,7 +280,7 @@
         /* --- Mini-Game 3: Chemical Mixer (Flask) --- */
         #chem-game { display: flex; justify-content: space-around; padding-top: 50px; }
         .chem-btn { width: 80px; height: 100px; border: 2px solid #fff; cursor: pointer; position: relative; overflow: hidden; }
-        .chem-fill { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; opacity: 0.5; transition: height 0.5s; }
+        .chem-fill { position: absolute; bottom: 0; right: 0; width: 100%; height: 100%; opacity: 0.5; transition: height 0.5s; } /* RTL flip on position */
         #beaker-main { width: 120px; height: 150px; border: 3px solid #fff; border-radius: 0 0 20px 20px; position: relative; overflow: hidden; }
         #beaker-fill { position: absolute; bottom: 0; width: 100%; height: 0%; background: #333; transition: all 0.5s; }
 
@@ -276,8 +306,8 @@
     <div id="game-wrapper">
         
         <header id="top-bar">
-            <div class="brand-title">CULEX_OS <span style="font-size:12px; vertical-align:middle;">v9.4</span></div>
-            <div id="sys-status" class="sys-status">SYSTEM NORMAL</div>
+            <div id="sys-status" class="sys-status">מערכת תקינה</div>
+            <div class="brand-title">קולקס_מערכת <span style="font-size:12px; vertical-align:middle;">v9.4</span></div>
         </header>
 
         <main id="viewport">
@@ -289,60 +319,52 @@
             <div id="bg-day" class="layer"></div>
 
             <div id="hotspot-layer">
-                <div id="spot-cat" class="hotspot" data-ref="cat"></div>
-                <div id="spot-map" class="hotspot" data-ref="map"></div>
-                <div id="spot-window" class="hotspot" data-ref="window"></div>
-                <div id="spot-hat" class="hotspot" data-ref="hat"></div>
-                <div id="spot-door" class="hotspot" data-ref="door"></div>
+                <div id="spot-cat" class="hotspot train-obj" data-ref="cat"></div>
+                <div id="spot-map" class="hotspot train-obj" data-ref="map"></div>
+                <div id="spot-window" class="hotspot train-obj" data-ref="window"></div>
+                <div id="spot-hat" class="hotspot train-obj" data-ref="hat"></div>
+                <div id="spot-door" class="hotspot train-obj" data-ref="door"></div>
 
-                <div id="spot-flask" class="hotspot hidden" data-ref="flask"></div>
-                <div id="spot-jar" class="hotspot hidden" data-ref="jar"></div>
-                <div id="spot-notes" class="hotspot hidden" data-ref="notes"></div>
+                <div id="spot-flask" class="hotspot lab-obj hidden" data-ref="flask"></div>
+                <div id="spot-jar" class="hotspot lab-obj hidden" data-ref="jar"></div>
+                <div id="spot-notes" class="hotspot lab-obj hidden" data-ref="notes"></div>
             </div>
         </main>
 
         <aside id="sidebar">
-            <button id="scanner-btn" onclick="Game.toggleScanner()">Toggle Scanner [OFF]</button>
+            
+            <div id="backpack-area">
+                <a href="https://imgbb.com/"><img src="https://i.ibb.co/B5SmhWNb/Whats-App-Image-2025-12-15-at-11-01-52.jpg" alt="תמונת משתמש" border="0"></a>
+                <button id="backpack-btn" onclick="InventoryModal.open()">תיק גב (מלאי)</button>
+            </div>
+            
+            <button id="scanner-btn" onclick="Game.toggleScanner()">הפעל סורק [כבוי]</button>
 
             <div class="panel">
-                <h3>Current Directive</h3>
-                <div id="objective-text">Initializing...</div>
+                <h3>משימה נוכחית</h3>
+                <div id="objective-text">מאתחל...</div>
             </div>
 
             <div class="panel" style="flex-grow:1; display:flex; flex-direction:column;">
-                <h3>Research Journal</h3>
+                <h3>יומן מחקר</h3>
                 <div id="databank">
                     </div>
             </div>
-
-            <div class="panel">
-                <h3>Inventory</h3>
-                <div id="inv-grid">
-                    <div class="inv-slot" id="slot-0"></div>
-                    <div class="inv-slot" id="slot-1"></div>
-                    <div class="inv-slot" id="slot-2"></div>
-                    <div class="inv-slot" id="slot-3"></div>
-                    <div class="inv-slot" id="slot-4"></div>
-                    <div class="inv-slot" id="slot-5"></div>
-                    <div class="inv-slot" id="slot-6"></div>
-                    <div class="inv-slot" id="slot-7"></div>
-                </div>
-            </div>
-        </aside>
+            </aside>
     </div>
 
     <div id="game-modal" class="modal-overlay">
         <div class="game-window">
             <div class="close-modal" onclick="Modal.close()">×</div>
-            <div class="game-header" id="modal-title">SYSTEM ACCESS</div>
+            <div class="game-header" id="modal-title">גישה למערכת</div>
             
             <div id="modal-content" style="flex:1; position:relative;">
                 
                 <div id="tuner-game" class="minigame hidden">
-                    <p style="color:#aaa; text-align:center;">Match the resonance frequency to stabilize the drone.</p>
+                    <p style="color:#aaa; text-align:center;">כוונן את תדר התהודה כדי לייצב את הרחפן.</p>
                     <canvas id="wave-canvas"></canvas>
                     <input type="range" min="1" max="100" value="50" id="wave-slider">
-                    <div id="tuner-status">SIGNAL: WEAK</div>
+                    <div id="tuner-status">אות: חלש</div>
                 </div>
 
                 <div id="keypad-game" class="minigame hidden">
@@ -359,7 +381,7 @@
                 </div>
 
                 <div id="chem-game" class="minigame hidden">
-                    <div style="text-align:center; position:absolute; top:0; width:100%;">Mix Green (Bio) + Blue (Tech)</div>
+                    <div style="text-align:center; position:absolute; top:0; width:100%;">ערבב ירוק (ביו) + כחול (טכנולוגיה)</div>
                     <div class="chem-btn" onclick="Chem.add('red')" style="border-color:#f00;"><div class="chem-fill" style="background:#f00;"></div></div>
                     <div id="beaker-main"><div id="beaker-fill"></div></div>
                     <div class="chem-btn" onclick="Chem.add('blue')" style="border-color:#00f;"><div class="chem-fill" style="background:#00f;"></div></div>
@@ -367,38 +389,58 @@
                 </div>
 
                 <div id="riddle-container" class="minigame hidden">
-                    <p id="riddle-text" style="font-size:16px; line-height:1.5; color:#fff; margin-bottom:20px;"></p>
-                    <input type="text" id="riddle-input" style="width:100%; padding:10px; background:#000; color:var(--c-primary); border:1px solid #333; font-family:'Share Tech Mono'; font-size:18px;">
-                    <button onclick="Riddle.check()" style="margin-top:10px; padding:10px 20px; background:var(--c-primary); border:none; font-weight:bold; cursor:pointer;">SUBMIT</button>
-                    <p id="riddle-err" style="color:var(--c-danger); margin-top:10px;"></p>
+                    <p id="riddle-text" style="font-size:16px; line-height:1.5; color:#fff; margin-bottom:20px; text-align:right;"></p>
+                    <input type="text" id="riddle-input" style="width:100%; padding:10px; background:#000; color:var(--c-primary); border:1px solid #333; font-family:'Share Tech Mono'; font-size:18px; text-align:right;">
+                    <button onclick="Riddle.check()" style="margin-top:10px; padding:10px 20px; background:var(--c-primary); border:none; font-weight:bold; cursor:pointer;">שלח</button>
+                    <p id="riddle-err" style="color:var(--c-danger); margin-top:10px; text-align:right;"></p>
                 </div>
 
                 <div id="victory-screen" class="minigame hidden">
-                    <h1>MISSION SUCCESS</h1>
-                    <p>Dr. Arcadius's swarm has been neutralized.</p>
-                    <p>Biomimicry data successfully archived.</p>
-                    <button onclick="location.reload()" style="margin-top:30px; padding:15px 40px; background:var(--c-success); border:none; font-weight:bold; cursor:pointer;">REBOOT SIMULATION</button>
+                    <h1>המשימה הושלמה</h1>
+                    <p>הכנופיה של ד"ר ארקדיוס נוטרלה בהצלחה.</p>
+                    <p>נתוני הביומימיקרי אורכבו במלואם.</p>
+                    <button onclick="location.reload()" style="margin-top:30px; padding:15px 40px; background:var(--c-success); border:none; font-weight:bold; cursor:pointer;">אתחל סימולציה</button>
                 </div>
 
             </div>
         </div>
     </div>
+    
+    <div id="inventory-modal" class="modal-overlay">
+        <div class="game-window" style="height: auto; width: 500px;">
+            <div class="close-modal" onclick="InventoryModal.close()">×</div>
+            <div class="game-header">תיק גב: מלאי ביו-טכנולוגי</div>
+            <p id="inventory-modal-title" style="text-align: center;">פריטי ביומימיקרי שנתפסו</p>
+            <div id="inv-grid">
+                <div class="inv-slot" id="slot-0"></div>
+                <div class="inv-slot" id="slot-1"></div>
+                <div class="inv-slot" id="slot-2"></div>
+                <div class="inv-slot" id="slot-3"></div>
+                <div class="inv-slot" id="slot-4"></div>
+                <div class="inv-slot" id="slot-5"></div>
+                <div class="inv-slot" id="slot-6"></div>
+                <div class="inv-slot" id="slot-7"></div>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: var(--c-text-dim);">מרחף מעל פריט למידע נוסף.</p>
+        </div>
+    </div>
+
 
     <script>
-        // --- ASSETS & CONFIG ---
+        // --- ASSETS & CONFIG (Hebrew Translation) ---
         const ITEMS = {
-            needle: { icon: '💉', name: 'Micro-Needle', desc: 'Inspired by Mosquito Proboscis' },
-            sensor: { icon: '📡', name: 'Thermal Sensor', desc: 'Heat seeking technology' },
-            gyro: { icon: '⚖️', name: 'Gyro-Halteres', desc: 'Flight stabilization' },
-            chem: { icon: '👃', name: 'Chem-Receptor', desc: 'Chemical detection unit' },
-            formula: { icon: '📜', name: 'Arcadius Notes', desc: 'Toxin Formula' },
-            antidote: { icon: '🧪', name: 'The Cure', desc: 'Synthesized Antidote' },
-            drone: { icon: '🦟', name: 'B-Drone', desc: 'Bio-Mimetic Delivery System' } // Player starts with this
+            needle: { id: 'needle', icon: '💉', name: 'חדק מיקרו-מחט', desc: 'שואב השראה מחדק היתוש.' },
+            sensor: { id: 'sensor', icon: '📡', name: 'חיישן תרמי', desc: 'כמו רשת הקליטה של היתוש לאיתור חום.' },
+            gyro: { id: 'gyro', icon: '⚖️', name: 'איזנונים גירוסקופיים', desc: 'מייצב תעופה בהשראת האיזנונים של הזבוב.' },
+            chem: { id: 'chem', icon: '👃', name: 'קולטן כימי', desc: 'יכולת זיהוי פחמן דו-חמצני למציאת יעד.' },
+            formula: { id: 'formula', icon: '📜', name: 'נוסחת ארקדיוס', desc: 'הוראות הסינתזה של הרעלן.' },
+            antidote: { id: 'antidote', icon: '🧪', name: 'הנוגדן', desc: 'נוגדן שסונתז כדי לנטרל את הרעלן.' },
+            drone: { id: 'drone', icon: '🦟', name: 'רחפן ביו-קוּלֶקס', desc: 'מערכת אספקה ביו-מימטית.' } 
         };
 
         // --- GLOBAL STATE ---
         const State = {
-            phase: 'TRAIN', // TRAIN -> LAB
+            phase: 'TRAIN', // רכבת -> מעבדה
             inventory: ['drone'],
             isScannerOn: false,
             isNight: false,
@@ -411,12 +453,12 @@
             const log = document.getElementById('boot-log');
             const bar = document.getElementById('boot-bar');
             const lines = [
-                "Initializing Kernel...",
-                "Loading Bio-Mimetic Drivers...",
-                "Connecting to BSF-01 Remote Link...",
-                "Downloading Environmental Textures...",
-                "Calibrating Sensors...",
-                "System Ready."
+                "מאותחל ליבת מערכת...",
+                "טוען מנהלי התקנים ביו-מימטיים...",
+                "מתחבר לקישור מרוחק BSF-01...",
+                "מוריד מרקמי סביבה...",
+                "מכייל חיישנים...",
+                "המערכת מוכנה. הפעלת 'מבצע קולקס'..."
             ];
             
             let i = 0;
@@ -447,8 +489,8 @@
         const Game = {
             init() {
                 Inventory.render();
-                Journal.add("Mission started. Phase 1: Infiltration.", true);
-                Journal.add("Objective: Gather 4 biomimetic components.");
+                Journal.add("המשימה החלה. שלב 1: חדירה לתא הרכבת. עלינו לאסוף נתונים על 'פרויקט קולקס' של ארקדיוס.", true);
+                Journal.add("מטרה: מצא 4 רכיבים ביו-מימטיים מוסתרים ברכבת כדי לפרוץ את הדלת למעבדה הנסתרת.", true);
                 
                 this.updateObjective();
                 Fx.init(); // Start particles
@@ -463,23 +505,22 @@
             },
 
             tickClock() {
-                // Simulate time passing. Night cycle every 30s.
+                // Night cycle logic (translated to Hebrew)
                 const now = new Date();
                 const sec = now.getSeconds();
                 
-                // Night Cycle Logic
                 if (State.phase === 'TRAIN') {
                     if (sec > 30 && !State.isNight) {
                         State.isNight = true;
                         document.getElementById('bg-day').style.opacity = 0;
                         document.getElementById('bg-night').style.opacity = 1;
-                        document.getElementById('sys-status').innerText = "LOW LIGHT MODE";
+                        document.getElementById('sys-status').innerText = "מצב תאורה נמוכה";
                         document.getElementById('sys-status').classList.add('alert');
                     } else if (sec <= 30 && State.isNight) {
                         State.isNight = false;
                         document.getElementById('bg-day').style.opacity = 1;
                         document.getElementById('bg-night').style.opacity = 0;
-                        document.getElementById('sys-status').innerText = "SYSTEM NORMAL";
+                        document.getElementById('sys-status').innerText = "מערכת תקינה";
                         document.getElementById('sys-status').classList.remove('alert');
                     }
                 }
@@ -492,71 +533,76 @@
                 
                 if (State.isScannerOn) {
                     btn.classList.add('active');
-                    btn.innerText = "Scanner [ON]";
+                    btn.innerText = "סורק [מופעל]";
                     overlay.classList.add('active');
                     document.body.classList.add('scanner-active');
-                    Journal.add("Scanner activated. Heat signatures visible.");
+                    Journal.add("סורק ביו-אקטיבי הופעל. חתימות חום נראות לעין.", true);
                 } else {
                     btn.classList.remove('active');
-                    btn.innerText = "Scanner [OFF]";
+                    btn.innerText = "סורק [כבוי]";
                     overlay.classList.remove('active');
                     document.body.classList.remove('scanner-active');
                 }
             },
 
             handleObjectClick(target) {
-                // Only allow click if scanner is ON (except for door/obvious things)
+                // Logic translated to Hebrew context
                 if (!State.isScannerOn && target.id !== 'spot-door') {
-                    Journal.add("Cannot analyze. Enable Scanner first.", false);
+                    Journal.add("לא ניתן לנתח. הפעל את הסורק קודם לכן.", false);
                     return;
                 }
 
                 const ref = target.dataset.ref;
                 
-                // Check if already solved
                 if (State.solved.includes(ref)) return;
 
-                // Route to Logic
                 switch(ref) {
                     case 'cat':
-                        Riddle.open("Stealth Analysis", "I pierce skin without waking the host. My design minimizes friction. What am I?", "needle", ITEMS.needle, ref);
+                        // Needle (Proboscis)
+                        Riddle.open("ניתוח חרמש", "אני חודר עור בלי לעורר את המארח. התכנון שלי הוא המינימום של חיכוך כדי להבטיח מעבר חלק. מה אני?", "חדק", ITEMS.needle, ref);
                         break;
                     case 'map':
-                        Riddle.open("Navigation Data", "I allow tracking of heat signatures over long distances using vectors. What system am I?", "thermal", ITEMS.sensor, ref);
+                        // Thermal Sensor
+                        Riddle.open("נתוני ניווט קריטיים", "אני מאפשר איתור חתימות חום למרחקים עצומים, אפילו ממעוף ציפור. זהו עיקרון המכתיב את הניווט. מה אני?", "תרמי", ITEMS.sensor, ref);
                         break;
                     case 'hat':
-                        Riddle.open("Sensor Calibration", "I guide the way. I sit above the eyes. I represent chemical sensing authority.", "hat", ITEMS.chem, ref);
+                        // Chem-Receptor (CO2 sensing)
+                        Riddle.open("כיול חיישן: פחמן דו-חמצני", "אני מונח גבוה, אבל מזהה את מה שנושם עמוק. אני סמל לזיהוי כימי בסיסי. מה אני?", "קולטן", ITEMS.chem, ref);
                         break;
                     case 'window':
+                        // Gyro-Halteres (stabilization)
                         // Launch Frequency Minigame
-                        Modal.open("Atmospheric Stabilization", "tuner-game");
+                        Modal.open("ייצוב אווירודינמי: האיזנון החסר", "tuner-game");
                         Tuner.start(target);
                         break;
                     case 'door':
-                        // Check if we have all 4 items
+                        // Door Check
                         const req = ['needle', 'sensor', 'gyro', 'chem'];
                         const hasAll = req.every(i => State.inventory.includes(i));
                         if(hasAll) {
-                            Modal.open("Security Override", "keypad-game");
+                            Modal.open("עקיפת אבטחה: קוד מעבדה", "keypad-game");
                         } else {
-                            Journal.add("Door Locked. Requires 4 components.", false);
+                            Journal.add(`הדלת נעולה. נדרשים 4 רכיבים ביו-מימטיים. חסרים ${req.length - (State.inventory.length - 1)} פריטים.`, false);
                         }
                         break;
                     case 'notes':
-                        Riddle.open("Research Decryption", "The key to the cure is the color of life mixed with the color of technology.", "formula", ITEMS.formula, ref);
+                        // Formula Notes
+                        Riddle.open("פענוח מחקר: סוד הרעלן", "המפתח לנוגדן הוא צבע החיים (הטבע) בתוספת צבע הטכנולוגיה (הדיגיטציה).", "נוסחה", ITEMS.formula, ref);
                         break;
                     case 'flask':
+                        // Chemical Mixer
                         if(!State.inventory.includes('formula')) {
-                            Journal.add("Need formula to operate synth.", false);
+                            Journal.add("נדרשת הנוסחה כדי להפעיל את סינתיסייזר הנוגדנים.", false);
                             return;
                         }
-                        Modal.open("Antidote Synthesis", "chem-game");
+                        Modal.open("סינתזת נוגדן קולקס", "chem-game");
                         break;
                     case 'jar':
+                        // Final Deployment
                         if(State.inventory.includes('antidote')) {
-                            Modal.open("DEPLOYMENT", "victory-screen");
+                            Modal.open("פריסה סופית: נטרול האיום", "victory-screen");
                         } else {
-                            Journal.add("Target locked. Antidote required.", false);
+                            Journal.add("המטרה נעולה. נדרש הנוגדן כדי לנטרל את כנופיית הזבובים המיקרוניים.", false);
                         }
                         break;
                 }
@@ -566,10 +612,10 @@
                 const txt = document.getElementById('objective-text');
                 if (State.phase === 'TRAIN') {
                     const count = 4 - (State.inventory.length - 1); // -1 for drone
-                    if(count > 0) txt.innerText = `Find ${count} more components to unlock the door.`;
-                    else txt.innerText = "Components acquired. BREACH THE DOOR.";
+                    if(count > 0) txt.innerText = `מצא ${count} רכיבים נוספים כדי לפרוץ את הדלת למעבדה.`;
+                    else txt.innerText = "כל הרכיבים נאספו. פרץ את הדלת.";
                 } else {
-                    txt.innerText = "Find the Formula. Mix the Antidote. Destroy the Swarm.";
+                    txt.innerText = "מצא את הנוסחה. ערבב את הנוגדן. השמד את הנגיף הביו-מימטי.";
                 }
             },
 
@@ -582,11 +628,24 @@
                     document.querySelectorAll('.lab-obj').forEach(e => e.classList.remove('hidden'));
                     
                     document.getElementById('bg-lab').style.opacity = 1;
+                    document.getElementById('bg-day').style.opacity = 0;
+                    document.getElementById('bg-night').style.opacity = 0; // Lab is internal
                     document.getElementById('viewport').style.opacity = 1;
                     
-                    Journal.add("Phase 1 Complete. Entering Lab.", true);
+                    Journal.add("שלב 1 הושלם. חודרים למעבדה הנסתרת.", true);
                     Game.updateObjective();
                 }, 1000);
+            }
+        };
+
+        // --- INVENTORY MODAL SYSTEM (NEW) ---
+        const InventoryModal = {
+            open() {
+                document.getElementById('inventory-modal').classList.add('active');
+                Inventory.render();
+            },
+            close() {
+                document.getElementById('inventory-modal').classList.remove('active');
             }
         };
 
@@ -600,13 +659,11 @@
                 // Fill
                 State.inventory.forEach((itemId, idx) => {
                     if(idx < 8) {
-                        const item = Object.values(ITEMS).find(i => i.id === itemId); // find by id string
-                        // For simplicity, we mapped IDs directly in ITEMS keys in Logic above, but let's do a lookup
-                        let itemData = null;
-                        for(let k in ITEMS) { if(ITEMS[k].id === itemId) itemData = ITEMS[k]; }
+                        // Find item data by ID
+                        const itemData = Object.values(ITEMS).find(item => item.id === itemId);
 
                         if(itemData) {
-                            slots[idx].innerHTML = itemData.icon + `<div class="inv-tooltip">${itemData.name}</div>`;
+                            slots[idx].innerHTML = itemData.icon + `<div class="inv-tooltip">${itemData.name}: ${itemData.desc}</div>`;
                             slots[idx].classList.add('filled');
                         }
                     }
@@ -615,25 +672,26 @@
             add(itemObj) {
                 if(!State.inventory.includes(itemObj.id)) {
                     State.inventory.push(itemObj.id);
-                    this.render();
-                    Journal.add(`Acquired: ${itemObj.name}`, true);
+                    // No need to call render directly from here, InventoryModal.open handles it.
+                    Journal.add(`נרכש: ${itemObj.name}. נתונים נוספו ליומן.`, true);
                     Game.updateObjective();
                 }
             }
         };
 
-        // --- JOURNAL SYSTEM ---
+        // --- JOURNAL SYSTEM (RTL text alignment) ---
         const Journal = {
             add(msg, isNew = false) {
                 const db = document.getElementById('databank');
                 const div = document.createElement('div');
                 div.className = 'log-entry' + (isNew ? ' new' : '');
                 div.innerText = `> ${msg}`;
-                db.prepend(div);
+                // Prepend to show newest on top
+                db.prepend(div); 
             }
         };
 
-        // --- MODAL SYSTEM ---
+        // --- MODAL SYSTEM (General) ---
         const Modal = {
             open(title, contentId) {
                 document.getElementById('game-modal').classList.add('active');
@@ -649,7 +707,7 @@
             }
         };
 
-        // --- RIDDLE LOGIC ---
+        // --- RIDDLE LOGIC (Hebrew Answer Keys) ---
         const Riddle = {
             currentRef: null,
             currentReward: null,
@@ -658,7 +716,7 @@
             open(title, text, answerKey, reward, ref) {
                 this.currentRef = ref;
                 this.currentReward = reward;
-                this.answerKey = answerKey; // simple keyword check
+                this.answerKey = answerKey; 
                 
                 const box = document.getElementById('riddle-text');
                 box.innerText = text;
@@ -669,35 +727,28 @@
             },
 
             check() {
-                const val = document.getElementById('riddle-input').value.toLowerCase();
-                // Loose check
-                if(val.includes('mosquito') || val.includes('needle') || val.includes('thermal') || val.includes('map') || val.includes('cloud') || val.includes('hat') || val.includes('evil') || val.includes('formula')) {
-                    // Just force success for demo based on context, in real game check specific string
-                    // Actually let's do specific:
-                    let success = false;
-                    // Cheat map for demo robustness:
-                    if(this.answerKey === 'needle' && (val.includes('mosquito') || val.includes('needle'))) success = true;
-                    if(this.answerKey === 'thermal' && (val.includes('map') || val.includes('thermal'))) success = true;
-                    if(this.answerKey === 'cloud' && (val.includes('cloud') || val.includes('wind') || val.includes('storm'))) success = true;
-                    if(this.answerKey === 'hat' && (val.includes('hat') || val.includes('cap'))) success = true;
-                    if(this.answerKey === 'formula' && (val.includes('evil') || val.includes('live'))) success = true;
+                const val = document.getElementById('riddle-input').value.toLowerCase().trim();
+                let success = false;
+                
+                // Hebrew keywords for robust check
+                if(this.answerKey === 'חדק' && (val.includes('יתוש') || val.includes('מחט') || val.includes('חדק'))) success = true;
+                if(this.answerKey === 'תרמי' && (val.includes('חום') || val.includes('תרמי') || val.includes('חיישן'))) success = true;
+                if(this.answerKey === 'קולטן' && (val.includes('פחמן') || val.includes('דו חמצני') || val.includes('קולטן'))) success = true;
+                if(this.answerKey === 'נוסחה' && (val.includes('חיים') || val.includes('טכנולוגיה') || val.includes('נוסחה'))) success = true;
 
-                    if(success) {
-                        State.solved.push(this.currentRef);
-                        Inventory.add(this.currentReward);
-                        Modal.close();
-                        // Hide the hotspot visually
-                        document.querySelector(`[data-ref="${this.currentRef}"]`).style.display = 'none';
-                    } else {
-                        document.getElementById('riddle-err').innerText = "Incorrect. Try again.";
-                    }
+                if(success) {
+                    State.solved.push(this.currentRef);
+                    Inventory.add(this.currentReward);
+                    Modal.close();
+                    // Hide the hotspot visually
+                    document.querySelector(`[data-ref="${this.currentRef}"]`).style.opacity = 0.1;
                 } else {
-                     document.getElementById('riddle-err').innerText = "Incorrect. Try again.";
+                    document.getElementById('riddle-err').innerText = "תשובה שגויה. נסה שוב.";
                 }
             }
         };
 
-        // --- MINIGAME 1: TUNER (Canvas) ---
+        // --- MINIGAME 1: TUNER (Gyro-Halteres) ---
         const Tuner = {
             target: null,
             start(domTarget) {
@@ -707,6 +758,9 @@
                 const slider = document.getElementById('wave-slider');
                 const status = document.getElementById('tuner-status');
                 
+                // Fixed canvas size for minigame consistency
+                canvas.width = 300; canvas.height = 150; 
+
                 let val = 50;
                 slider.oninput = (e) => val = e.target.value;
 
@@ -714,41 +768,41 @@
                     if(!document.getElementById('tuner-game').offsetParent) return; // Stop if hidden
                     ctx.fillStyle = '#000';
                     ctx.fillRect(0,0,300,150);
-                    ctx.lineWidth = 2;
-                    ctx.strokeStyle = '#0f0';
                     
-                    ctx.beginPath();
                     // Target Wave (Fixed)
-                    for(let x=0; x<300; x++) {
-                        let y = 75 + Math.sin(x * 0.1) * 30;
-                        if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-                    }
-                    ctx.stroke();
-
-                    // User Wave
-                    ctx.strokeStyle = '#00e5ff';
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#0f0'; // Green for the target resonance
                     ctx.beginPath();
-                    let freq = val * 0.005; // 0.05 to 0.5
                     for(let x=0; x<300; x++) {
-                        let y = 75 + Math.sin(x * (0.05 + (val-50)*0.002)) * 30;
+                        let y = 75 + Math.sin(x * 0.1) * 30; // Fixed frequency
                         if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
                     }
                     ctx.stroke();
 
-                    // Check Match
-                    if(val > 23 && val < 27) { // Sweet spot
-                        status.innerText = "SIGNAL: LOCKED";
+                    // User Wave (Adjustable Frequency)
+                    ctx.strokeStyle = '#00e5ff'; // Cyan for user input
+                    ctx.beginPath();
+                    let freq = 0.05 + (val-50)*0.002; // Range of frequency based on slider
+                    for(let x=0; x<300; x++) {
+                        let y = 75 + Math.sin(x * freq) * 30;
+                        if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+                    }
+                    ctx.stroke();
+
+                    // Check Match (Sweet spot around a certain slider value)
+                    if(val > 23 && val < 27) { 
+                        status.innerText = "אות: ננעל (האיזנון כוייל!)";
                         status.style.color = "#0f0";
                         setTimeout(() => {
                             Modal.close();
                             if(!State.solved.includes('window')) {
                                 State.solved.push('window');
                                 Inventory.add(ITEMS.gyro);
-                                document.querySelector(`[data-ref="window"]`).style.display = 'none';
+                                document.querySelector(`[data-ref="window"]`).style.opacity = 0.1;
                             }
                         }, 1000);
                     } else {
-                        status.innerText = "SIGNAL: WEAK";
+                        status.innerText = "אות: חלש";
                         status.style.color = "#f00";
                     }
                     requestAnimationFrame(draw);
@@ -767,10 +821,11 @@
                 if(this.current.length === 4) {
                     if(this.current === this.code) {
                         Modal.close();
+                        Journal.add("הדלת נפרצה. הכניסה למעבדה פתוחה.", true);
                         Game.transitionToLab();
                     } else {
                         this.current = "";
-                        document.getElementById('keypad-display').innerText = "ERR";
+                        document.getElementById('keypad-display').innerText = "שגיאה";
                         setTimeout(() => document.getElementById('keypad-display').innerText = "_ _ _ _", 500);
                     }
                 }
@@ -790,26 +845,27 @@
                 else beaker.style.background = "linear-gradient(to top, " + this.mix.join(',') + ")";
 
                 if(this.mix.length === 2) {
-                    // Check Recipe: Green + Blue
+                    // Check Recipe: Green + Blue (Bio + Tech)
                     if(this.mix.includes('green') && this.mix.includes('blue') && !this.mix.includes('red')) {
                         setTimeout(() => {
                             Modal.close();
                             Inventory.add(ITEMS.antidote);
-                            Journal.add("Antidote Synthesized.", true);
+                            Journal.add("הנוגדן סונתז בהצלחה. הזמן לנטרל את איום הקולקס.", true);
                             Game.updateObjective();
+                            document.querySelector(`[data-ref="flask"]`).style.opacity = 0.1;
                         }, 1000);
                     } else {
                         setTimeout(() => {
                              this.mix = [];
                              beaker.style.height = "0%";
-                             Journal.add("Mixture unstable. Dumped.", false);
+                             Journal.add("תערובת לא יציבה. נזרקה.", false);
                         }, 1000);
                     }
                 }
             }
         };
 
-        // --- PARTICLE FX ---
+        // --- PARTICLE FX (No change, graphical utility) ---
         const Fx = {
             init() {
                 const cvs = document.getElementById('fx-canvas');
