@@ -3,376 +3,526 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מבצע קולקס: ממשק מחקר ביומימטי</title>
+    <title>מבצע קולקס: ממשק מחקר ביומימטי - גרסה אולטימטיבית</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;700&family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&family=Assistant:wght@300;400;600;800&family=Heebo:wght@300;400;700&display=swap" rel="stylesheet">
 
     <style>
         /* * ==========================================================================
-         * 1. הגדרות בסיס ומשתנים (CORE VARIABLES)
+         * 1. משתנים גלובליים ואיפוס (CSS VARIABLES & RESET)
          * ==========================================================================
          */
         :root {
-            /* צבעים */
-            --bg-dark: #050505;
-            --panel-bg: rgba(18, 20, 25, 0.95);
-            --panel-border: #333;
+            /* פלטת צבעים ראשית */
+            --bg-deep: #020202;
+            --bg-panel: #0b0c10;
+            --bg-panel-trans: rgba(11, 12, 16, 0.95);
             
-            --text-main: #a8b2d1;
-            --text-dim: #5a6070;
-            --text-bright: #ffffff;
+            --border-dim: #1f2833;
+            --border-bright: #45a29e;
 
-            /* צבעי ממשק */
-            --c-cyan: #00f2ff;   /* טכנולוגיה */
-            --c-green: #00ff9d;  /* ביו */
-            --c-orange: #ffae00; /* אזהרה */
-            --c-red: #ff2a2a;    /* קריטי */
-            --c-purple: #b300ff; /* מיוחד */
+            /* צבעי טקסט וממשק */
+            --text-main: #c5c6c7;
+            --text-highlight: #66fcf1;
+            --text-header: #ffffff;
 
-            /* גדלים */
-            --sidebar-width: 350px;
-            --header-height: 60px;
+            /* צבעי סטטוס */
+            --status-ok: #00ff9d;   /* ירוק - תקין/ביו */
+            --status-warn: #ffae00; /* כתום - אזהרה */
+            --status-crit: #ff2a2a; /* אדום - שגיאה/סכנה */
+            --status-tech: #00f2ff; /* תכלת - טכנולוגיה */
+
+            /* מידות */
+            --sidebar-width: 380px;
+            --header-height: 70px;
         }
 
         * {
             box-sizing: border-box;
-            user-select: none; /* מניעת בחירת טקסט לחווית משחק */
+            user-select: none; /* מניעת בחירת טקסט לחווית "אפליקציה" */
+            outline: none;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Assistant', sans-serif;
+            overflow: hidden; /* מניעת גלילה של העמוד כולו */
+        }
+
+        /* * ==========================================================================
+         * 2. מסך טעינה (BOOT SEQUENCE UI)
+         * ==========================================================================
+         */
+        #boot-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Heebo', monospace;
+            direction: ltr; /* לוג טעינה באנגלית */
+        }
+
+        .boot-terminal {
+            width: 600px;
+            height: 300px;
+            background: #050505;
+            border: 1px solid #333;
+            padding: 20px;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 242, 255, 0.1);
+            margin-bottom: 20px;
+            color: var(--status-tech);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .progress-container {
+            width: 600px;
+            height: 6px;
+            background: #222;
+            border-radius: 3px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--status-ok);
+            box-shadow: 0 0 15px var(--status-ok);
+            transition: width 0.2s linear;
+        }
+
+        /* * ==========================================================================
+         * 3. פריסת עמוד ראשית (MAIN GRID LAYOUT)
+         * ==========================================================================
+         */
+        #app-container {
+            display: grid;
+            grid-template-columns: 1fr var(--sidebar-width); /* תמונה משמאל, סרגל מימין */
+            grid-template-rows: var(--header-height) 1fr;
+            width: 100vw;
+            height: 100vh;
+            opacity: 0; /* מוסתר בהתחלה */
+            transition: opacity 1.5s ease-in;
+        }
+
+        /* --- כותרת עליונה --- */
+        #top-header {
+            grid-column: 1 / -1;
+            background: var(--bg-panel);
+            border-bottom: 2px solid var(--border-dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-text {
+            font-family: 'Rubik', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--text-highlight);
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(102, 252, 241, 0.4);
+        }
+
+        .version-tag {
+            background: var(--border-dim);
+            color: #888;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+
+        .system-indicators {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            font-family: 'Heebo', monospace;
+        }
+
+        .indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--status-ok);
         }
         
-        body {
-            margin: 0; padding: 0;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Rubik', sans-serif;
-            height: 100vh; width: 100vw;
-            overflow: hidden;
-            display: flex; justify-content: center; align-items: center;
+        .blink-dot {
+            width: 8px; height: 8px;
+            background: var(--status-ok);
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--status-ok);
+            animation: pulse-dot 2s infinite;
         }
 
-        /* * ==========================================================================
-         * 2. מסך טעינה (BOOT SCREEN)
-         * ==========================================================================
-         */
-        #boot-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-family: 'Heebo', monospace;
-            color: var(--c-cyan);
-            direction: ltr; /* קוד טעינה באנגלית נראה מגניב יותר */
-        }
-
-        .boot-log { 
-            width: 600px; height: 300px; overflow: hidden; 
-            font-size: 14px; line-height: 1.5; opacity: 0.8; 
-            text-align: left; border-left: 2px solid var(--c-cyan);
-            padding-left: 20px;
-        }
-        .boot-loader {
-            width: 300px; height: 4px; background: #333; margin-top: 20px; position: relative;
-        }
-        .boot-bar {
-            width: 0%; height: 100%; background: var(--c-green);
-            transition: width 3s ease-out;
-            box-shadow: 0 0 10px var(--c-green);
-        }
-
-        /* * ==========================================================================
-         * 3. מבנה ראשי (MAIN LAYOUT)
-         * ==========================================================================
-         */
-        #game-wrapper {
-            width: 100%; height: 100%;
-            display: grid;
-            grid-template-columns: var(--sidebar-width) 1fr; /* סרגל צד מימין, משחק משמאל */
-            grid-template-rows: var(--header-height) 1fr;
-            opacity: 0; transition: opacity 1s;
-        }
-
-        /* סרגל עליון */
-        #top-bar {
-            grid-column: 1 / -1;
-            background: rgba(10, 10, 10, 0.9);
-            border-bottom: 1px solid var(--panel-border);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 30px;
-            z-index: 50;
-        }
-
-        .brand-title {
-            font-family: 'Heebo', sans-serif; font-size: 24px; font-weight: 700; letter-spacing: 2px;
-            color: var(--c-cyan);
-            text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
-        }
-
-        .sys-status { 
-            font-family: 'Rubik'; font-size: 14px; color: var(--c-green); 
-            display: flex; align-items: center; gap: 10px;
-        }
-        .status-dot { width: 10px; height: 10px; background: var(--c-green); border-radius: 50%; box-shadow: 0 0 5px var(--c-green); }
-        .sys-status.alert .status-dot { background: var(--c-red); box-shadow: 0 0 5px var(--c-red); animation: blink 0.5s infinite; }
-        .sys-status.alert { color: var(--c-red); }
-
-        /* * ==========================================================================
-         * 4. אזור המשחק (VIEWPORT)
-         * ==========================================================================
-         */
-        #viewport {
+        /* --- אזור המשחק (VIEWPORT) --- */
+        #game-viewport {
             position: relative;
             background: #000;
             overflow: hidden;
-            border-right: 1px solid var(--panel-border);
+            border-left: 1px solid var(--border-dim); /* הפרדה מהסרגל */
             cursor: default;
         }
 
-        /* שכבות רקע */
-        .layer { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background-size: cover; background-position: center; 
-            transition: opacity 1.5s ease-in-out; opacity: 0; z-index: 1;
+        /* שכבות רקע (Layers) */
+        .scene-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 2s ease-in-out;
+            opacity: 0;
+            z-index: 1;
         }
-        
-        #bg-day { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); opacity: 1; }
-        #bg-night { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); opacity: 0; }
-        #bg-lab { background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png'); opacity: 0; }
 
-        /* אפקטים וסורק */
-        #fx-canvas { pointer-events: none; z-index: 5; opacity: 0.8; position: absolute; top:0; left:0; width:100%; height:100%; }
-        
-        #scan-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%;
+        /* הגדרת תמונות רקע */
+        #layer-day { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); opacity: 1; }
+        #layer-night { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); opacity: 0; }
+        #layer-lab { background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png'); opacity: 0; }
+
+        /* קנבס לאפקטים (חלקיקים) */
+        #fx-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 5; pointer-events: none;
+        }
+
+        /* שכבת סורק (Scanner Overlay) */
+        #scan-fx {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: repeating-linear-gradient(
                 0deg,
-                rgba(0, 242, 255, 0.05),
-                rgba(0, 242, 255, 0.05) 1px,
+                rgba(0, 242, 255, 0.03),
+                rgba(0, 242, 255, 0.03) 1px,
                 transparent 1px,
-                transparent 4px
+                transparent 3px
             );
-            pointer-events: none; z-index: 6; opacity: 0; transition: opacity 0.3s;
+            pointer-events: none; z-index: 10;
+            opacity: 0; transition: opacity 0.5s;
         }
-        #scan-overlay.active { opacity: 1; }
-        
-        /* אפקט וינייט (Vignette) לקצוות */
-        #viewport::after {
-            content: ''; position: absolute; top:0; left:0; width:100%; height:100%;
-            box-shadow: inset 0 0 150px rgba(0,0,0,0.9);
-            pointer-events: none; z-index: 7;
-        }
+        .scanner-active #scan-fx { opacity: 1; }
 
-        /* * ==========================================================================
-         * 5. נקודות עניין (HOTSPOTS)
-         * ==========================================================================
-         */
-        #hotspot-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; }
+        /* --- נקודות לחיצה (HOTSPOTS) --- */
+        #hotspots-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 20;
+        }
 
         .hotspot {
             position: absolute;
-            z-index: 25;
+            z-index: 30;
             cursor: pointer;
-            opacity: 0; /* מוסתר עד שעוברים עם העכבר או מפעילים סורק */
-            transition: all 0.3s;
-            border: 1px dashed rgba(255,255,255,0.2);
             border-radius: 50%;
+            transition: all 0.3s ease;
+            opacity: 0; /* נסתר כברירת מחדל */
+            border: 1px dashed rgba(255, 255, 255, 0.3);
         }
 
-        /* לוגיקה לתצוגת נקודות עניין */
-        .scanner-active .hotspot { 
-            opacity: 0.4; 
-            background: rgba(0, 242, 255, 0.1); 
-            border-color: var(--c-cyan); 
-            animation: pulse 2s infinite;
-        }
-        
-        .hotspot:hover { 
-            opacity: 1 !important; 
-            box-shadow: 0 0 20px var(--c-cyan), inset 0 0 10px var(--c-cyan); 
-            border: 2px solid #fff; 
-            background: rgba(0, 242, 255, 0.2); 
-            transform: scale(1.05);
+        /* במצב סורק - הנקודות מהבהבות */
+        .scanner-active .hotspot {
+            opacity: 0.5;
+            background: rgba(0, 242, 255, 0.1);
+            border-color: var(--status-tech);
+            animation: scan-pulse 2s infinite;
         }
 
-        /* מיקומים באחוזים */
-        /* שלב הרכבת */
+        .hotspot:hover {
+            opacity: 1 !important;
+            background: rgba(0, 242, 255, 0.2);
+            border: 2px solid #fff;
+            box-shadow: 0 0 25px var(--status-tech);
+            transform: scale(1.1);
+        }
+
+        /* מיקומי האובייקטים (באחוזים לטובת רספונסיביות) */
+        /* רכבת */
         #spot-cat { top: 14%; left: 20%; width: 12%; height: 14%; }
-        #spot-map { top: 35%; left: 9%; width: 18%; height: 23%; }
+        #spot-map { top: 35%; left: 9%;  width: 18%; height: 23%; }
         #spot-window { top: 22%; left: 35%; width: 28%; height: 38%; }
         #spot-hat { top: 26%; left: 67%; width: 10%; height: 16%; }
         #spot-door { top: 18%; left: 78%; width: 20%; height: 75%; }
-        /* שלב המעבדה */
+        
+        /* מעבדה */
         #spot-flask { top: 55%; left: 25%; width: 15%; height: 25%; }
         #spot-jar { top: 15%; left: 60%; width: 25%; height: 55%; }
         #spot-notes { top: 70%; left: 45%; width: 20%; height: 15%; }
 
         .hidden { display: none !important; }
 
-        /* * ==========================================================================
-         * 6. סרגל צד (SIDEBAR)
-         * ==========================================================================
-         */
+        /* --- סרגל צד (SIDEBAR) --- */
         #sidebar {
-            background: rgba(10, 12, 16, 0.98);
-            display: flex; flex-direction: column;
-            border-left: 2px solid var(--panel-border);
+            background: var(--bg-panel);
+            border-right: 2px solid var(--border-dim);
+            display: flex;
+            flex-direction: column;
             padding: 20px;
-            z-index: 40;
-            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            box-shadow: -5px 0 30px rgba(0,0,0,0.8);
+            z-index: 50;
+            gap: 20px;
         }
 
-        .panel { 
-            background: rgba(255,255,255,0.03); 
-            border: 1px solid var(--panel-border); 
-            padding: 15px; margin-bottom: 15px; border-radius: 6px; 
+        /* פאנלים בסרגל */
+        .side-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 15px;
             position: relative;
         }
-        .panel h3 { 
-            margin: 0 0 10px 0; font-family: 'Heebo'; font-size: 16px; 
-            color: var(--c-cyan); border-bottom: 1px solid #333; padding-bottom: 5px; 
+
+        .side-title {
+            font-family: 'Heebo', sans-serif;
+            font-size: 14px;
+            color: var(--text-highlight);
+            text-transform: uppercase;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
         }
 
         /* כפתור סורק */
-        #scanner-btn {
-            width: 100%; padding: 12px;
-            background: transparent; border: 1px solid var(--c-cyan); color: var(--c-cyan);
-            font-family: 'Rubik'; font-size: 16px; font-weight: bold; cursor: pointer;
-            transition: 0.3s; margin-bottom: 20px; text-transform: uppercase;
-        }
-        #scanner-btn:hover, #scanner-btn.active { 
-            background: var(--c-cyan); color: #000; box-shadow: 0 0 15px var(--c-cyan); 
+        #btn-scanner {
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            border: 1px solid var(--status-tech);
+            color: var(--status-tech);
+            font-family: 'Rubik', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            display: flex; justify-content: center; align-items: center; gap: 10px;
         }
 
-        /* אזור המשימה הנוכחית */
-        #objective-text { font-size: 14px; line-height: 1.4; color: #fff; }
-
-        /* כפתור התיק */
-        #bag-btn {
-            width: 100%; height: 80px;
-            background: #111; border: 2px solid #444; border-radius: 8px;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.3s; margin-top: auto;
-            position: relative; overflow: hidden;
+        #btn-scanner:hover {
+            background: rgba(0, 242, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
         }
-        #bag-btn::before { content: '🎒'; font-size: 40px; }
-        #bag-btn:hover { border-color: var(--c-green); background: rgba(0, 255, 157, 0.1); }
-        #bag-label { position: absolute; bottom: 5px; font-size: 12px; color: #aaa; }
+
+        #btn-scanner.active {
+            background: var(--status-tech);
+            color: #000;
+            box-shadow: 0 0 20px var(--status-tech);
+        }
+
+        /* תיבת משימות */
+        #mission-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #ddd;
+        }
 
         /* לוג מערכת */
-        #system-log { 
-            height: 200px; overflow-y: auto; font-family: 'Heebo'; font-size: 12px; color: #888; 
-            border-top: 1px solid #333; padding-top: 10px;
+        #sys-log {
+            height: 180px;
+            overflow-y: auto;
+            font-family: 'Heebo', monospace;
+            font-size: 13px;
+            color: #888;
+            border-top: 1px solid #222;
+            padding-top: 5px;
         }
-        .log-entry { margin-bottom: 8px; border-right: 2px solid #333; padding-right: 8px; }
-        .log-entry.new { border-color: var(--c-green); color: var(--c-green); }
-        .log-entry.err { border-color: var(--c-red); color: var(--c-red); }
+
+        .log-line {
+            margin-bottom: 6px;
+            border-right: 2px solid #333;
+            padding-right: 8px;
+        }
+        .log-line.new { color: var(--status-ok); border-color: var(--status-ok); }
+        .log-line.err { color: var(--status-crit); border-color: var(--status-crit); }
+
+        /* כפתור תיק */
+        #btn-inventory {
+            margin-top: auto; /* דוחף לתחתית */
+            height: 70px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #btn-inventory:hover {
+            border-color: var(--status-ok);
+            background: rgba(0, 255, 157, 0.05);
+        }
+
+        .bag-icon { font-size: 30px; margin-left: 10px; }
+        .bag-text { font-weight: bold; color: #aaa; }
 
         /* * ==========================================================================
-         * 7. חלונות קופצים (MODALS)
+         * 4. חלונות קופצים (MODALS & OVERLAYS)
          * ==========================================================================
          */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 200;
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: 0.3s;
+            background: rgba(0,0,0,0.85);
             backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: 0.3s ease;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-        /* קופסה כללית */
-        .modal-box {
-            background: #111; border: 2px solid var(--c-cyan);
-            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
-            padding: 30px; width: 600px; max-width: 90%;
-            border-radius: 12px; position: relative; text-align: center;
+        .modal-frame {
+            background: #0f1015;
+            border: 2px solid var(--text-highlight);
+            box-shadow: 0 0 40px rgba(102, 252, 241, 0.2);
+            padding: 30px;
+            width: 700px;
+            max-width: 90%;
+            border-radius: 12px;
+            position: relative;
+            display: flex; flex-direction: column;
         }
-        .close-modal { 
-            position: absolute; top: 10px; left: 15px; cursor: pointer; 
-            color: #666; font-size: 24px; font-weight: bold;
-        }
-        .close-modal:hover { color: #fff; }
 
-        /* כותרות */
-        .modal-title { font-family: 'Heebo'; color: var(--c-cyan); font-size: 24px; margin-bottom: 20px; }
-        .modal-desc { margin-bottom: 25px; font-size: 16px; color: #ddd; line-height: 1.6; }
+        .modal-close {
+            position: absolute; top: 15px; left: 20px;
+            font-size: 24px; color: #666; cursor: pointer;
+            transition: 0.2s;
+        }
+        .modal-close:hover { color: #fff; }
 
-        /* עיצוב התיק (INVENTORY MODAL) */
-        #inventory-grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px; 
+        .modal-header {
+            font-family: 'Heebo'; font-size: 22px; color: var(--text-highlight);
+            margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;
+            text-align: center; letter-spacing: 1px;
         }
-        .inv-item {
-            aspect-ratio: 1; background: #050505; border: 1px solid #333;
-            border-radius: 8px; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; cursor: pointer;
-            transition: 0.2s; position: relative;
-        }
-        .inv-item:hover { border-color: var(--c-green); background: #0a150f; }
-        .inv-item.selected { border-color: var(--c-green); box-shadow: 0 0 15px var(--c-green); }
-        .inv-icon { font-size: 32px; margin-bottom: 5px; }
-        .inv-name { font-size: 12px; color: #aaa; text-align: center; }
 
-        #item-details { 
-            margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 8px; 
-            display: none; border: 1px solid #444;
+        /* עיצוב התיק (Inventory Grid) */
+        #inv-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;
+            min-height: 200px;
         }
-        #item-desc { font-size: 14px; color: #ccc; margin-bottom: 10px; }
+
+        .inv-slot {
+            aspect-ratio: 1;
+            background: #050505;
+            border: 1px solid #333;
+            border-radius: 8px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            cursor: pointer; transition: 0.2s;
+            position: relative;
+        }
+        .inv-slot:hover { border-color: var(--status-ok); background: #0a100d; }
+        .inv-slot.selected { border-color: var(--status-ok); box-shadow: 0 0 15px rgba(0,255,157,0.3); }
+
+        .inv-icon { font-size: 40px; margin-bottom: 5px; }
+        .inv-name { font-size: 13px; color: #888; text-align: center; }
+
+        /* אזור פרטי חפץ */
+        #inv-details {
+            margin-top: 20px; padding: 15px; background: #181818;
+            border-radius: 6px; display: none; border: 1px solid #333;
+        }
+        .btn-action {
+            background: var(--text-highlight); color: #000; border: none;
+            padding: 8px 20px; font-weight: bold; cursor: pointer; border-radius: 4px;
+            margin-top: 10px; font-size: 16px; transition: 0.2s;
+        }
+        .btn-action:hover { background: #fff; transform: scale(1.05); }
+
+        /* --- מיני-משחק תדרים (Wave Tuner) --- */
+        #tuner-container {
+            display: flex; flex-direction: column; align-items: center; width: 100%;
+        }
+        #wave-canvas {
+            width: 100%; height: 200px;
+            background: #000; border: 2px solid #333; border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        #wave-controls {
+            width: 80%; display: flex; align-items: center; gap: 15px;
+        }
+        input[type=range] { flex-grow: 1; cursor: pointer; }
+        #tuner-status { font-size: 20px; font-weight: bold; margin-top: 15px; min-height: 30px; }
+
+        /* --- מיני-משחק כימיה (Chemistry) --- */
+        #chem-container {
+            display: flex; justify-content: center; align-items: flex-end; gap: 30px;
+            height: 250px; padding-bottom: 20px;
+        }
+        .test-tube {
+            width: 50px; height: 120px; border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 0 0 25px 25px; position: relative; cursor: pointer; overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .test-tube:hover { transform: translateY(-10px); }
+        .liquid { position: absolute; bottom: 0; width: 100%; height: 60%; opacity: 0.8; }
         
-        .action-btn {
-            background: var(--c-cyan); color: #000; border: none; padding: 10px 25px;
-            font-family: 'Rubik'; font-weight: bold; cursor: pointer; border-radius: 4px;
-            transition: 0.2s; font-size: 16px;
+        .flask-main {
+            width: 100px; height: 160px; border: 3px solid #fff;
+            border-radius: 0 0 50px 50px; position: relative; overflow: hidden;
         }
-        .action-btn:hover { background: #fff; transform: scale(1.05); }
-        .action-btn.green { background: var(--c-green); }
-
-        /* מיני-משחקים */
-        #tuner-game { display: flex; flex-direction: column; align-items: center; }
-        #wave-canvas { width: 100%; height: 150px; background: #000; border: 1px solid #333; margin-bottom: 15px; }
-        
-        #keypad-game { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 200px; margin: 0 auto; }
-        .key-btn { padding: 15px; background: #222; border: 1px solid #444; color: #fff; font-size: 18px; cursor: pointer; }
-        .key-btn:hover { background: var(--c-cyan); color: #000; }
-        #keypad-display { grid-column: 1 / -1; background: #000; color: var(--c-cyan); font-family: monospace; font-size: 24px; padding: 10px; margin-bottom: 10px; border: 1px solid #444; text-align: center; letter-spacing: 5px; }
-
-        #chem-game { display: flex; justify-content: center; gap: 20px; align-items: flex-end; height: 200px; }
-        .chem-tube { width: 60px; height: 150px; border: 2px solid #fff; position: relative; cursor: pointer; border-radius: 0 0 20px 20px; overflow: hidden; }
-        .chem-liquid { position: absolute; bottom: 0; width: 100%; height: 50%; opacity: 0.7; transition: height 0.3s; }
-        #flask-mix { width: 100px; height: 180px; border: 3px solid #fff; border-radius: 0 0 40px 40px; position: relative; overflow: hidden; }
-        #flask-liquid { position: absolute; bottom: 0; width: 100%; height: 0%; background: #222; transition: all 0.5s; }
-
-        /* קלטים לחידות */
-        input.riddle-input {
-            width: 80%; padding: 10px; margin-bottom: 15px; background: #000; 
-            border: 1px solid var(--c-cyan); color: #fff; text-align: center; font-size: 18px;
+        .flask-liquid {
+            position: absolute; bottom: 0; width: 100%; height: 0%;
+            background: #222; transition: all 0.5s ease;
         }
 
         /* אנימציות */
-        @keyframes blink { 50% { opacity: 0; } }
-        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 0.6; } 100% { opacity: 0.3; } }
+        @keyframes pulse-dot { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        @keyframes scan-pulse { 0% { opacity: 0.3; } 50% { opacity: 0.7; } 100% { opacity: 0.3; } }
 
     </style>
 </head>
 <body>
 
-    <div id="boot-screen">
-        <div class="boot-log" id="boot-log"></div>
-        <div class="boot-loader"><div class="boot-bar" id="boot-bar"></div></div>
+    <div id="boot-layer">
+        <div class="boot-terminal" id="boot-log"></div>
+        <div class="progress-container">
+            <div class="progress-bar" id="boot-bar"></div>
+        </div>
+        <div style="margin-top:10px; color:#666; font-size:12px;">מאתחל מערכת ביומימטית BSF-v3.0...</div>
     </div>
 
-    <div id="game-wrapper">
+    <div id="app-container">
         
-        <header id="top-bar">
-            <div class="brand-title">MIVTZA CULEX <span style="font-size:12px;">v2.0</span></div>
-            <div id="sys-status" class="sys-status"><span class="status-dot"></span> מערכות תקינות</div>
+        <header id="top-header">
+            <div class="logo-area">
+                <div class="logo-text">MIVTZA CULEX</div>
+                <div class="version-tag">ULTIMATE EDITION</div>
+            </div>
+            <div class="system-indicators">
+                <div class="indicator" id="ind-time">12:00:00</div>
+                <div class="indicator" id="ind-status"><div class="blink-dot"></div> מערכות מקוונות</div>
+            </div>
         </header>
 
-        <main id="viewport">
+        <main id="game-viewport">
+            <div id="scan-fx"></div>
             <canvas id="fx-canvas"></canvas>
-            <div id="scan-overlay"></div>
-            
-            <div id="bg-lab" class="layer"></div>
-            <div id="bg-night" class="layer"></div>
-            <div id="bg-day" class="layer"></div>
 
-            <div id="hotspot-layer">
+            <div id="layer-lab" class="scene-layer"></div>
+            <div id="layer-night" class="scene-layer"></div>
+            <div id="layer-day" class="scene-layer"></div>
+
+            <div id="hotspots-container">
                 <div id="spot-cat" class="hotspot train-obj" data-id="cat"></div>
                 <div id="spot-map" class="hotspot train-obj" data-id="map"></div>
                 <div id="spot-window" class="hotspot train-obj" data-id="window"></div>
@@ -386,49 +536,47 @@
         </main>
 
         <aside id="sidebar">
-            <button id="scanner-btn" onclick="Game.toggleScanner()">סורק תרמי [כבוי]</button>
+            <button id="btn-scanner" onclick="Game.toggleScanner()">
+                <span>👁️</span> סורק תרמי [כבוי]
+            </button>
 
-            <div class="panel">
-                <h3>משימה נוכחית</h3>
-                <div id="objective-text">טוען נתונים...</div>
+            <div class="side-panel">
+                <div class="side-title">הנחיות משימה</div>
+                <div id="mission-text">ממתין לפקודות...</div>
             </div>
 
-            <div class="panel" style="flex-grow:1;">
-                <h3>יומן מערכת</h3>
-                <div id="system-log"></div>
+            <div class="side-panel" style="flex-grow: 1; display: flex; flex-direction: column;">
+                <div class="side-title">יומן אירועים</div>
+                <div id="sys-log"></div>
             </div>
 
-            <div class="panel">
-                <div id="bag-btn" onclick="Inventory.openUI()">
-                    <div id="bag-label">לחץ לפתיחת התיק</div>
-                </div>
-            </div>
-            
-            <div style="text-align: center; color: #666; font-size: 12px; margin-top: 10px;">
-                זמן משימה: <span id="game-clock">00:00</span>
+            <div id="btn-inventory" onclick="Inventory.openUI()">
+                <div class="bag-icon">🎒</div>
+                <div class="bag-text">תיק ציוד <span id="inv-count" style="font-size:12px; color:#666;">(1)</span></div>
             </div>
         </aside>
+
     </div>
 
-    <div id="modal-inventory" class="modal-overlay">
-        <div class="modal-box">
-            <div class="close-modal" onclick="Modal.close('modal-inventory')">×</div>
-            <h2 class="modal-title">תיק ציוד</h2>
-            <div id="inventory-grid"></div>
+    <div id="mdl-inventory" class="modal-overlay">
+        <div class="modal-frame">
+            <div class="modal-close" onclick="Modal.close('mdl-inventory')">×</div>
+            <div class="modal-header">מאגר ציוד וראיות</div>
             
-            <div id="item-details">
-                <h3 id="item-title" style="color:var(--c-cyan); margin:0 0 10px 0;"></h3>
-                <p id="item-desc"></p>
-                <button id="use-item-btn" class="action-btn">השתמש</button>
+            <div id="inv-grid"></div>
+
+            <div id="inv-details">
+                <h3 id="inv-item-name" style="margin:0 0 10px 0; color:var(--text-highlight);"></h3>
+                <p id="inv-item-desc" style="color:#ccc; font-size:14px; line-height:1.5;"></p>
+                <button id="inv-use-btn" class="btn-action">השתמש בפריט</button>
             </div>
         </div>
     </div>
 
-    <div id="modal-game" class="modal-overlay">
-        <div class="modal-box">
-            <div class="close-modal" onclick="Modal.close('modal-game')">×</div>
-            <h2 class="modal-title" id="game-title">אתגר אבטחה</h2>
-            
+    <div id="mdl-game" class="modal-overlay">
+        <div class="modal-frame">
+            <div class="modal-close" onclick="Modal.close('mdl-game')">×</div>
+            <div class="modal-header" id="game-title">אתגר אבטחה</div>
             <div id="game-content"></div>
         </div>
     </div>
@@ -436,30 +584,32 @@
     <script>
         /**
          * ==========================================================================
-         * נתונים וקונפיגורציה
+         * ניהול נתונים (DATA & CONFIG)
          * ==========================================================================
          */
-        
-        // רשימת חפצים
-        const Items = {
-            DRONE: { id: 'drone', icon: '🦟', name: 'רחפן יתוש', desc: 'רחפן ביומימטי זעיר. מתאים לחדירה למקומות צפופים.' },
-            NEEDLE: { id: 'needle', icon: '💉', name: 'מחט מיקרונית', desc: 'בהשראת חדק היתוש. מאפשרת הזרקה ללא כאב.' },
-            SENSOR: { id: 'sensor', icon: '🌡️', name: 'חיישן תרמי', desc: 'מזהה חום גוף ממרחק רב.' },
-            GYRO: { id: 'gyro', icon: '⚖️', name: 'מייצב גירוסקופי', desc: 'מבוסס על בוכניות האיזון של היתוש. לייצוב בתנאי רוח.' },
-            CHEM: { id: 'chem', icon: '👃', name: 'חיישן כימי', desc: 'מזהה פחמן דו-חמצני וריחות.' },
-            FORMULA: { id: 'formula', icon: '📜', name: 'נוסחת הרעל', desc: 'דפים קרועים מיומנו של ארקדיוס.' },
-            ANTIDOTE: { id: 'antidote', icon: '🧪', name: 'הנוגדן', desc: 'התרופה המסונתזת לניטרול הנחיל.' }
+        const Config = {
+            dayDuration: 60, // שניות ליום שלם במשחק
+            nightThreshold: 30
         };
 
-        // ניהול מצב משחק
+        const Items = {
+            DRONE: { id: 'drone', icon: '<img src="https://i.ibb.co/hRjbfw3Q/Gemini-Generated-Image-d7ptmd7ptmd7ptmd.png" style="width:80%; height:80%; object-fit:contain;">', name: 'רחפן יתוש', desc: 'רחפן ביומימטי זעיר המסוגל לשאת מטען נוזלי. מצויד במערכות ייצוב.' },
+            NEEDLE: { id: 'needle', icon: '💉', name: 'מחט מיקרונית', desc: 'טכנולוגיית הזרקה ללא כאב בהשראת חדק היתוש.' },
+            SENSOR: { id: 'sensor', icon: '🌡️', name: 'חיישן תרמי', desc: 'מערכת זיהוי חום מרחוק. חיונית לניווט.' },
+            GYRO: { id: 'gyro', icon: '⚖️', name: 'מייצב גירוסקופי', desc: 'רכיב ייצוב טיסה מבוסס בוכניות (Halteres) של יתוש.' },
+            CHEM: { id: 'chem', icon: '👃', name: 'חיישן כימי', desc: 'חיישן רגיש לפחמן דו-חמצני וריחות גוף.' },
+            FORMULA: { id: 'formula', icon: '📜', name: 'נוסחת הרעל', desc: 'דפים מיומנו של המדען המפרטים את הרכב הרעלן.' },
+            ANTIDOTE: { id: 'antidote', icon: '🧪', name: 'הנוגדן', desc: 'נוזל כחול זוהר המסוגל לנטרל את השפעת הרעל.' }
+        };
+
         const State = {
-            phase: 'TRAIN', // או 'LAB'
+            phase: 'TRAIN', // TRAIN -> LAB
             inventory: [],
             isScannerOn: false,
             isNight: false,
-            gameTime: 0,
-            solvedPuzzles: [],
-            selectedItem: null // החפץ שנבחר בתיק לשימוש
+            time: 0,
+            solved: [], // רשימת משימות שנפתרו
+            selectedItem: null // פריט שנבחר בתיק
         };
 
         /**
@@ -469,71 +619,73 @@
          */
         const Game = {
             init() {
-                // הוספת פריט התחלתי
                 Inventory.add(Items.DRONE);
-                Log.add("המערכת אותחלה. שלב 1: חדירה.", true);
+                Log.add("שלב 1: איסוף רכיבים ביומימטיים ברכבת.", true);
                 this.updateObjective();
                 
-                // התחלת שעון ואפקטים
+                // הפעלת אפקטים ושעון
                 Fx.start();
-                setInterval(this.tick, 1000);
+                setInterval(this.gameLoop, 1000);
 
-                // מאזינים ללחיצות
+                // הגדרת לחיצות
                 document.querySelectorAll('.hotspot').forEach(el => {
                     el.addEventListener('click', (e) => this.handleHotspot(e.target));
                 });
             },
 
-            tick() {
-                State.gameTime++;
-                
-                // עדכון שעון
-                const mins = Math.floor(State.gameTime / 60).toString().padStart(2, '0');
-                const secs = (State.gameTime % 60).toString().padStart(2, '0');
-                document.getElementById('game-clock').innerText = `${mins}:${secs}`;
+            gameLoop() {
+                State.time++;
+                // שעון ויזואלי
+                const now = new Date();
+                document.getElementById('ind-time').innerText = now.toLocaleTimeString('he-IL');
 
-                // מחזור יום/לילה פשוט (כל 30 שניות)
+                // מחזור יום/לילה פשוט (לצורך האווירה)
                 if (State.phase === 'TRAIN') {
-                    const cycle = State.gameTime % 60;
-                    if (cycle > 30 && !State.isNight) {
-                        State.isNight = true;
-                        Game.setNightMode(true);
-                    } else if (cycle <= 30 && State.isNight) {
-                        State.isNight = false;
-                        Game.setNightMode(false);
+                    const cycle = State.time % Config.dayDuration;
+                    const nightMode = cycle > Config.nightThreshold;
+                    
+                    if (nightMode !== State.isNight) {
+                        State.isNight = nightMode;
+                        Game.toggleNightVisuals(nightMode);
                     }
                 }
             },
 
-            setNightMode(isNight) {
-                document.getElementById('bg-day').style.opacity = isNight ? 0 : 1;
-                document.getElementById('bg-night').style.opacity = isNight ? 1 : 0;
-                
-                const status = document.getElementById('sys-status');
-                if(isNight) {
-                    status.innerHTML = '<span class="status-dot"></span> מצב לילה פעיל';
-                    status.classList.add('alert');
+            toggleNightVisuals(isNight) {
+                const dayLayer = document.getElementById('layer-day');
+                const nightLayer = document.getElementById('layer-night');
+                const status = document.getElementById('ind-status');
+
+                if (isNight) {
+                    dayLayer.style.opacity = 0;
+                    nightLayer.style.opacity = 1;
+                    status.innerHTML = '<div class="blink-dot" style="background:orange; box-shadow:0 0 5px orange"></div> תאורה נמוכה';
+                    status.style.color = "orange";
+                    Log.add("נכנס למצב לילה. ראות מוגבלת.");
                     Fx.mode = 'fireflies';
                 } else {
-                    status.innerHTML = '<span class="status-dot"></span> מערכות תקינות';
-                    status.classList.remove('alert');
+                    dayLayer.style.opacity = 1;
+                    nightLayer.style.opacity = 0;
+                    status.innerHTML = '<div class="blink-dot"></div> מערכות מקוונות';
+                    status.style.color = "var(--status-ok)";
+                    Log.add("זריחה זוהתה. מערכות סולאריות בטעינה.");
                     Fx.mode = 'dust';
                 }
             },
 
             toggleScanner() {
                 State.isScannerOn = !State.isScannerOn;
-                const btn = document.getElementById('scanner-btn');
-                const overlay = document.getElementById('scan-overlay');
-
+                const btn = document.getElementById('btn-scanner');
+                const overlay = document.getElementById('scan-fx');
+                
                 if (State.isScannerOn) {
-                    btn.innerText = "סורק תרמי [פעיל]";
+                    btn.innerHTML = "<span>👁️</span> סורק תרמי [פעיל]";
                     btn.classList.add('active');
                     overlay.classList.add('active');
                     document.body.classList.add('scanner-active');
                     Log.add("סורק הופעל. חתימות חום גלויות.");
                 } else {
-                    btn.innerText = "סורק תרמי [כבוי]";
+                    btn.innerHTML = "<span>👁️</span> סורק תרמי [כבוי]";
                     btn.classList.remove('active');
                     overlay.classList.remove('active');
                     document.body.classList.remove('scanner-active');
@@ -541,266 +693,285 @@
             },
 
             updateObjective() {
-                const txt = document.getElementById('objective-text');
+                const txt = document.getElementById('mission-text');
                 if (State.phase === 'TRAIN') {
-                    const needed = ['needle', 'sensor', 'gyro', 'chem'];
-                    const have = needed.filter(id => Inventory.has(id)).length;
+                    const req = ['needle', 'sensor', 'gyro', 'chem'];
+                    const count = req.filter(id => Inventory.has(id)).length;
                     
-                    if (have < 4) {
-                        txt.innerText = `אנו זקוקים לרכיבים ביומימטיים לפריצת המעבדה. מצאו אותם בקרון. (${have}/4)`;
+                    if (count < 4) {
+                        txt.innerText = `מצא 4 רכיבים ביומימטיים בקרון כדי לשדרג את הרחפן ולפרוץ למעבדה. (${count}/4)`;
                     } else {
-                        txt.innerText = "כל הרכיבים נאספו. גש לדלת המעבדה ופרוץ אותה.";
-                        document.getElementById('spot-door').style.border = "2px solid var(--c-green)";
+                        txt.innerText = "כל הרכיבים נאספו! גש לדלת המעבדה ופרוץ את המנעול.";
+                        document.getElementById('spot-door').style.borderColor = "var(--status-ok)";
                     }
                 } else {
-                    if (!Inventory.has('formula')) txt.innerText = "מצא את יומן המחקר של ארקדיוס.";
-                    else if (!Inventory.has('antidote')) txt.innerText = "השתמש בנוסחה במבחנות כדי ליצור נוגדן.";
-                    else txt.innerText = "השתמש ברחפן עם הנוגדן על צנצנת הנחיל כדי לסיים.";
+                    if (!Inventory.has('formula')) txt.innerText = "אתר את יומן המחקר כדי למצוא את הנוסחה.";
+                    else if (!Inventory.has('antidote')) txt.innerText = "השתמש בנוסחה בעמדת הכימיה כדי לייצר נוגדן.";
+                    else txt.innerText = "השתמש ברחפן (מהתיק) על צנצנת הנחיל כדי לסיים.";
                 }
             },
 
             handleHotspot(target) {
                 const id = target.dataset.id;
                 
-                // בדיקת סורק (חובה לחפצים נסתרים)
+                // חוקיות סורק (חובה להפעיל סורק לרוב החפצים)
                 if (!State.isScannerOn && id !== 'door' && id !== 'jar') {
-                    Log.add("לא ניתן לזהות אובייקט. הפעל סורק.", true); // true = שגיאה
+                    Log.add("לא ניתן לזהות אובייקט. נדרשת סריקה תרמית.", true);
                     return;
                 }
 
-                // אם כבר נפתר
-                if (State.solvedPuzzles.includes(id)) {
-                    Log.add("אזור זה כבר נסרק.", false);
+                if (State.solved.includes(id)) {
+                    Log.add("אובייקט זה כבר נחקר.");
                     return;
                 }
 
-                // ניתוב לוגיקה לפי אובייקט
                 switch(id) {
                     case 'cat':
-                        Minigames.riddle("טכנולוגיית חמקנות", "אני דוקר בלי להעיר, ניזון בלי להכאיב. מי אני?", "יתוש", Items.NEEDLE, id);
+                        Minigames.riddle("טכנולוגיית חמקנות", "אני דוקר בלי להעיר, ניזון בלי להכאיב. העיצוב שלי ממזער חיכוך. איזה חרק אני מחקה?", "יתוש", Items.NEEDLE, id);
                         break;
                     case 'map':
-                        Minigames.riddle("מערכת ניווט", "יש לי יערות בלי עצים וימים בלי דגים. אני עוזר למצוא חום מרחוק.", "מפה", Items.SENSOR, id);
-                        break;
-                    case 'window':
-                        Minigames.tuner(id); // הפעלת מיני-משחק תדרים
+                        Minigames.riddle("מערכת מעקב", "יש לי הרים בלי סלעים וימים בלי מים. אני עוזר לך למצוא חום ממרחק.", "מפה", Items.SENSOR, id);
                         break;
                     case 'hat':
-                        Minigames.riddle("חיישני כימיה", "אני יושב מעל העיניים, מסמל סמכות, ומכוון את הדרך.", "כובע", Items.CHEM, id);
+                        Minigames.riddle("חיישני כימיה", "אני יושב מעל העיניים ומסמל סמכות. אני מכוון את הדרך כמו מחושים.", "כובע", Items.CHEM, id);
+                        break;
+                    case 'window':
+                        // אתגר ה-Wave Tuner המורכב
+                        Minigames.tuner(id);
                         break;
                     case 'door':
-                        // דורש 4 חפצים
-                        const needed = ['needle', 'sensor', 'gyro', 'chem'];
-                        if (needed.every(i => Inventory.has(i))) {
+                        const req = ['needle', 'sensor', 'gyro', 'chem'];
+                        if (req.every(i => Inventory.has(i))) {
                             Minigames.keypad();
                         } else {
-                            Log.add("הדלת נעולה. חסרים רכיבים.", true);
+                            Log.add("גישה נדחתה. חסרים רכיבי פריצה.", true);
                         }
                         break;
                     
-                    // שלב 2
+                    // --- שלב מעבדה ---
                     case 'notes':
-                        Minigames.riddle("פענוח יומן", "המפתח הוא הצבע של הטבע מעורבב בצבע השמיים.", "ירוק", Items.FORMULA, id);
+                        Minigames.riddle("פענוח יומן", "כדי למצוא את הנוסחה, עליך לערבב את צבע הטבע עם צבע השמיים.", "ירוק", Items.FORMULA, id);
                         break;
                     case 'flask':
-                        // דורש שימוש בנוסחה
-                        Log.add("עמדת כימיה. בחר את 'נוסחת הרעל' בתיק והשתמש בה כאן.", false);
+                        Log.add("עמדת כימיה. בחר את 'נוסחת הרעל' בתיק והשתמש בה כאן.");
                         break;
                     case 'jar':
-                        Log.add("נחיל יתושים קטלני. צריך נוגדן ורחפן.", true);
+                        Log.add("מטרה זוהתה: נחיל קטלני. נדרש נוגדן.", true);
                         break;
                 }
             },
 
-            useItem(itemId) {
-                // פונקציה זו נקראת כשהמשתמש לוחץ "השתמש" בתיק
-                Modal.close('modal-inventory');
-                
-                if (State.phase === 'LAB') {
-                    if (itemId === 'formula') {
-                        // בדיקה האם סורק פועל ולוחצים על Flask? נעשה פשוט יותר:
-                        // שימוש בנוסחה פותח את משחק הכימיה
-                        Minigames.chemistry();
-                        return;
-                    }
-                    if (itemId === 'drone' && Inventory.has('antidote')) {
-                        // ניצחון
-                        Minigames.victory();
-                        return;
-                    }
-                }
-                
-                Log.add(`לא ניתן להשתמש ב-${Items[itemId.toUpperCase()]?.name || itemId} כרגע.`, true);
-            },
-
+            // מעבר שלב
             transitionToLab() {
                 State.phase = 'LAB';
-                document.getElementById('viewport').style.opacity = 0;
+                document.getElementById('game-viewport').style.opacity = 0;
                 
                 setTimeout(() => {
-                    // החלפת רקעים ואובייקטים
+                    // החלפת תפאורה
                     document.querySelectorAll('.train-obj').forEach(e => e.classList.add('hidden'));
                     document.querySelectorAll('.lab-obj').forEach(e => e.classList.remove('hidden'));
-                    document.getElementById('bg-lab').style.opacity = 1;
+                    document.getElementById('layer-lab').style.opacity = 1;
                     
-                    document.getElementById('viewport').style.opacity = 1;
+                    document.getElementById('game-viewport').style.opacity = 1;
                     Log.add("פריצה הושלמה. נכנס למעבדה.", true);
                     this.updateObjective();
-                }, 1000);
+                }, 1500);
             }
         };
 
         /**
          * ==========================================================================
-         * ניהול מלאי (INVENTORY)
+         * ניהול מלאי (INVENTORY SYSTEM)
          * ==========================================================================
          */
         const Inventory = {
             add(item) {
                 if (this.has(item.id)) return;
                 State.inventory.push(item);
-                Log.add(`נאסף: ${item.name}`, true);
+                Log.add(`פריט נאסף: ${item.name}`, true);
                 Game.updateObjective();
                 
-                // הבהוב כפתור התיק
-                const btn = document.getElementById('bag-btn');
-                btn.style.borderColor = 'var(--c-green)';
-                setTimeout(() => btn.style.borderColor = '#444', 1000);
+                // עדכון מונה
+                document.getElementById('inv-count').innerText = `(${State.inventory.length})`;
             },
-
-            has(id) {
-                return State.inventory.some(i => i.id === id);
-            },
+            
+            has(id) { return State.inventory.some(i => i.id === id); },
 
             openUI() {
-                const grid = document.getElementById('inventory-grid');
+                const grid = document.getElementById('inv-grid');
                 grid.innerHTML = '';
-                document.getElementById('item-details').style.display = 'none';
+                document.getElementById('inv-details').style.display = 'none';
+                State.selectedItem = null;
 
                 State.inventory.forEach(item => {
                     const el = document.createElement('div');
-                    el.className = 'inv-item';
+                    el.className = 'inv-slot';
                     el.innerHTML = `<div class="inv-icon">${item.icon}</div><div class="inv-name">${item.name}</div>`;
                     el.onclick = () => this.selectItem(item, el);
                     grid.appendChild(el);
                 });
 
-                Modal.open('modal-inventory');
+                Modal.open('mdl-inventory');
             },
 
             selectItem(item, el) {
-                // סימון ויזואלי
-                document.querySelectorAll('.inv-item').forEach(e => e.classList.remove('selected'));
+                document.querySelectorAll('.inv-slot').forEach(e => e.classList.remove('selected'));
                 el.classList.add('selected');
+                State.selectedItem = item;
 
-                // הצגת פרטים
-                const details = document.getElementById('item-details');
-                details.style.display = 'block';
-                document.getElementById('item-title').innerText = item.name;
-                document.getElementById('item-desc').innerText = item.desc;
+                document.getElementById('inv-details').style.display = 'block';
+                document.getElementById('inv-item-name').innerText = item.name;
+                document.getElementById('inv-item-desc').innerText = item.desc;
                 
-                // כפתור שימוש
-                const btn = document.getElementById('use-item-btn');
-                btn.onclick = () => Game.useItem(item.id);
+                const btn = document.getElementById('inv-use-btn');
+                btn.onclick = () => this.useItem(item);
+            },
+
+            useItem(item) {
+                Modal.close('mdl-inventory');
+                
+                // לוגיקת שימוש בחפצים
+                if (State.phase === 'LAB') {
+                    if (item.id === 'formula') {
+                        // פתיחת משחק הכימיה
+                        Minigames.chemistry();
+                        return;
+                    }
+                    if (item.id === 'drone' && Inventory.has('antidote')) {
+                        // סיום המשחק
+                        Minigames.victory();
+                        return;
+                    }
+                }
+                
+                Log.add(`לא ניתן להשתמש ב-${item.name} כרגע.`, true);
             }
         };
 
         /**
          * ==========================================================================
-         * מיני-משחקים וחידות (MINIGAMES)
+         * מיני-משחקים (MINIGAMES)
          * ==========================================================================
          */
         const Minigames = {
-            
             // 1. חידת טקסט
-            riddle(title, text, answerKey, reward, refId) {
+            riddle(title, text, key, reward, refId) {
                 const html = `
                     <p style="color:#ccc; margin-bottom:20px;">${text}</p>
-                    <input type="text" id="riddle-input" class="riddle-input" placeholder="הכנס תשובה...">
-                    <button class="action-btn" onclick="Minigames.checkRiddle('${answerKey}', '${reward.id}', '${refId}')">אישור</button>
-                    <p id="riddle-feedback" style="height:20px; color:var(--c-red); margin-top:10px;"></p>
+                    <input type="text" id="riddle-inp" class="riddle-input" placeholder="הכנס תשובה...">
+                    <button class="action-btn" onclick="Minigames.checkRiddle('${key}', '${reward.id}', '${refId}')">אמת נתונים</button>
+                    <p id="riddle-msg" style="color:var(--status-crit); height:20px; margin-top:10px;"></p>
                 `;
                 document.getElementById('game-title').innerText = title;
                 document.getElementById('game-content').innerHTML = html;
-                Modal.open('modal-game');
+                Modal.open('mdl-game');
             },
 
             checkRiddle(key, rewardId, refId) {
-                const val = document.getElementById('riddle-input').value.trim();
-                const fb = document.getElementById('riddle-feedback');
-                
+                const val = document.getElementById('riddle-inp').value.trim();
                 if (val.includes(key)) {
-                    Modal.close('modal-game');
+                    Modal.close('mdl-game');
                     Inventory.add(Items[rewardId.toUpperCase()]);
-                    State.solvedPuzzles.push(refId);
+                    State.solved.push(refId);
                     document.querySelector(`[data-id="${refId}"]`).style.display = 'none';
                 } else {
-                    fb.innerText = "תשובה שגויה. נסה שוב.";
+                    document.getElementById('riddle-msg').innerText = "שגיאה: נתונים לא תואמים.";
                 }
             },
 
-            // 2. כיול תדר (Canvas)
+            // 2. כיול תדר (Wave Tuner) - משופר עם Canvas ו-Animation Loop
             tuner(refId) {
                 const html = `
-                    <p>כייל את התדר לייצוב הרחפן:</p>
-                    <div id="tuner-game">
-                        <canvas id="wave-canvas"></canvas>
-                        <input type="range" min="1" max="100" value="50" id="wave-slider" style="width:80%;">
-                        <div id="tuner-status" style="margin-top:10px; font-weight:bold; color:var(--c-red);">אות חלש</div>
+                    <p style="color:#aaa;">סנכרן את הגל הכחול (שלך) עם הגל הירוק (המטרה) באמצעות המחוון:</p>
+                    <div id="tuner-container">
+                        <canvas id="wave-canvas" width="600" height="200"></canvas>
+                        <div id="wave-controls">
+                            <span>תדר:</span>
+                            <input type="range" id="wave-slider" min="1" max="100" value="50">
+                        </div>
+                        <div id="tuner-status" style="color:var(--status-crit)">לא מסונכרן</div>
                     </div>
                 `;
                 document.getElementById('game-title').innerText = "ייצוב גירוסקופי";
                 document.getElementById('game-content').innerHTML = html;
-                Modal.open('modal-game');
+                Modal.open('mdl-game');
 
-                // לוגיקה פנימית לציור הגל
+                // לוגיקת קנבס
                 setTimeout(() => {
                     const canvas = document.getElementById('wave-canvas');
                     const ctx = canvas.getContext('2d');
                     const slider = document.getElementById('wave-slider');
                     const status = document.getElementById('tuner-status');
                     
-                    let val = 50;
-                    slider.oninput = (e) => val = e.target.value;
+                    let userFreq = 50;
+                    slider.oninput = (e) => userFreq = parseInt(e.target.value);
                     
-                    const loop = setInterval(() => {
-                        if(!document.getElementById('wave-canvas')) { clearInterval(loop); return; }
+                    let offset = 0;
+                    let animationFrame;
+
+                    function draw() {
+                        if (!document.getElementById('wave-canvas')) return; // יציאה אם החלון נסגר
                         
-                        ctx.fillStyle = '#000'; ctx.fillRect(0,0,300,150);
-                        ctx.lineWidth = 2;
+                        ctx.fillStyle = '#000';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.lineWidth = 3;
                         
-                        // גל מטרה (ירוק)
-                        ctx.strokeStyle = '#0f0'; ctx.beginPath();
-                        for(let x=0; x<300; x++) {
-                            let y = 75 + Math.sin(x*0.1) * 30;
+                        offset += 0.2; // אנימציית תזוזה
+
+                        // גל מטרה (ירוק) - תדר קבוע (נניח 45 בסקאלה שלנו)
+                        ctx.strokeStyle = 'rgba(0, 255, 157, 0.4)';
+                        ctx.beginPath();
+                        for (let x = 0; x < canvas.width; x++) {
+                            const y = 100 + Math.sin((x + offset * 10) * 0.05) * 40;
                             if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
                         }
                         ctx.stroke();
 
                         // גל משתמש (כחול)
-                        ctx.strokeStyle = '#00f2ff'; ctx.beginPath();
-                        for(let x=0; x<300; x++) {
-                            let y = 75 + Math.sin(x * (0.05 + (val-50)*0.002)) * 30;
+                        // נוסחת המרה: המטרה היא להגיע ל-0.05. הסליידר הוא 1-100.
+                        // נניח שהמטרה היא בערך 45 בסליידר.
+                        const freq = 0.01 + (userFreq / 1000); 
+                        // כדי שזה יהיה משחקי, המטרה היא סביב ערך ספציפי
+                        // נגיד המטרה היא 0.05. הסליידר צריך להיות באזור 40.
+                        const targetFreq = 0.05;
+                        const currentFreq = 0.03 + (userFreq / 2000); // כיוונון עדין
+
+                        const displayFreq = 0.03 + (userFreq * 0.0005);
+
+                        ctx.strokeStyle = '#00f2ff';
+                        ctx.beginPath();
+                        for (let x = 0; x < canvas.width; x++) {
+                            const y = 100 + Math.sin((x + offset * 10) * displayFreq) * 40;
                             if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
                         }
                         ctx.stroke();
 
-                        // בדיקת הצלחה
-                        if (val > 23 && val < 27) {
-                            status.innerText = "אות יציב - נעול";
-                            status.style.color = "#0f0";
-                            clearInterval(loop);
-                            setTimeout(() => {
-                                Modal.close('modal-game');
-                                Inventory.add(Items.GYRO);
-                                State.solvedPuzzles.push(refId);
-                                document.querySelector(`[data-id="${refId}"]`).style.display = 'none';
-                            }, 1000);
+                        // בדיקת ניצחון (טווח 38-42)
+                        if (userFreq >= 38 && userFreq <= 42) {
+                            status.innerText = "אות יציב - נעילה מתבצעת...";
+                            status.style.color = "var(--status-ok)";
+                            ctx.strokeStyle = '#fff'; // הבהוב לבן
+                            
+                            if (!this.winTimeout) {
+                                this.winTimeout = setTimeout(() => {
+                                    cancelAnimationFrame(animationFrame);
+                                    Modal.close('mdl-game');
+                                    Inventory.add(Items.GYRO);
+                                    State.solved.push(refId);
+                                    document.querySelector(`[data-id="${refId}"]`).style.display = 'none';
+                                    this.winTimeout = null;
+                                }, 1500);
+                            }
                         } else {
-                            status.innerText = "אות חלש";
-                            status.style.color = "#f00";
+                            status.innerText = "אות חלש / לא מסונכרן";
+                            status.style.color = "var(--status-crit)";
+                            if (this.winTimeout) { clearTimeout(this.winTimeout); this.winTimeout = null; }
                         }
-                    }, 30);
+
+                        animationFrame = requestAnimationFrame(draw);
+                    }
+                    draw();
+
                 }, 100);
             },
 
@@ -811,104 +982,101 @@
                         <div id="keypad-display">_ _ _ _</div>
                         ${[1,2,3,4,5,6,7,8,9].map(n => `<div class="key-btn" onclick="Minigames.keyPress(${n})">${n}</div>`).join('')}
                     </div>
+                    <p style="text-align:center; color:#666; margin-top:10px;">רמז: קוד גנרי (1234)</p>
                 `;
-                document.getElementById('game-title').innerText = "פריצת דלת";
+                document.getElementById('game-title').innerText = "בקרת כניסה";
                 document.getElementById('game-content').innerHTML = html;
-                Modal.open('modal-game');
-                this.keyCode = "";
+                Modal.open('mdl-game');
+                this.codeBuffer = "";
             },
 
             keyPress(n) {
-                this.keyCode += n;
-                document.getElementById('keypad-display').innerText = this.keyCode;
-                if (this.keyCode.length === 4) {
-                    if (this.keyCode === "1337" || this.keyCode === "1234") { // קוד פשוט
-                        Modal.close('modal-game');
+                this.codeBuffer += n;
+                document.getElementById('keypad-display').innerText = this.codeBuffer;
+                if (this.codeBuffer.length === 4) {
+                    if (this.codeBuffer === "1234") {
+                        Modal.close('mdl-game');
                         Game.transitionToLab();
                     } else {
                         document.getElementById('keypad-display').innerText = "שגיאה";
-                        this.keyCode = "";
+                        this.codeBuffer = "";
                         setTimeout(() => document.getElementById('keypad-display').innerText = "_ _ _ _", 500);
                     }
                 }
             },
 
-            // 4. כימיה
+            // 4. כימיה (Chemistry)
             chemistry() {
                 const html = `
-                    <p>ערבב: ירוק (טבע) + כחול (טכנולוגיה) = נוגדן</p>
-                    <div id="chem-game">
-                        <div class="chem-tube" style="border-color:#f00" onclick="Minigames.mix('red')"><div class="chem-liquid" style="background:#f00"></div></div>
-                        <div id="flask-mix"><div id="flask-liquid"></div></div>
-                        <div class="chem-tube" style="border-color:#0f0" onclick="Minigames.mix('green')"><div class="chem-liquid" style="background:#0f0"></div></div>
-                        <div class="chem-tube" style="border-color:#00f" onclick="Minigames.mix('blue')"><div class="chem-liquid" style="background:#00f"></div></div>
+                    <p style="text-align:center;">ערבב: ירוק (טבע) + כחול (טכנולוגיה) ליצירת נוגדן.</p>
+                    <div id="chem-container">
+                        <div class="test-tube" style="border-color:#ff2a2a" onclick="Minigames.mix('red')"><div class="liquid" style="background:#ff2a2a"></div></div>
+                        <div class="flask-main"><div class="flask-liquid" id="flask-fill"></div></div>
+                        <div class="test-tube" style="border-color:#00ff9d" onclick="Minigames.mix('green')"><div class="liquid" style="background:#00ff9d"></div></div>
+                        <div class="test-tube" style="border-color:#00f2ff" onclick="Minigames.mix('blue')"><div class="liquid" style="background:#00f2ff"></div></div>
                     </div>
                 `;
-                document.getElementById('game-title').innerText = "סינתזת נוגדן";
+                document.getElementById('game-title').innerText = "סינתזת חומרים";
                 document.getElementById('game-content').innerHTML = html;
-                Modal.open('modal-game');
-                this.currentMix = [];
+                Modal.open('mdl-game');
+                this.chemMix = [];
             },
 
             mix(color) {
-                this.currentMix.push(color);
-                const flask = document.getElementById('flask-liquid');
-                flask.style.height = (this.currentMix.length * 50) + "%";
-                flask.style.background = this.currentMix.length === 1 ? color : `linear-gradient(to top, ${this.currentMix.join(',')})`;
+                this.chemMix.push(color);
+                const fill = document.getElementById('flask-fill');
+                fill.style.height = (this.chemMix.length * 50) + "%";
+                
+                // צבע הערבוב
+                fill.style.background = this.chemMix.length === 1 ? color : `linear-gradient(to top, ${this.chemMix.join(',')})`;
 
-                if (this.currentMix.length === 2) {
-                    if (this.currentMix.includes('green') && this.currentMix.includes('blue') && !this.currentMix.includes('red')) {
+                if (this.chemMix.length === 2) {
+                    if (this.chemMix.includes('green') && this.chemMix.includes('blue') && !this.chemMix.includes('red')) {
                         setTimeout(() => {
-                            Modal.close('modal-game');
+                            Modal.close('mdl-game');
                             Inventory.add(Items.ANTIDOTE);
                             Log.add("נוגדן סונתז בהצלחה!", true);
                         }, 1000);
                     } else {
                         setTimeout(() => {
-                            this.currentMix = [];
-                            flask.style.height = "0%";
-                            Log.add("תערובת לא יציבה. נסה שוב.", true); // true בשביל אדום
+                            this.chemMix = [];
+                            fill.style.height = "0%";
+                            Log.add("תערובת לא יציבה. נסה שוב.", true);
                         }, 1000);
                     }
                 }
             },
 
+            // 5. ניצחון
             victory() {
                 const html = `
-                    <h1 style="color:var(--c-green); font-size:40px;">משימה הושלמה!</h1>
-                    <p style="font-size:18px;">הנחיל נוטרל. המחקר הביומימטי הושלם.</p>
-                    <button class="action-btn green" onclick="location.reload()">התחל מחדש</button>
+                    <h1 style="color:var(--status-ok); font-size:40px; margin-bottom:10px;">משימה הושלמה!</h1>
+                    <p style="font-size:18px;">הנחיל נוטרל בהצלחה באמצעות הטכנולוגיה הביומימטית.</p>
+                    <div style="font-size:60px; margin:20px 0;">🏆</div>
+                    <button class="action-btn green" onclick="location.reload()">אתחול סימולציה</button>
                 `;
-                document.getElementById('game-title').innerText = "ניצחון";
+                document.getElementById('game-title').innerText = "דיווח סיום";
                 document.getElementById('game-content').innerHTML = html;
-                Modal.open('modal-game');
+                Modal.open('mdl-game');
             }
         };
 
-        /**
-         * ==========================================================================
-         * שירותים (UTILS)
-         * ==========================================================================
-         */
-        
-        // ניהול לוג
+        // --- עזרים ---
         const Log = {
-            add(msg, isErr = false) {
-                const div = document.createElement('div');
-                div.className = 'log-entry' + (isErr ? ' err' : ' new');
-                const time = new Date().toLocaleTimeString('he-IL');
-                div.innerText = `[${time}] ${msg}`;
-                document.getElementById('system-log').prepend(div);
+            add(msg, isGood=false) {
+                const d = document.createElement('div');
+                d.className = 'log-line' + (isGood ? ' new' : '');
+                d.innerText = `> ${msg}`;
+                document.getElementById('sys-log').prepend(d);
             }
         };
 
-        // חלונות מודאליים
         const Modal = {
             open(id) { document.getElementById(id).classList.add('active'); },
             close(id) { document.getElementById(id).classList.remove('active'); }
         };
 
-        // אפקטים (Canvas)
+        // אפקטי רקע (Canvas Particles)
         const Fx = {
             mode: 'dust',
             start() {
@@ -918,17 +1086,17 @@
                 const resize = () => { cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight; };
                 window.onresize = resize; resize();
 
-                const particles = Array.from({length: 50}, () => ({
-                    x: Math.random() * cvs.width, y: Math.random() * cvs.height,
-                    vx: (Math.random()-0.5), vy: (Math.random()-0.5),
-                    size: Math.random() * 2
+                const parts = Array.from({length: 60}, () => ({
+                    x: Math.random()*cvs.width, y: Math.random()*cvs.height,
+                    vx: (Math.random()-0.5)*0.5, vy: (Math.random()-0.5)*0.5,
+                    size: Math.random()*2
                 }));
 
                 const loop = () => {
                     ctx.clearRect(0,0,cvs.width,cvs.height);
-                    ctx.fillStyle = this.mode === 'fireflies' ? 'rgba(255,200,50,0.6)' : 'rgba(255,255,255,0.3)';
+                    ctx.fillStyle = this.mode === 'fireflies' ? 'rgba(255,200,50,0.6)' : 'rgba(255,255,255,0.2)';
                     
-                    particles.forEach(p => {
+                    parts.forEach(p => {
                         p.x += p.vx; p.y += p.vy;
                         if(p.x<0) p.x=cvs.width; if(p.x>cvs.width) p.x=0;
                         if(p.y<0) p.y=cvs.height; if(p.y>cvs.height) p.y=0;
@@ -943,26 +1111,32 @@
             }
         };
 
-        // --- אתחול ---
-        // אפקט טעינה
+        // --- אתחול (BOOT) ---
         window.onload = () => {
-            const lines = ["Initializing...", "Loading Hebrew Drivers...", "Connecting BSF-01...", "Done."];
+            const lines = [
+                "טוען ליבה ביומימטית...",
+                "מאתחל דרייברים גרפיים...",
+                "מתחבר ללוויין BSF-01...",
+                "טעינה הושלמה."
+            ];
             let i = 0;
-            const int = setInterval(() => {
-                if(i>=lines.length) {
-                    clearInterval(int);
+            const logEl = document.getElementById('boot-log');
+            
+            const interval = setInterval(() => {
+                if(i >= lines.length) {
+                    clearInterval(interval);
                     document.getElementById('boot-bar').style.width = "100%";
                     setTimeout(() => {
-                        document.getElementById('boot-screen').style.display = 'none';
-                        document.getElementById('game-wrapper').style.opacity = 1;
+                        document.getElementById('boot-layer').style.display = 'none';
+                        document.getElementById('app-container').style.opacity = 1;
                         Game.init();
-                    }, 500);
+                    }, 800);
                 } else {
-                    const d = document.createElement('div');
-                    d.innerText = "> " + lines[i++];
-                    document.querySelector('.boot-log').appendChild(d);
+                    const line = document.createElement('div');
+                    line.innerText = "> " + lines[i++];
+                    logEl.appendChild(line);
                 }
-            }, 300);
+            }, 400);
         };
 
     </script>
