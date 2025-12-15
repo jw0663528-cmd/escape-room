@@ -78,7 +78,7 @@
         #game-wrapper {
             width: 100%; height: 100%;
             display: grid;
-            /* Layout: Viewport (80%) | Sidebar (380px) */
+            /* Default Desktop Layout: Viewport (80%) | Sidebar (380px) */
             grid-template-columns: 1fr var(--sidebar-width);
             grid-template-rows: var(--header-height) 1fr;
             opacity: 0; transition: opacity 1s; /* Fade in after boot */
@@ -149,7 +149,6 @@
 
         /* * ==========================================================================
          * 5. INTERACTIVE HOTSPOTS (Positioning kept LTR to align with non-flipped image)
-         * ** FIX: The small rectangle issue is resolved by ensuring opacity on hover **
          * ==========================================================================
          */
         .hotspot {
@@ -159,15 +158,13 @@
             opacity: 0; 
             transition: all 0.3s;
             border: 1px dashed rgba(255,255,255,0.2);
-            /* FIX: Make sure the area is visible on hover even without scanner ON */
         }
 
         /* Scanner Logic */
         .scanner-active .hotspot { opacity: 0.3; background: rgba(0, 242, 255, 0.1); border-color: var(--c-primary); }
-        /* FIX: Ensure strong hover visibility */
         .hotspot:hover { opacity: 1 !important; box-shadow: 0 0 15px var(--c-primary); border: 1px solid #fff; background: rgba(0, 242, 255, 0.2); }
 
-        /* Positioning (Percentages) - Kept LTR for image alignment */
+        /* Positioning (Percentages) */
         /* Train */
         #spot-cat { top: 14%; left: 20%; width: 12%; height: 14%; }
         #spot-map { top: 35%; left: 9%; width: 18%; height: 23%; }
@@ -188,7 +185,7 @@
             margin: 0 0 10px 0; font-family: 'Orbitron'; font-size: 14px; 
             color: var(--c-primary); letter-spacing: 1px; text-transform: uppercase; 
             border-bottom: 1px solid #333; padding-bottom: 5px; 
-            text-align: right; /* Ensure RTL */
+            text-align: right; 
         }
 
         /* Backpack Button & Image (NEW) */
@@ -199,7 +196,6 @@
         #backpack-area img { 
             display: block; width: 100px; height: 100px; object-fit: cover; 
             margin: 0 auto 10px auto; border: 2px solid var(--c-primary); border-radius: 50%;
-            /* FIX: Ensure image is not cut off */
             max-width: 100%; 
         }
         #backpack-btn {
@@ -224,7 +220,7 @@
 
         /* DataBank (Journal) */
         #databank { height: 150px; overflow-y: auto; font-family: 'Share Tech Mono'; font-size: 12px; color: #888; text-align: right; }
-        .log-entry { margin-bottom: 8px; border-right: 2px solid #333; padding-right: 8px; border-left: none; padding-left: 0;} /* Flipped journal marker to right side for RTL */
+        .log-entry { margin-bottom: 8px; border-right: 2px solid #333; padding-right: 8px; border-left: none; padding-left: 0;}
         .log-entry.new { border-color: var(--c-success); color: var(--c-success); }
 
         /* Inventory Modal Grid */
@@ -262,11 +258,11 @@
             box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
             padding: 20px; position: relative;
             display: flex; flex-direction: column;
-            direction: rtl; /* Ensure modal content is RTL */
+            direction: rtl; 
             text-align: right;
         }
         .game-header { font-family: 'Orbitron'; font-size: 20px; color: var(--c-primary); margin-bottom: 20px; text-align: center;}
-        .close-modal { position: absolute; top: 10px; left: 15px; cursor: pointer; color: #666; font-size: 20px; } /* Flipped close button to left side */
+        .close-modal { position: absolute; top: 10px; left: 15px; cursor: pointer; color: #666; font-size: 20px; } 
         .close-modal:hover { color: #fff; }
 
         /* --- Mini-Game 1: Frequency Tuner (Window) --- */
@@ -294,15 +290,63 @@
         #beaker-main { width: 120px; height: 150px; border: 3px solid #fff; border-radius: 0 0 20px 20px; position: relative; overflow: hidden; }
         #beaker-fill { position: absolute; bottom: 0; width: 100%; height: 0%; background: #333; transition: all 0.5s; }
 
-        /* Victory Screen */
-        #victory-screen { text-align: center; }
-        #victory-screen h1 { color: var(--c-success); font-size: 40px; margin-bottom: 20px; text-shadow: 0 0 20px var(--c-success); }
-        
-        /* Utility */
-        .hidden { display: none !important; }
-        
-        /* Animations */
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* * ==========================================================================
+         * 8. MOBILE RESPONSIVENESS FIXES
+         * ==========================================================================
+         */
+        @media (max-width: 768px) {
+            
+            /* Main Layout Grid */
+            #game-wrapper {
+                grid-template-columns: 1fr; /* Single column */
+                grid-template-rows: var(--header-height) 1fr auto; /* Header | Viewport | Sidebar */
+            }
+
+            /* Top Bar */
+            #top-bar {
+                padding: 0 15px;
+            }
+
+            /* Sidebar (now at the bottom) */
+            #sidebar {
+                grid-row: 3; /* Move to the bottom of the grid */
+                width: 100%;
+                max-height: 50vh; /* Limit height so viewport remains visible */
+                overflow-y: auto;
+                padding: 10px 15px;
+                border-right: none;
+                border-top: 1px solid var(--c-border);
+                border-left: none; /* Remove desktop border */
+            }
+            
+            /* Viewport (Main Content) */
+            #viewport {
+                grid-row: 2;
+                border-right: none;
+            }
+
+            /* Sidebar Content adjustments */
+            .panel { margin-bottom: 10px; }
+            #databank { height: 100px; } /* Reduce height on mobile */
+            #backpack-area { margin-bottom: 10px; padding-bottom: 5px; }
+            #backpack-area img { width: 60px; height: 60px; margin-bottom: 5px; }
+            #backpack-btn { width: 100%; }
+            #scanner-btn { margin-bottom: 10px; padding: 10px; }
+
+            /* Modals (Make them full screen on mobile) */
+            .game-window {
+                width: 95%;
+                height: 90%;
+                max-width: 95%; /* Override desktop width */
+                margin: 0 auto;
+                padding: 15px;
+            }
+            .modal-overlay {
+                align-items: flex-start; /* Align to top */
+                padding-top: 5vh;
+            }
+        }
 
     </style>
 </head>
@@ -360,8 +404,8 @@
                 <div id="databank">
                     </div>
             </div>
-
-            </aside>
+            
+        </aside>
     </div>
 
     <div id="game-modal" class="modal-overlay">
@@ -372,7 +416,7 @@
             <div id="modal-content" style="flex:1; position:relative;">
                 
                 <div id="tuner-game" class="minigame hidden">
-                    <p style="color:#aaa; text-align:right;">כוונן את תדר התהודה כדי לייצב את הרחפן, המבוסס על מנגנון ה**איזנונים** (Halteres) של הזבוב.</p>
+                    <p style="color:#aaa; text-align:right;">כוונן את תדר התהודה כדי לייצב את הרחפן, המבוסס על מנגנון ה**איזנונים** (Halteres) של הזבוב. עליך להחזיק את האות נעול למשך 1.5 שניות.</p>
                     <canvas id="wave-canvas"></canvas>
                     <input type="range" min="1" max="100" value="50" id="wave-slider">
                     <div id="tuner-status">אות: חלש</div>
@@ -392,7 +436,7 @@
                 </div>
 
                 <div id="chem-game" class="minigame hidden">
-                    <div style="text-align:center; position:absolute; top:0; width:100%;">ערבב ירוק (ביו) + כחול (טכנולוגיה) כדי לסנתז נוגדן יציב.</div>
+                    <div style="text-align:center; position:absolute; top:0; width:100%;">ערבב **ירוק** (ביו) + **כחול** (טכנולוגיה) כדי לסנתז נוגדן יציב.</div>
                     <div class="chem-btn" onclick="Chem.add('red')" style="border-color:#f00;"><div class="chem-fill" style="background:#f00;"></div></div>
                     <div id="beaker-main"><div id="beaker-fill"></div></div>
                     <div class="chem-btn" onclick="Chem.add('blue')" style="border-color:#00f;"><div class="chem-fill" style="background:#00f;"></div></div>
@@ -418,7 +462,7 @@
     </div>
     
     <div id="inventory-modal" class="modal-overlay">
-        <div class="game-window" style="height: auto; width: 500px;">
+        <div class="game-window" style="height: auto; width: 500px; max-width: 95%;">
             <div class="close-modal" onclick="InventoryModal.close()">×</div>
             <div class="game-header">תיק גב: מלאי ביו-טכנולוגי</div>
             <p id="inventory-modal-title" style="text-align: center;">פריטי ביומימיקרי שנתפסו</p>
@@ -557,7 +601,6 @@
             },
 
             handleObjectClick(target) {
-                // Logic translated to Hebrew context
                 if (!State.isScannerOn && target.id !== 'spot-door') {
                     Journal.add("לא ניתן לנתח. הפעל את הסורק קודם לכן.", false);
                     return;
@@ -569,20 +612,19 @@
 
                 switch(ref) {
                     case 'cat':
-                        // Needle (Proboscis) - Cat/Map/Hat are now the new biomimetic riddles.
-                        Riddle.open("ניתוח חרמש: חדק היתוש", "אני מחט דקיקה שחודרת עור בלי לגרום לכאב מיידי. התכנון שלי הוא המינימום של חיכוך כדי להבטיח דגימה חלקה. מה אני?", "חדק", ITEMS.needle, ref);
+                        // Needle (Proboscis)
+                        Riddle.open("ניתוח חרמש: חדק היתוש", "אני מחט דקיקה שחודרת עור בלי לגרום לכאב מיידי. התכנון שלי הוא המינימום של חיכוך כדי להבטיח דגימה חלקה. איזו מילה מתארת את חלק הפה של היתוש שמשמש לשאיבה?", "חדק", ITEMS.needle, ref);
                         break;
                     case 'map':
                         // Thermal Sensor
-                        Riddle.open("נתוני ניווט קריטיים: חיישן חום", "אני מאפשר איתור דפקים וחתימות חום למרחקים, בהשראת יכולת האיתור של היתוש. אני בלתי נראה ללא סורק. מה אני?", "תרמי", ITEMS.sensor, ref);
+                        Riddle.open("נתוני ניווט קריטיים: חיישן חום", "אני מאפשר איתור דפקים וחתימות חום למרחקים, בהשראת יכולת האיתור של היתוש. אני בלתי נראה ללא סורק. באיזה סוג קרינה אני משתמש כדי לזהות חום גוף?", "תרמי", ITEMS.sensor, ref);
                         break;
                     case 'hat':
                         // Chem-Receptor (CO2 sensing)
-                        Riddle.open("קולטן כימי: פחמן דו-חמצני", "אני מריח את מה שאתה נושם, והוא מנחה אותי למטרה. אני הדבר הבסיסי ביותר בחיפוש חיים. מה אני?", "קולטן", ITEMS.chem, ref);
+                        Riddle.open("קולטן כימי: פחמן דו-חמצני", "אני מריח את מה שאתה נושם, והוא מנחה אותי למטרה. אני הדבר הבסיסי ביותר בחיפוש חיים. מהו המרכיב הכימי שאני מזהה, הנפלט בנשימה?", "קולטן", ITEMS.chem, ref);
                         break;
                     case 'window':
                         // Gyro-Halteres (stabilization)
-                        // Launch Frequency Minigame
                         Modal.open("ייצוב אווירודינמי: האיזנון החסר", "tuner-game");
                         Tuner.start(target);
                         break;
@@ -598,7 +640,7 @@
                         break;
                     case 'notes':
                         // Formula Notes
-                        Riddle.open("פענוח מחקר: סוד הרעלן", "המפתח לנוגדן הוא צבע **החיים** (המיוצג על ידי עולם הטבע) בתוספת צבע **הטכנולוגיה** (המיוצג על ידי העולם הדיגיטלי).", "נוסחה", ITEMS.formula, ref);
+                        Riddle.open("פענוח מחקר: סוד הרעלן", "המפתח לנוגדן הוא צבע **החיים** (המיוצג על ידי עולם הטבע) בתוספת צבע **הטכנולוגיה** (המיוצג על ידי העולם הדיגיטלי). מהי הנוסחה של ארקדיוס?", "נוסחה", ITEMS.formula, ref);
                         break;
                     case 'flask':
                         // Chemical Mixer
@@ -622,7 +664,7 @@
             updateObjective() {
                 const txt = document.getElementById('objective-text');
                 if (State.phase === 'TRAIN') {
-                    const count = 4 - (State.inventory.length - 1); // -1 for drone
+                    const count = 4 - (State.inventory.length - 1); 
                     if(count > 0) txt.innerText = `מצא ${count} רכיבים נוספים (ביומימיקרי של חרקים מעופפים) כדי לפרוץ את הדלת למעבדה.`;
                     else txt.innerText = "כל הרכיבים נאספו. פרץ את דלת המעבדה.";
                 } else {
@@ -634,13 +676,12 @@
                 State.phase = 'LAB';
                 document.getElementById('viewport').style.opacity = 0;
                 setTimeout(() => {
-                    // Hide train spots, show lab spots
                     document.querySelectorAll('.hotspot').forEach(e => e.classList.add('hidden'));
                     document.querySelectorAll('.lab-obj').forEach(e => e.classList.remove('hidden'));
                     
                     document.getElementById('bg-lab').style.opacity = 1;
                     document.getElementById('bg-day').style.opacity = 0;
-                    document.getElementById('bg-night').style.opacity = 0; // Lab is internal
+                    document.getElementById('bg-night').style.opacity = 0; 
                     document.getElementById('viewport').style.opacity = 1;
                     
                     Journal.add("שלב 1 הושלם! חדרת למעבדה הנסתרת של ארקדיוס. השעון מתקתק, מצא את הנוסחה לנוגדן!", true);
@@ -649,7 +690,7 @@
             }
         };
 
-        // --- INVENTORY MODAL SYSTEM (NEW) ---
+        // --- INVENTORY MODAL SYSTEM ---
         const InventoryModal = {
             open() {
                 document.getElementById('inventory-modal').classList.add('active');
@@ -664,13 +705,10 @@
         const Inventory = {
             render() {
                 const slots = document.querySelectorAll('#inv-grid .inv-slot');
-                // Clear
                 slots.forEach(s => { s.innerHTML = ''; s.classList.remove('filled'); });
                 
-                // Fill
                 State.inventory.forEach((itemId, idx) => {
                     if(idx < 8) {
-                        // Find item data by ID
                         const itemData = Object.values(ITEMS).find(item => item.id === itemId);
 
                         if(itemData) {
@@ -683,7 +721,6 @@
             add(itemObj) {
                 if(!State.inventory.includes(itemObj.id)) {
                     State.inventory.push(itemObj.id);
-                    // Render only when modal is open to save cycles, otherwise wait for InventoryModal.open
                     if (document.getElementById('inventory-modal').classList.contains('active')) {
                          this.render();
                     }
@@ -693,27 +730,24 @@
             }
         };
 
-        // --- JOURNAL SYSTEM (RTL text alignment) ---
+        // --- JOURNAL SYSTEM ---
         const Journal = {
             add(msg, isNew = false) {
                 const db = document.getElementById('databank');
                 const div = document.createElement('div');
                 div.className = 'log-entry' + (isNew ? ' new' : '');
                 div.innerText = `> ${msg}`;
-                // Prepend to show newest on top
                 db.prepend(div); 
             }
         };
 
-        // --- MODAL SYSTEM (General) ---
+        // --- MODAL SYSTEM ---
         const Modal = {
             open(title, contentId) {
                 document.getElementById('game-modal').classList.add('active');
                 document.getElementById('modal-title').innerText = title;
                 
-                // Hide all minigames
                 document.querySelectorAll('.minigame').forEach(el => el.classList.add('hidden'));
-                // Show requested
                 document.getElementById(contentId).classList.remove('hidden');
             },
             close() {
@@ -721,7 +755,7 @@
             }
         };
 
-        // --- RIDDLE LOGIC (Hebrew Answer Keys) ---
+        // --- RIDDLE LOGIC (STRICTER CHECK) ---
         const Riddle = {
             currentRef: null,
             currentReward: null,
@@ -741,21 +775,27 @@
             },
 
             check() {
-                const val = document.getElementById('riddle-input').value.toLowerCase().trim();
+                const rawVal = document.getElementById('riddle-input').value.toLowerCase().trim();
+                const normalizedVal = rawVal.replace(/\s/g, ''); // Remove all spaces
                 let success = false;
                 
-                // Hebrew keywords for robust check
-                if(this.answerKey === 'חדק' && (val.includes('יתוש') || val.includes('מחט') || val.includes('חדק'))) success = true;
-                if(this.answerKey === 'תרמי' && (val.includes('חום') || val.includes('תרמי') || val.includes('חיישן'))) success = true;
-                if(this.answerKey === 'קולטן' && (val.includes('פחמן') || val.includes('דו חמצני') || val.includes('קולטן'))) success = true;
-                if(this.answerKey === 'נוסחה' && (val.includes('חיים') || val.includes('טכנולוגיה') || val.includes('נוסחה'))) success = true; // Green + Blue
+                // Define strict keywords (in Hebrew)
+                const needleKeys = ['חדק', 'מחט', 'יתוש']; 
+                const sensorKeys = ['תרמי', 'חום']; 
+                const chemKeys = ['קולטן', 'פחמנדוחמצני', 'דו-חמצני', 'co2']; 
+                // Formula keys: "נוסחה" or "ירוקכחול" or the names of the colors/concepts
+                const formulaKeys = ['נוסחה', 'ירוקכחול', 'חיים', 'טכנולוגיה', 'ירוק', 'כחול']; 
+
+                if (this.answerKey === 'חדק' && needleKeys.some(key => normalizedVal.includes(key.replace(/\s/g, '')))) success = true;
+                if (this.answerKey === 'תרמי' && sensorKeys.some(key => normalizedVal.includes(key.replace(/\s/g, '')))) success = true;
+                if (this.answerKey === 'קולטן' && chemKeys.some(key => normalizedVal.includes(key.replace(/\s/g, '')))) success = true;
+                if (this.answerKey === 'נוסחה' && formulaKeys.some(key => normalizedVal.includes(key.replace(/\s/g, '')))) success = true;
 
                 if(success) {
                     State.solved.push(this.currentRef);
                     Inventory.add(this.currentReward);
                     Modal.close();
-                    // Hide the hotspot visually
-                    document.querySelector(`[data-ref="${this.currentRef}"]`).classList.add('hidden'); // Use hidden class for consistency
+                    document.querySelector(`[data-ref="${this.currentRef}"]`).classList.add('hidden'); 
                 } else {
                     document.getElementById('riddle-err').innerText = "תשובה שגויה. נסה שוב.";
                 }
@@ -772,22 +812,32 @@
                 const slider = document.getElementById('wave-slider');
                 const status = document.getElementById('tuner-status');
                 
-                // Fixed canvas size for minigame consistency
                 canvas.width = 300; canvas.height = 150; 
 
                 let val = 50;
+                let matchTimer = null;
+                const requiredHoldTime = 1500; // 1.5 seconds hold time
+
                 slider.oninput = (e) => val = e.target.value;
 
+                function checkMatch(currentVal) {
+                    // Sweet spot check (must be between 23 and 27)
+                    return currentVal > 23 && currentVal < 27;
+                }
+
                 function draw() {
-                    // Check if the modal is still open
-                    if(!document.getElementById('tuner-game').offsetParent) return; 
+                    if(!document.getElementById('tuner-game').offsetParent) {
+                         // Clear timer if modal is closed abruptly
+                         if (matchTimer !== null) clearTimeout(matchTimer);
+                         return; 
+                    } 
                     
                     ctx.fillStyle = '#000';
                     ctx.fillRect(0,0,300,150);
                     
                     // Target Wave (Fixed - represents the Halteres' natural frequency)
                     ctx.lineWidth = 2;
-                    ctx.strokeStyle = '#0f0'; // Green for the target resonance
+                    ctx.strokeStyle = '#0f0'; 
                     ctx.beginPath();
                     for(let x=0; x<300; x++) {
                         let y = 75 + Math.sin(x * 0.1) * 30; // Fixed frequency (0.1)
@@ -796,31 +846,47 @@
                     ctx.stroke();
 
                     // User Wave (Adjustable Frequency)
-                    ctx.strokeStyle = '#00e5ff'; // Cyan for user input
+                    ctx.strokeStyle = '#00e5ff'; 
                     ctx.beginPath();
-                    let freq = 0.05 + (val-50)*0.002; // Range of frequency based on slider, sweet spot is 25 (0.05 + (-25)*0.002 = 0.05-0.05=0.1)
+                    let freq = 0.05 + (val-50)*0.002; 
                     for(let x=0; x<300; x++) {
                         let y = 75 + Math.sin(x * freq) * 30;
                         if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
                     }
                     ctx.stroke();
 
-                    // Check Match (Sweet spot around a certain slider value)
-                    if(val > 23 && val < 27) { 
-                        status.innerText = "אות: ננעל (האיזנון כוייל!)";
-                        status.style.color = "#0f0";
-                        setTimeout(() => {
-                            Modal.close();
-                            if(!State.solved.includes('window')) {
-                                State.solved.push('window');
-                                Inventory.add(ITEMS.gyro);
-                                document.querySelector(`[data-ref="window"]`).classList.add('hidden');
-                            }
-                        }, 1000);
+                    const isMatched = checkMatch(val);
+
+                    if (isMatched) {
+                        status.innerText = "אות: ננעל (מחכה ליציבות...)";
+                        status.style.color = "#00ff9d"; // Success green
+
+                        if (matchTimer === null) {
+                            // Start timer only if it's not already running
+                            matchTimer = setTimeout(() => {
+                                // Solution found!
+                                status.innerText = "אות: ננעל (האיזנון כוייל!)";
+                                setTimeout(() => {
+                                    Modal.close();
+                                    if(!State.solved.includes('window')) {
+                                        State.solved.push('window');
+                                        Inventory.add(ITEMS.gyro);
+                                        document.querySelector(`[data-ref="window"]`).classList.add('hidden');
+                                    }
+                                }, 500); 
+                            }, requiredHoldTime);
+                        }
                     } else {
                         status.innerText = "אות: חלש";
-                        status.style.color = "#f00";
+                        status.style.color = "#f00"; // Red
+                        
+                        // Reset timer if moved away
+                        if (matchTimer !== null) {
+                            clearTimeout(matchTimer);
+                            matchTimer = null;
+                        }
                     }
+                    
                     requestAnimationFrame(draw);
                 }
                 draw();
@@ -829,7 +895,7 @@
 
         // --- MINIGAME 2: KEYPAD ---
         const Keypad = {
-            code: "3141", // Pi :)
+            code: "3141", // The door code
             current: "",
             press(num) {
                 this.current += num;
@@ -856,7 +922,6 @@
                 const beaker = document.getElementById('beaker-fill');
                 beaker.style.height = (this.mix.length * 33) + "%";
                 
-                // Color mixing logic
                 if(this.mix.length === 1) beaker.style.background = color;
                 else beaker.style.background = "linear-gradient(to top, " + this.mix.join(',') + ")";
 
@@ -897,7 +962,7 @@
 
                 function loop() {
                     ctx.clearRect(0,0,cvs.width,cvs.height);
-                    ctx.fillStyle = State.isNight ? "rgba(255, 200, 50, 0.5)" : "rgba(255, 255, 255, 0.3)"; // Fireflies vs Dust
+                    ctx.fillStyle = State.isNight ? "rgba(255, 200, 50, 0.5)" : "rgba(255, 255, 255, 0.3)"; 
                     
                     particles.forEach(p => {
                         p.x += p.vx; p.y += p.vy;
