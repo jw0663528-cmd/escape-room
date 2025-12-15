@@ -372,100 +372,7 @@
             position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 50%;
             box-shadow: 0 0 10px #fff; opacity: 0; transition: opacity 0.2s; cursor: pointer;
         }
-                /* --- MOBILE / RESPONSIVE FIXES (append to end of current <style>) --- */
         
-        /* allow scrolling on mobile */
-        html, body {
-          height: auto !important;
-          overflow: auto !important;
-          -webkit-overflow-scrolling: touch;
-        }
-        
-        /* make boot/terminal responsive */
-        #boot-layer .terminal-window,
-        .loading-bar-container {
-          width: 90% !important;
-          max-width: 720px;
-          box-sizing: border-box;
-        }
-        
-        /* responsive grid: stack sidebar under viewport on narrow screens */
-        @media (max-width: 900px) {
-          :root { --sidebar-width: 100%; --header-height: 64px; }
-        
-          #app-wrapper {
-            display: grid;
-            grid-template-columns: 1fr;
-            grid-template-rows: var(--header-height) 1fr auto;
-            width: 100vw; height: auto;
-          }
-        
-          #header-bar {
-            padding: 0 14px;
-            height: var(--header-height);
-            align-items: center;
-          }
-        
-          #viewport {
-            grid-row: 2;
-            min-height: calc(100vh - var(--header-height) - 300px);
-            border-left: none;
-            cursor: default;
-            touch-action: manipulation;
-          }
-        
-          #sidebar {
-            grid-row: 3;
-            width: 100%;
-            padding: 14px;
-            border-left: none;
-            border-top: 2px solid var(--border-dim);
-            box-shadow: none;
-            gap: 12px;
-            max-height: 50vh;
-            overflow-y: auto;
-          }
-        
-          .project-title { font-size: 18px; gap: 10px; }
-          .project-subtitle { display: none; }
-        
-          /* make modals full width on small screens */
-          .modal-box { width: calc(100% - 32px); max-width: 700px; padding: 18px; }
-        
-          /* inventory & crafting: fewer columns */
-          #inventory-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-          .inv-item { font-size: 20px; padding: 6px; }
-        
-          /* hotspots bigger touch targets */
-          .hotspot { width: 56px; height: 56px; }
-          .hs-label { font-size: 11px; }
-        
-          /* make game canvases smaller */
-          #wave-canvas { width: 100% !important; height: 140px !important; }
-          #sonar-container { width: 220px; height: 220px; }
-        
-          /* make panels more compact */
-          .panel-box { padding: 10px; }
-          .panel-title { font-size: 12px; }
-        
-          /* reduce heavy shadows / glows on mobile for perf */
-          body * { transition: none !important; box-shadow: none !important; text-shadow: none !important; }
-        
-          /* particle canvas stays but pointer-events none and won't cover taps */
-          #particle-canvas { pointer-events: none; }
-        }
-        
-        /* extra squeeze for very small phones */
-        @media (max-width: 420px) {
-          :root { --header-height: 56px; }
-          #header-bar { padding: 0 10px; }
-          .project-title { font-size: 16px; }
-          .hotspot { width: 50px; height: 50px; }
-          #inventory-grid { grid-template-columns: repeat(2, 1fr); }
-          #story-display { height: 120px; font-size: 14px; }
-          .terminal-window { height: auto; padding: 12px; font-size: 13px; }
-        }
-
         @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -1053,52 +960,41 @@
          * 5. מנוע גרפי ואפקטים (FX)
          * ==========================================================================
          */
-            const Fx = {
-                           initParticles() {
-            const cvs = document.getElementById('particle-canvas');
-            if (!cvs) return;
-        
-            const ctx = cvs.getContext('2d');
-        
-            const resize = () => {
-                cvs.width = window.innerWidth;
-                cvs.height = window.innerHeight;
-            };
-        
-            window.addEventListener('resize', resize);
-            resize();
-        
-            const particles = Array.from({ length: 30 }, () => ({
-                x: Math.random() * cvs.width,
-                y: Math.random() * cvs.height,
-                size: Math.random() * 2,
-                speedY: Math.random() * 0.4 - 0.2
-            }));
-        
-            const loop = () => {
-                if (!cvs) return;
-        
-                ctx.clearRect(0, 0, cvs.width, cvs.height);
-                ctx.fillStyle = "rgba(200, 255, 200, 0.25)";
-        
-                particles.forEach(p => {
-                    p.y -= p.speedY;
-                    p.x += (Math.random() - 0.5) * 0.4;
-        
-                    if (p.y < 0) p.y = cvs.height;
-                    if (p.y > cvs.height) p.y = 0;
-        
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-        
-                requestAnimationFrame(loop);
-            };
-        
-            loop();
-        }
+        const Fx = {
+            initParticles() {
+                const cvs = document.getElementById('particle-canvas');
+                const ctx = cvs.getContext('2d');
+                
+                const resize = () => { cvs.width = window.innerWidth; cvs.height = window.innerHeight; };
+                window.addEventListener('resize', resize);
+                resize();
 
+                const particles = Array.from({length: 50}, () => ({
+                    x: Math.random() * cvs.width,
+                    y: Math.random() * cvs.height,
+                    size: Math.random() * 2,
+                    speedY: Math.random() * 0.5 - 0.2
+                }));
+
+                const loop = () => {
+                    ctx.clearRect(0,0,cvs.width,cvs.height);
+                    ctx.fillStyle = "rgba(200, 255, 200, 0.3)"; // גז ירקרק
+                    
+                    particles.forEach(p => {
+                        p.y -= p.speedY; 
+                        p.x += (Math.random()-0.5)*0.5;
+                        if(p.y < 0) p.y = cvs.height;
+                        if(p.y > cvs.height) p.y = 0;
+                        
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                        ctx.fill();
+                    });
+                    requestAnimationFrame(loop);
+                };
+                loop();
+            }
+        };
 
         /**
          * ==========================================================================
