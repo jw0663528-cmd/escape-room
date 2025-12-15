@@ -1053,49 +1053,49 @@
          * 5. מנוע גרפי ואפקטים (FX)
          * ==========================================================================
          */
-        const Fx = {
-                    initParticles() {
+            const Fx = {
+                           initParticles() {
             const cvs = document.getElementById('particle-canvas');
+            if (!cvs) return;
+        
             const ctx = cvs.getContext('2d');
         
-            // handle HiDPI screens
             const resize = () => {
-                const dpr = window.devicePixelRatio || 1;
-                cvs.style.width = window.innerWidth + 'px';
-                cvs.style.height = window.innerHeight + 'px';
-                cvs.width = Math.floor(window.innerWidth * dpr);
-                cvs.height = Math.floor(window.innerHeight * dpr);
-                ctx.scale(dpr, dpr);
+                cvs.width = window.innerWidth;
+                cvs.height = window.innerHeight;
             };
+        
             window.addEventListener('resize', resize);
             resize();
         
-            // reduce particle count on small screens for performance
-            const width = window.innerWidth;
-            const count = width < 420 ? 18 : (width < 900 ? 32 : 50);
-        
-            const particles = Array.from({length: count}, () => ({
-                x: Math.random() * window.innerWidth,
-                y: Math.random() * window.innerHeight,
-                size: Math.random() * (width < 420 ? 1.2 : 2),
-                speedY: Math.random() * 0.5 - 0.2
+            const particles = Array.from({ length: 30 }, () => ({
+                x: Math.random() * cvs.width,
+                y: Math.random() * cvs.height,
+                size: Math.random() * 2,
+                speedY: Math.random() * 0.4 - 0.2
             }));
         
             const loop = () => {
-                ctx.clearRect(0,0,cvs.width,cvs.height);
-                ctx.fillStyle = "rgba(200, 255, 200, 0.22)";
+                if (!cvs) return;
+        
+                ctx.clearRect(0, 0, cvs.width, cvs.height);
+                ctx.fillStyle = "rgba(200, 255, 200, 0.25)";
         
                 particles.forEach(p => {
                     p.y -= p.speedY;
-                    p.x += (Math.random()-0.5)*0.5;
-                    if(p.y < 0) p.y = window.innerHeight;
-                    if(p.y > window.innerHeight) p.y = 0;
+                    p.x += (Math.random() - 0.5) * 0.4;
+        
+                    if (p.y < 0) p.y = cvs.height;
+                    if (p.y > cvs.height) p.y = 0;
+        
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                     ctx.fill();
                 });
+        
                 requestAnimationFrame(loop);
             };
+        
             loop();
         }
 
