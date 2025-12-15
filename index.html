@@ -2,58 +2,46 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פרוטוקול העוקץ | סימולציית ביומימיקרי מתקדמת</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>פרוטוקול העוקץ | גרסת מובייל מלאה</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@100;300;400;700;900&family=Rubik:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
         /* * ==========================================================================
-         * 1. הגדרות ליבה ומשתנים (CORE VARIABLES)
+         * 1. הגדרות ליבה (CORE VARIABLES)
          * ==========================================================================
          */
         :root {
-            /* פלטת צבעים - Amber/Gold Engineering Theme */
+            /* פלטת צבעים */
             --bg-deep: #050505;
             --bg-panel: #0f1012;
-            --bg-panel-trans: rgba(15, 16, 18, 0.95);
             
             --border-dim: #2a2a2a;
             --border-active: #ffb700;
 
             /* טקסט */
             --text-main: #d0d0d0;
-            --text-muted: #6e6e6e;
-            --text-highlight: #ffb700; /* הזהב של המהנדס */
-            --text-alert: #ff3333;
-
+            --text-highlight: #ffb700; /* זהב הנדסי */
+            
             /* סטטוסים */
             --status-ok: #00ff9d;   
             --status-warn: #ffae00; 
             --status-crit: #ff2a2a; 
             --status-tech: #00d9ff; 
 
-            /* מידות */
+            /* מידות דסקטופ */
             --sidebar-width: 400px;
             --header-height: 80px;
-            
-            /* אפקטים */
-            --glow-gold: 0 0 15px rgba(255, 183, 0, 0.3);
-            --scanline: rgba(0,0,0,0.5);
         }
 
         * {
             box-sizing: border-box;
             user-select: none;
             outline: none;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border-active) var(--bg-deep);
+            /* מניעת הדגשה בלחיצה במובייל */
+            -webkit-tap-highlight-color: transparent;
         }
-
-        /* גלילה מותאמת אישית */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb { background: var(--border-active); border-radius: 3px; }
 
         body, html {
             margin: 0; padding: 0;
@@ -62,6 +50,8 @@
             color: var(--text-main);
             font-family: 'Heebo', sans-serif;
             overflow: hidden;
+            /* מניעת גלילת גומי באייפון */
+            overscroll-behavior: none;
         }
 
         /* * ==========================================================================
@@ -73,10 +63,11 @@
             background: #000; z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             font-family: 'Share Tech Mono', monospace; direction: ltr;
+            padding: 20px;
         }
 
         .terminal-window {
-            width: 700px; height: 400px;
+            width: 100%; max-width: 700px; height: 400px;
             border: 1px solid #333;
             padding: 20px;
             background: #020202;
@@ -85,29 +76,19 @@
             overflow: hidden;
         }
 
-        .terminal-text {
-            color: var(--text-highlight);
-            font-size: 14px; line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
+        .terminal-text { color: var(--text-highlight); font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
         .scanline {
             position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: rgba(255,255,255,0.1);
-            animation: scan 3s linear infinite;
-            pointer-events: none;
+            background: rgba(255,255,255,0.1); animation: scan 3s linear infinite; pointer-events: none;
         }
-
         .loading-bar-container {
-            width: 700px; height: 4px; background: #222;
+            width: 100%; max-width: 700px; height: 4px; background: #222;
             margin-top: 10px; position: relative;
         }
         .loading-bar {
             height: 100%; width: 0%; background: var(--text-highlight);
-            box-shadow: 0 0 10px var(--text-highlight);
-            transition: width 0.1s;
+            box-shadow: 0 0 10px var(--text-highlight); transition: width 0.1s;
         }
-
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
 
         /* * ==========================================================================
@@ -116,41 +97,40 @@
          */
         #app-wrapper {
             display: grid;
+            /* דסקטופ כברירת מחדל */
             grid-template-columns: 1fr var(--sidebar-width);
             grid-template-rows: var(--header-height) 1fr;
             width: 100vw; height: 100vh;
+            /* שימוש ב-dvh למובייל */
+            height: 100dvh; 
             opacity: 0; transition: opacity 2s ease;
         }
 
-        /* --- כותרת עליונה --- */
+        /* --- כותרת --- */
         #header-bar {
             grid-column: 1 / -1;
             background: var(--bg-panel);
             border-bottom: 2px solid var(--border-dim);
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            padding: 0 30px;
             z-index: 100;
         }
 
         .project-title {
-            font-family: 'Rubik', sans-serif; font-size: 28px; font-weight: 900;
-            letter-spacing: 2px; text-transform: uppercase;
-            color: var(--text-highlight);
-            text-shadow: 0 0 15px rgba(255, 183, 0, 0.4);
-            display: flex; align-items: center; gap: 15px;
+            font-family: 'Rubik', sans-serif; font-size: 24px; font-weight: 900;
+            letter-spacing: 1px; text-transform: uppercase; color: var(--text-highlight);
+            text-shadow: 0 0 10px rgba(255, 183, 0, 0.4);
+            display: flex; align-items: center; gap: 10px;
         }
-        .project-subtitle { font-size: 12px; color: #666; font-weight: 400; letter-spacing: 1px; margin-top: 5px;}
-
-        .sys-indicators { display: flex; gap: 30px; font-family: 'Share Tech Mono'; font-size: 14px; }
-        .indicator { display: flex; align-items: center; gap: 10px; color: #888; }
-        .indicator.active { color: var(--text-highlight); text-shadow: 0 0 5px var(--text-highlight); }
-        .led { width: 8px; height: 8px; background: #333; border-radius: 50%; }
+        
+        .sys-indicators { display: flex; gap: 20px; font-family: 'Share Tech Mono'; font-size: 12px; }
+        .indicator { display: flex; align-items: center; gap: 8px; color: #888; white-space: nowrap;}
+        .indicator.active { color: var(--text-highlight); }
+        .led { width: 6px; height: 6px; background: #333; border-radius: 50%; }
         .active .led { background: var(--text-highlight); box-shadow: 0 0 8px var(--text-highlight); }
         .active.danger .led { background: var(--status-crit); box-shadow: 0 0 8px var(--status-crit); }
-        .active.danger { color: var(--status-crit); animation: blink-text 1s infinite; }
-
-        @keyframes blink-text { 50% { opacity: 0.5; } }
+        .active.danger { color: var(--status-crit); animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; } }
 
         /* --- אזור תצוגה (VIEWPORT) --- */
         #viewport {
@@ -158,57 +138,38 @@
             background: #000;
             overflow: hidden;
             border-left: 1px solid var(--border-dim);
-            cursor: crosshair;
+            /* מובייל: אפשר גלילה פנימית אם צריך, אבל עדיף שלא */
+            touch-action: none; 
         }
 
         /* שכבות רקע */
         .layer {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background-size: cover; background-position: center;
-            transition: opacity 1.5s, transform 5s ease;
-            z-index: 1; opacity: 0;
+            transition: opacity 1.5s; z-index: 1; opacity: 0;
         }
-        
         #layer-train { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); }
-        #layer-hallway { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); filter: brightness(0.4) sepia(1) hue-rotate(180deg); } /* מסדרון חשוך */
+        #layer-hallway { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); filter: brightness(0.4) sepia(1) hue-rotate(180deg); }
         #layer-engine { background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png'); filter: brightness(0.2) contrast(1.2); }
 
-        /* קנבס חלקיקים ואפקטים */
-        #particle-canvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 5; pointer-events: none; mix-blend-mode: screen;
-        }
+        #particle-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; mix-blend-mode: screen; }
 
-        /* שכבות אפקט (גז/תרמי/חושך) */
-        #overlay-gas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at center, transparent 30%, rgba(0, 255, 100, 0.15));
-            z-index: 6; pointer-events: none; opacity: 0; transition: opacity 2s;
-        }
-        #overlay-thermal {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(180deg, rgba(0,50,0,0.2) 50%, rgba(0,50,0,0.2) 50%), repeating-linear-gradient(0deg, transparent, transparent 2px, #00ff00 3px);
-            background-size: 100% 4px;
-            filter: contrast(2) brightness(1.5) grayscale(1) invert(1); 
-            mix-blend-mode: hard-light;
-            z-index: 7; pointer-events: none; opacity: 0; display: none;
-        }
-        #overlay-darkness {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, transparent 100px, #000 300px);
-            z-index: 8; pointer-events: none; opacity: 0; transition: opacity 2s;
-        }
+        /* אפקטים */
+        #overlay-gas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at center, transparent 30%, rgba(0, 255, 100, 0.15)); z-index: 6; pointer-events: none; opacity: 0; transition: opacity 2s; }
+        #overlay-thermal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(180deg, rgba(0,50,0,0.2) 50%, rgba(0,50,0,0.2) 50%), repeating-linear-gradient(0deg, transparent, transparent 2px, #00ff00 3px); background-size: 100% 4px; filter: contrast(2) brightness(1.5) grayscale(1) invert(1); mix-blend-mode: hard-light; z-index: 7; pointer-events: none; opacity: 0; display: none; }
+        #overlay-darkness { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, transparent 100px, #000 300px); z-index: 8; pointer-events: none; opacity: 0; transition: opacity 2s; }
 
-        /* --- הוטספוטים (עיצוב משופר) --- */
+        /* --- הוטספוטים --- */
         #hotspots-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; }
 
         .hotspot {
             position: absolute; width: 60px; height: 60px;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; opacity: 0.8; transition: all 0.3s;
+            /* מותאם למגע */
+            tap-highlight-color: transparent;
         }
 
-        /* עיצוב "כוונת" הנדסית */
         .reticle {
             position: absolute; width: 100%; height: 100%;
             border: 1px solid rgba(255, 183, 0, 0.3);
@@ -217,38 +178,31 @@
         }
         .reticle::before, .reticle::after {
             content: ''; position: absolute; width: 10px; height: 10px;
-            border-color: var(--text-highlight); border-style: solid;
-            transition: all 0.3s;
+            border-color: var(--text-highlight); border-style: solid; transition: all 0.3s;
         }
         .reticle::before { top: 0; left: 0; border-width: 2px 0 0 2px; }
         .reticle::after { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
 
-        .hotspot:hover .reticle { border-color: var(--text-highlight); box-shadow: 0 0 20px var(--text-highlight); transform: scale(1.1); }
-        .hotspot:hover .reticle::before { top: -5px; left: -5px; }
-        .hotspot:hover .reticle::after { bottom: -5px; right: -5px; }
+        .hotspot:active .reticle, .hotspot:hover .reticle { border-color: #fff; transform: scale(1.1); }
 
         .hs-label {
-            position: absolute; bottom: -25px; 
-            font-family: 'Share Tech Mono'; font-size: 12px; color: var(--text-highlight);
-            background: rgba(0,0,0,0.8); padding: 2px 6px; border: 1px solid var(--text-highlight);
+            position: absolute; bottom: -30px; 
+            font-family: 'Share Tech Mono'; font-size: 14px; color: var(--text-highlight);
+            background: rgba(0,0,0,0.9); padding: 4px 8px; border: 1px solid var(--text-highlight);
             opacity: 0; transition: 0.3s; white-space: nowrap; pointer-events: none;
+            z-index: 100;
         }
-        .hotspot:hover .hs-label { opacity: 1; bottom: -30px; }
+        .hotspot:active .hs-label, .hotspot:hover .hs-label { opacity: 1; }
 
-        /* מיקומים (לפי הסיפור) */
-        /* שלב 1 - רכבת */
-        #hs-suitcase { top: 70%; left: 75%; } /* מזוודה עם רכיבים */
-        #hs-seat { top: 60%; left: 20%; } /* רכיב מוסתר */
-        #hs-vent { top: 10%; left: 50%; width: 120px; height: 80px; } /* פתח אוורור */
-        
-        /* שלב 2 - מסדרון */
-        #hs-debris { top: 80%; left: 30%; } /* חלקי רחפן */
-        #hs-panel { top: 50%; left: 10%; } /* חיישן */
-        #hs-door-lock { top: 40%; left: 50%; width: 80px; height: 120px; } /* דלת הקטר */
-
-        /* שלב 3 - חדר חשוך */
-        #hs-cabinet { top: 60%; left: 15%; } /* מיקרופון */
-        #hs-arcadius { top: 40%; left: 60%; width: 100px; height: 200px; opacity: 0; } /* המדען (בלתי נראה בהתחלה) */
+        /* מיקומים */
+        #hs-suitcase { top: 70%; left: 75%; }
+        #hs-seat { top: 60%; left: 20%; }
+        #hs-vent { top: 10%; left: 50%; width: 120px; height: 80px; }
+        #hs-debris { top: 80%; left: 30%; }
+        #hs-panel { top: 50%; left: 10%; }
+        #hs-door-lock { top: 40%; left: 50%; width: 80px; height: 120px; }
+        #hs-cabinet { top: 60%; left: 15%; }
+        #hs-arcadius { top: 40%; left: 60%; width: 100px; height: 200px; opacity: 0; }
 
         @keyframes breathe { 0% { opacity: 0.5; transform: scale(1); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(1); } }
 
@@ -257,45 +211,35 @@
             background: var(--bg-panel);
             border-left: 2px solid var(--border-dim);
             display: flex; flex-direction: column;
-            padding: 25px; box-shadow: -10px 0 40px rgba(0,0,0,0.8);
-            z-index: 50; gap: 25px;
+            padding: 20px; box-shadow: -10px 0 40px rgba(0,0,0,0.8);
+            z-index: 50; gap: 15px;
+            overflow-y: auto; /* גלילה פנימית אם צריך */
         }
 
         .panel-box {
-            background: rgba(255,255,255,0.02);
+            background: rgba(255,255,255,0.03);
             border: 1px solid var(--border-dim);
-            padding: 15px; border-radius: 4px;
+            padding: 12px; border-radius: 4px;
             position: relative;
         }
-        .panel-box::before {
-            content: ''; position: absolute; top: -1px; left: -1px; width: 20px; height: 20px;
-            border-top: 2px solid var(--text-highlight); border-left: 2px solid var(--text-highlight);
-        }
-
         .panel-title {
-            font-family: 'Rubik'; font-weight: 700; font-size: 14px;
-            color: var(--text-highlight); text-transform: uppercase; letter-spacing: 1px;
-            margin-bottom: 15px; display: block; border-bottom: 1px solid #333; padding-bottom: 5px;
+            font-family: 'Rubik'; font-weight: 700; font-size: 13px;
+            color: var(--text-highlight); text-transform: uppercase;
+            margin-bottom: 10px; display: block; border-bottom: 1px solid #333; padding-bottom: 5px;
         }
 
-        /* אזור עלילה */
         #story-display {
-            font-size: 15px; line-height: 1.6; color: #ddd;
-            height: 150px; overflow-y: auto; padding-right: 5px;
+            font-size: 14px; line-height: 1.5; color: #ddd;
+            height: 120px; overflow-y: auto; padding-right: 5px;
         }
-        .story-update { margin-bottom: 10px; animation: fadeIn 0.5s; }
+        .story-update { margin-bottom: 8px; border-bottom: 1px dashed #333; padding-bottom: 8px; }
         .highlight { color: var(--text-highlight); font-weight: bold; }
 
-        /* אזור יצירה (Crafting) */
-        #crafting-area {
-            display: flex; flex-direction: column; gap: 10px;
-        }
-        #craft-slots {
-            display: flex; justify-content: space-between; gap: 5px;
-            margin-bottom: 10px;
-        }
+        /* שולחן עבודה */
+        #crafting-area { display: flex; flex-direction: column; gap: 10px; }
+        #craft-slots { display: flex; justify-content: space-between; gap: 5px; }
         .craft-slot {
-            width: 60px; height: 60px; border: 1px dashed #555; background: #000;
+            width: 100%; aspect-ratio: 1; border: 1px dashed #555; background: #000;
             display: flex; justify-content: center; align-items: center; font-size: 24px;
             color: #333; transition: 0.3s;
         }
@@ -310,29 +254,18 @@
             background: var(--text-highlight); color: #000; cursor: pointer;
             box-shadow: 0 0 15px rgba(255,183,0,0.4); border: none;
         }
-        #btn-craft.ready:hover { background: #fff; transform: translateY(-2px); }
 
         /* תיק ציוד */
-        #inventory-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-        }
+        #inventory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .inv-item {
             aspect-ratio: 1; background: #080808; border: 1px solid #333;
             display: flex; justify-content: center; align-items: center;
-            font-size: 24px; cursor: pointer; transition: 0.2s; position: relative;
+            font-size: 20px; cursor: pointer; transition: 0.2s; position: relative;
         }
-        .inv-item:hover { border-color: var(--text-highlight); background: #111; }
         .inv-item.selected { border-color: var(--status-ok); box-shadow: 0 0 10px var(--status-ok); }
-        .inv-tooltip {
-            position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-            background: #000; border: 1px solid var(--text-highlight); color: var(--text-highlight);
-            font-size: 10px; padding: 4px; white-space: nowrap; pointer-events: none;
-            opacity: 0; z-index: 100; transition: 0.2s;
-        }
-        .inv-item:hover .inv-tooltip { opacity: 1; bottom: 110%; }
 
         /* * ==========================================================================
-         * 4. מודאלים ומיני-משחקים (MODALS)
+         * 4. מודאלים (MODALS)
          * ==========================================================================
          */
         .modal-overlay {
@@ -341,40 +274,93 @@
             display: flex; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: 0.3s;
             backdrop-filter: blur(5px);
+            padding: 20px; /* מרווח בטוח למובייל */
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
         .modal-box {
             background: #0a0a0a; border: 2px solid var(--text-highlight);
-            box-shadow: 0 0 50px rgba(255, 183, 0, 0.2);
-            padding: 30px; width: 700px; max-width: 90%;
+            box-shadow: 0 0 30px rgba(255, 183, 0, 0.2);
+            padding: 20px; width: 600px; max-width: 100%; max-height: 90vh;
             position: relative; text-align: center;
+            overflow-y: auto;
         }
         
-        .modal-header { font-family: 'Rubik'; font-size: 24px; color: var(--text-highlight); margin-bottom: 20px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .modal-close { position: absolute; top: 15px; left: 20px; font-size: 24px; color: #666; cursor: pointer; }
-        .modal-close:hover { color: #fff; }
+        .modal-header { font-family: 'Rubik'; font-size: 20px; color: var(--text-highlight); margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-close { position: absolute; top: 10px; left: 15px; font-size: 24px; color: #666; cursor: pointer; padding: 10px; }
 
-        /* --- מיני-משחק: מקדח רטט (Canvas Wave) --- */
+        /* מיני-משחקים */
         #game-wave-container { width: 100%; display: flex; flex-direction: column; align-items: center; }
-        #wave-canvas { width: 100%; height: 200px; background: #000; border: 1px solid #333; margin-bottom: 15px; }
-        .slider-control { width: 80%; cursor: pointer; }
-        #wave-status { font-family: 'Share Tech Mono'; font-size: 18px; margin-top: 10px; color: var(--status-crit); }
-
-        /* --- מיני-משחק: סונאר (Radar) --- */
-        #sonar-container { position: relative; width: 300px; height: 300px; border-radius: 50%; border: 2px solid var(--status-ok); background: radial-gradient(circle, #002200 0%, #000 100%); margin: 0 auto; overflow: hidden; }
+        #wave-canvas { width: 100%; height: 150px; background: #000; border: 1px solid #333; margin-bottom: 15px; touch-action: none; }
+        .slider-control { width: 100%; height: 30px; cursor: pointer; }
+        
+        #sonar-container { position: relative; width: 250px; height: 250px; border-radius: 50%; border: 2px solid var(--status-ok); background: radial-gradient(circle, #002200 0%, #000 100%); margin: 0 auto; overflow: hidden; touch-action: none; }
         #sonar-sweep {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: conic-gradient(from 0deg, transparent 0deg, rgba(0,255,157,0.5) 20deg, transparent 20deg);
             border-radius: 50%; animation: sweep 3s linear infinite;
         }
         #sonar-dot {
-            position: absolute; width: 10px; height: 10px; background: #fff; border-radius: 50%;
-            box-shadow: 0 0 10px #fff; opacity: 0; transition: opacity 0.2s; cursor: pointer;
+            position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%;
+            box-shadow: 0 0 15px #fff; opacity: 0; transition: opacity 0.2s; cursor: pointer;
+            z-index: 10;
         }
         
         @keyframes sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* * ==========================================================================
+         * 5. RESPONSIVE / MOBILE STYLES (התאמה לטלפון)
+         * ==========================================================================
+         */
+        @media (max-width: 900px) {
+            #app-wrapper {
+                /* שינוי פריסה לאנכי */
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px 50vh 1fr; /* כותרת, משחק, סרגל */
+            }
+
+            /* כותרת קומפקטית */
+            #header-bar { padding: 0 15px; }
+            .project-title { font-size: 18px; }
+            .project-subtitle { display: none; } /* הסתרת כיתוב משני */
+            .sys-indicators { gap: 10px; font-size: 10px; }
+
+            /* אזור משחק */
+            #viewport {
+                border-left: none;
+                border-bottom: 1px solid var(--border-active);
+            }
+
+            /* סרגל צד למטה */
+            #sidebar {
+                border-left: none;
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+                padding: 10px;
+                gap: 10px;
+            }
+
+            /* הקטנת גופנים וריווחים בסרגל */
+            .panel-box { padding: 8px; margin-bottom: 5px; }
+            #story-display { height: 80px; font-size: 13px; }
+            .craft-slot { font-size: 18px; width: 50px; height: 50px; }
+            
+            /* התאמת תיק הציוד לגלילה אופקית אם צריך */
+            #inventory-grid {
+                grid-template-columns: repeat(6, 1fr); /* יותר פריטים בשורה */
+            }
+            .inv-item { font-size: 18px; }
+
+            /* הגדלת נקודות מגע */
+            .hotspot { width: 70px; height: 70px; }
+            .hs-label { font-size: 12px; bottom: -25px; background: rgba(0,0,0,0.9); }
+
+            /* מודאלים מותאמים */
+            .modal-box { width: 95%; padding: 15px; }
+            .modal-header { font-size: 18px; }
+            
+            /* התאמת מיני-משחקים */
+            #sonar-container { width: 200px; height: 200px; }
+        }
 
     </style>
 </head>
@@ -394,14 +380,14 @@
         
         <header id="header-bar">
             <div class="project-title">
-                <span style="font-size:32px;">⚠️</span> פרוטוקול העוקץ
-                <div class="project-subtitle">ממשק הישרדות ביומימטי // גרסה 1.0</div>
+                <span>⚠️</span> פרוטוקול העוקץ
+                <div class="project-subtitle">ממשק הישרדות ביומימטי</div>
             </div>
             
             <div class="sys-indicators">
-                <div id="ind-gas" class="indicator active danger"><div class="led"></div> זיהוי רעלנים</div>
-                <div id="ind-temp" class="indicator"><div class="led"></div> טמפרטורה</div>
-                <div id="ind-audio" class="indicator"><div class="led"></div> שמע כיווני</div>
+                <div id="ind-gas" class="indicator active danger"><div class="led"></div> גז רעיל</div>
+                <div id="ind-vision" class="indicator"><div class="led"></div> ראייה תרמית</div>
+                <div id="ind-audio" class="indicator"><div class="led"></div> שמע</div>
             </div>
         </header>
 
@@ -417,55 +403,55 @@
             <div id="layer-train" class="layer"></div>
 
             <div id="hotspots-layer">
-                <div id="hs-suitcase" class="hotspot" data-ref="suitcase" title="מזוודת רכיבים">
-                    <div class="reticle"></div><div class="hs-label">מזוודת רכיבים</div>
+                <div id="hs-suitcase" class="hotspot" data-ref="suitcase">
+                    <div class="reticle"></div><div class="hs-label">מזוודה</div>
                 </div>
-                <div id="hs-seat" class="hotspot" data-ref="seat" title="מתחת למושב">
-                    <div class="reticle"></div><div class="hs-label">אובייקט חשוד</div>
+                <div id="hs-seat" class="hotspot" data-ref="seat">
+                    <div class="reticle"></div><div class="hs-label">מושב</div>
                 </div>
-                <div id="hs-vent" class="hotspot" data-ref="vent" title="דיזה משוריינת">
-                    <div class="reticle"></div><div class="hs-label">מקור דליפה</div>
-                </div>
-
-                <div id="hs-debris" class="hotspot hidden" data-ref="debris" title="ערימת גרוטאות">
-                    <div class="reticle"></div><div class="hs-label">שאריות אלקטרוניקה</div>
-                </div>
-                <div id="hs-panel" class="hotspot hidden" data-ref="panel" title="פאנל בקרה שבור">
-                    <div class="reticle"></div><div class="hs-label">חיישנים</div>
-                </div>
-                <div id="hs-door-lock" class="hotspot hidden" data-ref="door" title="דלת קרון מנוע">
-                    <div class="reticle"></div><div class="hs-label">מעבר לקטר</div>
+                <div id="hs-vent" class="hotspot" data-ref="vent">
+                    <div class="reticle"></div><div class="hs-label">דיזה</div>
                 </div>
 
-                <div id="hs-cabinet" class="hotspot hidden" data-ref="cabinet" title="ארון ציוד">
-                    <div class="reticle"></div><div class="hs-label">ציוד שמע</div>
+                <div id="hs-debris" class="hotspot" data-ref="debris" style="display:none;">
+                    <div class="reticle"></div><div class="hs-label">גרוטאות</div>
                 </div>
-                <div id="hs-arcadius" class="hotspot hidden" data-ref="arcadius">
+                <div id="hs-panel" class="hotspot" data-ref="panel" style="display:none;">
+                    <div class="reticle"></div><div class="hs-label">פאנל</div>
+                </div>
+                <div id="hs-door-lock" class="hotspot" data-ref="door" style="display:none;">
+                    <div class="reticle"></div><div class="hs-label">דלת</div>
+                </div>
+
+                <div id="hs-cabinet" class="hotspot" data-ref="cabinet" style="display:none;">
+                    <div class="reticle"></div><div class="hs-label">ארון</div>
+                </div>
+                <div id="hs-arcadius" class="hotspot" data-ref="arcadius" style="display:none;">
                     </div>
             </div>
         </main>
 
         <aside id="sidebar">
             <div class="panel-box" style="flex-grow: 1; display:flex; flex-direction:column;">
-                <span class="panel-title">יומן אירועים</span>
+                <span class="panel-title">יומן מבצעי</span>
                 <div id="story-display">
                     </div>
             </div>
 
             <div class="panel-box">
-                <span class="panel-title">שולחן עבודה (שילוב רכיבים)</span>
+                <span class="panel-title">אינטגרציה (בחר 3)</span>
                 <div id="crafting-area">
                     <div id="craft-slots">
-                        <div class="craft-slot" id="craft-1">1</div>
-                        <div class="craft-slot" id="craft-2">2</div>
-                        <div class="craft-slot" id="craft-3">3</div>
+                        <div class="craft-slot" id="craft-1"></div>
+                        <div class="craft-slot" id="craft-2"></div>
+                        <div class="craft-slot" id="craft-3"></div>
                     </div>
-                    <button id="btn-craft" onclick="Crafting.execute()">בצע אינטגרציה</button>
+                    <button id="btn-craft" onclick="Crafting.execute()">התחל בנייה</button>
                 </div>
             </div>
 
             <div class="panel-box">
-                <span class="panel-title">תיק רכיבים</span>
+                <span class="panel-title">ציוד זמין</span>
                 <div id="inventory-grid">
                     </div>
             </div>
@@ -485,7 +471,7 @@
         <div class="modal-box" style="width: 400px; border-color: #fff;">
             <div class="modal-header" id="msg-title" style="color:#fff;">הודעה</div>
             <p id="msg-text" style="color:#ccc; font-size:16px; margin-bottom:20px;"></p>
-            <button onclick="Modal.closeMsg()" style="background:#333; color:#fff; border:1px solid #666; padding:10px 30px; cursor:pointer;">אישור</button>
+            <button onclick="Modal.closeMsg()" style="width:100%; background:#333; color:#fff; border:1px solid #666; padding:15px; cursor:pointer;">אישור</button>
         </div>
     </div>
 
@@ -497,29 +483,28 @@
          */
         const Items = {
             // שלב 1
-            MOTOR: { id: 'motor', icon: '⚙️', name: 'מנוע רטט זעיר' },
-            NEEDLE: { id: 'needle', icon: '📍', name: 'מחט מיקרונית' },
-            BATTERY: { id: 'battery', icon: '🔋', name: 'סוללת ליתיום' },
-            DRILL: { id: 'drill', icon: '🦟', name: 'מקדח רטט ביומימטי', isTool: true },
+            MOTOR: { id: 'motor', icon: '⚙️', name: 'מנוע רטט' },
+            NEEDLE: { id: 'needle', icon: '📍', name: 'מחט' },
+            BATTERY: { id: 'battery', icon: '🔋', name: 'סוללה' },
+            DRILL: { id: 'drill', icon: '🦟', name: 'מקדח ביומימטי', isTool: true },
             
             // שלב 2
-            LENS: { id: 'lens', icon: '👓', name: 'עדשות מפוקסלות' },
-            SENSOR: { id: 'sensor', icon: '🌡️', name: 'חיישן תרמי' },
-            DRONE_PARTS: { id: 'drone_parts', icon: '🚁', name: 'חלקי רחפן' },
+            LENS: { id: 'lens', icon: '👓', name: 'עדשות' },
+            SENSOR: { id: 'sensor', icon: '🌡️', name: 'חיישן' },
+            DRONE_PARTS: { id: 'drone_parts', icon: '🚁', name: 'חלקים' },
             GLASSES: { id: 'glasses', icon: '🕶️', name: 'משקפיים תרמיים', isTool: true },
 
             // שלב 3
-            MIC: { id: 'mic', icon: '🎙️', name: 'מיקרופון נוצה' },
+            MIC: { id: 'mic', icon: '🎙️', name: 'מיקרופון' },
             HEADSET: { id: 'headset', icon: '🎧', name: 'אוזנייה' }, // ניתן למצוא או להתחיל איתו
-            SONAR: { id: 'sonar', icon: '📡', name: 'סורק שמע כיווני', isTool: true },
-            
-            ANTIDOTE: { id: 'antidote', icon: '🧪', name: 'נוגדן', isTool: true }
+            WIRE: { id: 'wire', icon: '🔌', name: 'חוט' }, // פריט דמה להשלמת שלישייה
+            SONAR: { id: 'sonar', icon: '📡', name: 'סורק קולי', isTool: true }
         };
 
         const Story = {
-            intro: "<b>הדממה הופרה.</b> אדים ירקרקים זולגים מהתקרה. הדלתות נעולות.<br>ד\"ר ארקדיוס הודיע: \"תבנו או שתמותו\".<br><br>אתה מביט בדיזה. היא מוגנת בחיישני לחץ. <span class='highlight'>היתוש קודח, לא דוקר.</span> עליך לבנות כלי שיחדור ללא לחץ.",
-            phase1_done: "הלחישה פסקה. זרימת הגז נעצרה. אך זה רק עיכוב.<br>הדלת לקרון הבא נפתחה אל חושך מוחלט. עליך לראות את הבלתי נראה.",
-            phase2_done: "המשקפיים חושפים את קרני הלייזר הלוהטות. עברת את המסדרון בבטחה.<br>הגעת לקטר. ארקדיוס מסתתר בצללים. כל תנועה שגויה תשבור את המכל.",
+            intro: "אדים ירקרקים ממלאים את הקרון. הדלתות נעולות. הדיזה מוגנת בחיישני לחץ. <br><br><b>המשימה:</b> מצא במזוודה ומתחת למושבים חלקים לבניית כלי שיחדור את הדיזה ללא לחץ (כמו יתוש).",
+            phase1_done: "הדיזה נוטרלה! הגז נפסק. הדלת לקרון הבא נפתחה לתוך חושך מוחלט ומלכודות לייזר.",
+            phase2_done: "המשקפיים חושפים את הלייזרים. עברת בבטחה. הגעת לקרון המנוע החשוך. המדען בפנים.",
             win: "תפסת אותו! הנוגדן בידך. השילוב של קור רוח והבנת הטבע הציל את כולם."
         };
 
@@ -555,24 +540,23 @@
                 const display = document.getElementById('story-display');
                 const div = document.createElement('div');
                 div.className = 'story-update';
-                div.innerHTML = html + "<br><br>";
+                div.innerHTML = html;
                 display.prepend(div);
             },
 
             handleInteraction(ref) {
                 // שלב 1: איסוף
                 if(['suitcase', 'seat'].includes(ref)) {
-                    // במזוודה יש מנוע, מחט, סוללה
                     if(ref === 'suitcase' && !State.solved.includes('suitcase')) {
                         Inventory.add(Items.MOTOR);
                         Inventory.add(Items.BATTERY);
-                        this.log("מצאת מנוע וסוללה במזוודה.");
+                        this.log("> מצאת מנוע וסוללה.");
                         State.solved.push('suitcase');
                         document.getElementById('hs-suitcase').style.display = 'none';
                     }
                     if(ref === 'seat' && !State.solved.includes('seat')) {
                         Inventory.add(Items.NEEDLE);
-                        this.log("מצאת מחט מיקרונית חבויה.");
+                        this.log("> מצאת מחט מיקרונית.");
                         State.solved.push('seat');
                         document.getElementById('hs-seat').style.display = 'none';
                     }
@@ -583,7 +567,7 @@
                     if(Inventory.has(Items.DRILL.id)) {
                         Minigames.startDrill();
                     } else {
-                        Modal.msg("שגיאה", "ניסיון לחסום ביד יגרום לפיצוץ. נדרש כלי חדירה עדין (רטט).");
+                        Modal.msg("שגיאה", "נגיעה בדיזה תפעיל את המלכוד. עליך לבנות כלי חדירה עדין.");
                     }
                 }
 
@@ -592,13 +576,13 @@
                     if(ref === 'debris' && !State.solved.includes('debris')) {
                         Inventory.add(Items.LENS);
                         Inventory.add(Items.DRONE_PARTS);
-                        this.log("פירקת את הגרוטאות. מצאת עדשות וחלקים.");
+                        this.log("> מצאת עדשות וחלקים.");
                         State.solved.push('debris');
                         document.getElementById('hs-debris').style.display = 'none';
                     }
                     if(ref === 'panel' && !State.solved.includes('panel')) {
                         Inventory.add(Items.SENSOR);
-                        this.log("עקרת חיישן תרמי מהפאנל.");
+                        this.log("> פירקת חיישן תרמי.");
                         State.solved.push('panel');
                         document.getElementById('hs-panel').style.display = 'none';
                     }
@@ -608,28 +592,28 @@
                     if(Inventory.has(Items.GLASSES.id)) {
                         this.startPhase3Transition();
                     } else {
-                        Modal.msg("סכנה", "המסדרון חשוך וממולכד. אי אפשר לעבור בלי לראות את המכשולים.");
+                        Modal.msg("סכנה", "חושך מוחלט. יש לייזרים. אי אפשר לעבור בלי לראות אותם.");
                     }
                 }
 
                 // שלב 3
                 if(ref === 'cabinet' && !State.solved.includes('cabinet')) {
                     Inventory.add(Items.MIC);
-                    // נניח שיש לו אוזניה כבר או שהוא מאלתר
                     Inventory.add(Items.HEADSET); 
-                    this.log("מצאת ציוד שמע רגיש.");
+                    Inventory.add(Items.WIRE); // סתם להשלמה
+                    this.log("> מצאת ציוד האזנה.");
                     State.solved.push('cabinet');
                     document.getElementById('hs-cabinet').style.display = 'none';
                 }
 
                 if(ref === 'arcadius') {
-                    // זה בלתי נראה, לחיצה עובדת רק דרך המיני משחק
+                    // לחיצה עובדת רק דרך המיני משחק
                 }
             },
 
             completePhase1() {
                 State.phase = 2;
-                this.log("<span class='highlight'>הדיזה נוטרלה!</span> " + Story.phase1_done);
+                this.log(Story.phase1_done);
                 document.getElementById('overlay-gas').style.opacity = 0;
                 
                 // מעבר ויזואלי
@@ -637,15 +621,14 @@
                     document.getElementById('layer-train').style.opacity = 0;
                     document.getElementById('layer-hallway').style.opacity = 1;
                     
-                    // החלפת אינדיקטורים
                     document.getElementById('ind-gas').classList.remove('active', 'danger');
-                    document.getElementById('ind-temp').classList.add('active');
+                    document.getElementById('ind-vision').classList.add('active');
 
-                    // חשיפת הוטספוטים חדשים
+                    // חשיפת הוטספוטים
                     document.getElementById('hs-vent').style.display = 'none';
-                    document.getElementById('hs-debris').classList.remove('hidden');
-                    document.getElementById('hs-panel').classList.remove('hidden');
-                    document.getElementById('hs-door-lock').classList.remove('hidden');
+                    document.getElementById('hs-debris').style.display = 'flex';
+                    document.getElementById('hs-panel').style.display = 'flex';
+                    document.getElementById('hs-door-lock').style.display = 'flex';
                 }, 2000);
             },
 
@@ -668,20 +651,20 @@
                 document.getElementById('layer-engine').style.opacity = 1;
                 document.getElementById('overlay-darkness').style.opacity = 1; // חושך מוחלט
 
-                document.getElementById('ind-temp').classList.remove('active');
+                document.getElementById('ind-vision').classList.remove('active');
                 document.getElementById('ind-audio').classList.add('active');
 
                 document.getElementById('hs-debris').style.display = 'none';
                 document.getElementById('hs-panel').style.display = 'none';
                 document.getElementById('hs-door-lock').style.display = 'none';
                 
-                document.getElementById('hs-cabinet').classList.remove('hidden');
+                document.getElementById('hs-cabinet').style.display = 'flex';
                 
-                // בדיקה אם יש סורק מוכן (אולי הוא כבר הכין)
+                // בדיקה אם יש סורק מוכן
                 if(Inventory.has(Items.SONAR.id)) {
                     Minigames.startSonar();
                 } else {
-                    this.log("החדר חשוך. עליך למצוא דרך לשמוע אותו.");
+                    this.log("> בנה גלאי שמע כדי למצוא אותו.");
                 }
             }
         };
@@ -724,33 +707,28 @@
 
                 this.items.forEach((item, idx) => {
                     const el = document.getElementById(`inv-${idx}`);
-                    el.innerHTML = `${item.icon}<div class="inv-tooltip">${item.name}</div>`;
+                    el.innerHTML = item.icon;
+                    if(State.craftingSlots.includes(idx)) el.classList.add('selected');
                 });
             },
 
             selectItem(idx) {
                 if(!this.items[idx]) return;
                 
-                const item = this.items[idx];
-                const slot = document.getElementById(`inv-${idx}`);
-
                 // אם כבר נבחר, בטל בחירה
                 if(State.craftingSlots.includes(idx)) {
                     State.craftingSlots = State.craftingSlots.filter(i => i !== idx);
-                    slot.classList.remove('selected');
                 } else {
                     // הגבלה ל-3 פריטים
                     if(State.craftingSlots.length < 3) {
                         State.craftingSlots.push(idx);
-                        slot.classList.add('selected');
                     }
                 }
+                this.render();
                 Crafting.updateUI();
             },
 
             removeUsedItems() {
-                // מסיר את הפריטים שנבחרו להרכבה
-                // מיון הפוך כדי לא לשבור אינדקסים
                 State.craftingSlots.sort((a,b) => b-a);
                 State.craftingSlots.forEach(idx => {
                     this.items.splice(idx, 1);
@@ -766,7 +744,7 @@
                 // עדכון הסלוטים העליונים
                 [1,2,3].forEach(i => {
                     const el = document.getElementById(`craft-${i}`);
-                    el.innerHTML = i;
+                    el.innerHTML = '';
                     el.classList.remove('filled');
                 });
 
@@ -778,7 +756,7 @@
                 });
 
                 const btn = document.getElementById('btn-craft');
-                if(State.craftingSlots.length > 1) { // צריך לפחות 2
+                if(State.craftingSlots.length === 3) {
                     btn.classList.add('ready');
                 } else {
                     btn.classList.remove('ready');
@@ -786,37 +764,35 @@
             },
 
             execute() {
+                if(State.craftingSlots.length !== 3) return;
+
                 const selected = State.craftingSlots.map(i => Inventory.items[i].id);
                 
                 // מתכונים
-                // שלב 1: מנוע + מחט + סוללה = מקדח
                 if(this.checkRecipe(selected, ['motor', 'needle', 'battery'])) {
                     Inventory.removeUsedItems();
                     Inventory.add(Items.DRILL);
-                    Game.log("<span class='highlight'>הצלחה:</span> בנית מקדח רטט ביומימטי.");
+                    Game.log("<span class='highlight'>הצלחה:</span> בנית מקדח רטט.");
                     return;
                 }
 
-                // שלב 2: עדשות + חיישן + חלקי רחפן = משקפיים
                 if(this.checkRecipe(selected, ['lens', 'sensor', 'drone_parts'])) {
                     Inventory.removeUsedItems();
                     Inventory.add(Items.GLASSES);
-                    Game.log("<span class='highlight'>הצלחה:</span> בנית משקפי ראייה תרמיים.");
+                    Game.log("<span class='highlight'>הצלחה:</span> בנית משקפיים תרמיים.");
                     return;
                 }
 
-                // שלב 3: מיקרופון + אוזניה = סונאר
-                if(this.checkRecipe(selected, ['mic', 'headset'])) {
+                if(this.checkRecipe(selected, ['mic', 'headset', 'wire'])) {
                     Inventory.removeUsedItems();
                     Inventory.add(Items.SONAR);
-                    Game.log("<span class='highlight'>הצלחה:</span> הרכבת סורק שמע כיווני.");
+                    Game.log("<span class='highlight'>הצלחה:</span> הרכבת סורק שמע.");
                     
-                    // אם אנחנו כבר בשלב 3, הפעל את המיני משחק מיד
                     if(State.phase === 3) Minigames.startSonar();
                     return;
                 }
 
-                Modal.msg("שגיאה", "שילוב רכיבים לא תקין. נסה שילוב אחר המבוסס על היגיון ביומימטי.");
+                Modal.msg("שגיאה", "שילוב רכיבים לא תקין. נסה שילוב אחר.");
             },
 
             checkRecipe(selectedIds, recipeIds) {
@@ -834,11 +810,11 @@
             // משחק 1: ייצוב תדר (לדיזה)
             startDrill() {
                 const html = `
-                    <p style="color:#ddd">כוון את תדר הרטט (כחול) שיתאים לתדר האטם (ירוק) כדי לחדור ללא חיכוך.</p>
+                    <p style="color:#ddd">כוון את תדר הרטט (כחול) שיתאים למטרה (ירוק).</p>
                     <div id="game-wave-container">
                         <canvas id="wave-canvas"></canvas>
                         <input type="range" id="wave-slider" class="slider-control" min="1" max="100" value="50">
-                        <div id="wave-status">סטטוס: לא מסונכרן</div>
+                        <div id="wave-status">לא מסונכרן</div>
                     </div>
                 `;
                 Modal.show("כיול מקדח רטט", html);
@@ -859,13 +835,13 @@
                     slider.oninput = (e) => userVal = parseInt(e.target.value);
 
                     const loop = () => {
-                        if(!document.getElementById('wave-canvas')) return; // יציאה
+                        if(!document.getElementById('wave-canvas')) return;
                         
                         ctx.fillStyle = '#000'; ctx.fillRect(0,0,600,200);
                         ctx.lineWidth = 2;
                         time += 0.2;
 
-                        // גל מטרה (ירוק)
+                        // מטרה
                         ctx.strokeStyle = 'rgba(0, 255, 157, 0.3)'; 
                         ctx.beginPath();
                         for(let x=0; x<600; x++) {
@@ -874,14 +850,13 @@
                         }
                         ctx.stroke();
 
-                        // גל משתמש (כחול/זהב)
+                        // משתמש
                         const diff = Math.abs(userVal - targetVal);
                         const isSynced = diff < 5;
                         
                         ctx.strokeStyle = isSynced ? '#ffb700' : '#00d9ff';
                         ctx.beginPath();
                         for(let x=0; x<600; x++) {
-                            // ככל שמתקרבים לערך, התדר נהיה דומה
                             const freq = (userVal / 500); 
                             const y = 100 + Math.sin((x + time*5) * freq) * 50;
                             if(x==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
@@ -889,16 +864,16 @@
                         ctx.stroke();
 
                         if(isSynced) {
-                            status.innerText = "סטטוס: נעול (חודר...)";
+                            status.innerText = "נעול! חודר...";
                             status.style.color = "var(--status-ok)";
                             successTime++;
-                            if(successTime > 100) { // כ-2 שניות של החזקה
+                            if(successTime > 100) {
                                 Modal.close();
                                 Game.completePhase1();
                                 return;
                             }
                         } else {
-                            status.innerText = "סטטוס: לא מסונכרן";
+                            status.innerText = "לא מסונכרן";
                             status.style.color = "var(--status-crit)";
                             successTime = 0;
                         }
@@ -908,47 +883,36 @@
                 }, 100);
             },
 
-            // משחק 3: סונאר (למציאת המדען)
+            // משחק 3: סונאר
             startSonar() {
                 const html = `
-                    <p>החדר חשוך. עקוב אחרי הנקודה ברדאר (פעימות הלב). לחץ כשהסמן עובר עליה.</p>
+                    <p>הקשב לפעימות הלב. לחץ על הנקודה הלבנה כשהיא מופיעה.</p>
                     <div id="sonar-container">
                         <div id="sonar-sweep"></div>
                         <div id="sonar-dot"></div>
                     </div>
-                    <p style="margin-top:10px; color:#888;">לחץ על הנקודה הלבנה כדי לתפוס אותו</p>
                 `;
                 Modal.show("סורק שמע כיווני", html);
 
                 setTimeout(() => {
                     const dot = document.getElementById('sonar-dot');
-                    // מיקום רנדומלי בתוך המעגל
-                    // כדי לפשט, נשים אותו במיקום קבוע שזז קצת
                     
-                    let angle = 0;
-                    
-                    // עדכון מיקום הנקודה (כאילו זזה)
                     setInterval(() => {
+                        // תנועה רנדומלית בתוך הרדאר
                         const r = 80; 
-                        const x = 150 + r * Math.cos(Date.now()/1000);
-                        const y = 150 + r * Math.sin(Date.now()/1000);
-                        dot.style.left = (x-5) + 'px';
-                        dot.style.top = (y-5) + 'px';
+                        const x = 125 + r * Math.cos(Date.now()/1000);
+                        const y = 125 + r * Math.sin(Date.now()/1000);
+                        dot.style.left = (x-10) + 'px';
+                        dot.style.top = (y-10) + 'px';
                         
-                        // הבהוב לפי הרדאר
-                        // חישוב זווית הרדאר
-                        const sweep = document.getElementById('sonar-sweep');
-                        // זה CSS Animation, קשה לסנכרן ב JS טהור בלי requestAnimationFrame מורכב.
-                        // נעשה טריק: הנקודה מהבהבת סתם
+                        // הבהוב
                         dot.style.opacity = (Math.sin(Date.now()/100) > 0.8) ? 1 : 0; 
-
                     }, 50);
 
                     dot.onclick = () => {
                         Modal.close();
                         Modal.msg("ניצחון!", Story.win);
                         // סיום המשחק
-                        setTimeout(() => location.reload(), 5000);
                     };
 
                 }, 100);
@@ -957,7 +921,7 @@
 
         /**
          * ==========================================================================
-         * 5. מנוע גרפי ואפקטים (FX)
+         * 5. מנוע גרפי (FX)
          * ==========================================================================
          */
         const Fx = {
@@ -978,7 +942,7 @@
 
                 const loop = () => {
                     ctx.clearRect(0,0,cvs.width,cvs.height);
-                    ctx.fillStyle = "rgba(200, 255, 200, 0.3)"; // גז ירקרק
+                    ctx.fillStyle = "rgba(200, 255, 200, 0.3)";
                     
                     particles.forEach(p => {
                         p.y -= p.speedY; 
@@ -1012,7 +976,7 @@
             },
             msg(title, text) {
                 document.getElementById('msg-title').innerText = title;
-                document.getElementById('msg-text').innerText = text;
+                document.getElementById('msg-text').innerHTML = text;
                 document.getElementById('modal-msg').classList.add('active');
             },
             closeMsg() {
@@ -1030,9 +994,9 @@
             const lines = [
                 "INITIALIZING NEURAL LINK...",
                 "LOADING BIOMIMETIC DRIVERS...",
-                "CONNECTING TO TRAIN SYSTEM OS...",
-                "ACCESS GRANTED.",
-                "USER: ADAM (ENGINEER)"
+                "CONNECTING TO TRAIN SYSTEM...",
+                "USER: ADAM (ENGINEER)",
+                "ACCESS GRANTED."
             ];
             
             let i = 0;
@@ -1049,7 +1013,7 @@
                         Game.init();
                     }, 1000);
                 }
-            }, 500);
+            }, 600);
         };
 
     </script>
