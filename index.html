@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>פרוטוקול העוקץ | מתוקן</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&family=Heebo:wght@400;700&display=swap" rel="stylesheet">
+    <title>פרוטוקול העוקץ | מלא</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&family=Heebo:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --bg-color: #121212;
             --panel-bg: #1e1e1e;
             --text-color: #e0e0e0;
-            --accent: #4caf50;
             --highlight: #ffc107;
+            --accent: #4caf50;
             --danger: #f44336;
-            /* הקטנת רוחב התפריט */
             --sidebar-width: 280px; 
         }
 
@@ -39,7 +38,7 @@
         .info-box {
             background: var(--panel-bg); border: 2px solid var(--highlight);
             padding: 30px; border-radius: 10px; max-width: 600px; width: 100%;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5); position: relative;
         }
 
         .title { font-family: 'Rubik'; font-size: 2rem; color: var(--highlight); margin-bottom: 20px; }
@@ -47,26 +46,20 @@
         .btn {
             background: var(--highlight); color: #000; border: none;
             padding: 12px 30px; font-size: 1.2rem; font-weight: bold;
-            cursor: pointer; border-radius: 5px; transition: 0.2s;
+            cursor: pointer; border-radius: 5px; transition: 0.2s; width: 100%;
         }
         .btn:hover { background: #fff; }
 
-        /* --- ממשק --- */
-        #game-container {
-            display: flex; flex: 1; height: 100%;
-            flex-direction: row; 
-        }
+        /* --- משחק --- */
+        #game-container { display: flex; flex: 1; height: 100%; flex-direction: row; }
 
-        /* צד ימין - תמונה (גדלה יותר עכשיו) */
         #viewport {
-            flex: 1; /* לוקח את כל המקום הפנוי */
-            position: relative; background: #000; overflow: hidden;
+            flex: 1; position: relative; background: #000; overflow: hidden;
             border-left: 2px solid #333;
         }
 
         .bg-image {
-            width: 100%; height: 100%;
-            background-size: cover; background-position: center;
+            width: 100%; height: 100%; background-size: cover; background-position: center;
             transition: opacity 1s; position: absolute; top:0; left:0;
         }
         
@@ -78,34 +71,28 @@
             position: absolute; z-index: 10; cursor: pointer;
             width: 70px; height: 70px; border-radius: 50%;
             border: 2px dashed rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.1);
-            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.1); transition: 0.3s;
         }
         .hotspot:hover { background: rgba(255, 215, 0, 0.3); border-color: gold; transform: scale(1.1); }
 
         /* מיקומים */
-        /* קרון 1 */
         #spot-needle { top: 60%; left: 20%; }
         #spot-battery { top: 70%; left: 75%; }
         #spot-motor { top: 65%; left: 50%; }
         #spot-vent { top: 10%; left: 50%; width: 150px; height: 80px; border-radius: 10px; }
         
-        /* קרון 2 */
         #spot-drone { top: 75%; left: 30%; }
         #spot-sensor { top: 50%; left: 15%; }
         #spot-door { top: 35%; left: 50%; width: 100px; height: 200px; border-radius: 5px; }
         
-        /* קרון 3 */
         #spot-mic { top: 65%; left: 20%; }
-        /* אזור סיום גדול יותר בצד ימין */
-        #spot-arcadius { top: 30%; left: 60%; width: 150px; height: 300px; opacity: 0; border: none; background: transparent; } 
+        #spot-arcadius { top: 30%; left: 60%; width: 150px; height: 300px; opacity: 0; } 
 
-        /* צד שמאל - תפריט (צר יותר) */
+        /* סרגל צד */
         #sidebar {
             width: var(--sidebar-width); min-width: var(--sidebar-width);
             background: var(--panel-bg); padding: 15px;
-            display: flex; flex-direction: column; gap: 15px;
-            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 15px; overflow-y: auto;
         }
 
         #timer-box { font-size: 2rem; color: var(--danger); font-weight: bold; text-align: center; border: 2px solid var(--danger); padding: 5px; }
@@ -124,13 +111,26 @@
         .inv-item { height: 45px; background: #000; border: 1px solid #555; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; }
         .inv-item.selected { border-color: var(--highlight); background: #333; }
 
-        /* מודאל שאלות */
-        #riddle-modal { display: none; }
+        /* מיני-משחקים (מודאלים) */
+        .minigame-container { text-align: center; }
+        
+        /* משחק גלים */
+        #wave-canvas { width: 100%; height: 150px; background: #000; border: 1px solid #555; margin-bottom: 10px; }
+        input[type=range] { width: 100%; height: 30px; cursor: pointer; }
+        
+        /* משחק סונאר */
+        #sonar-ui { width: 250px; height: 250px; border-radius: 50%; border: 2px solid var(--accent); margin: 0 auto; position: relative; overflow: hidden; background: radial-gradient(#002200, #000); }
+        #sonar-sweep { position: absolute; width: 100%; height: 100%; background: conic-gradient(transparent 0deg, rgba(0,255,0,0.5) 30deg, transparent 30deg); border-radius: 50%; animation: spin 2s linear infinite; }
+        #sonar-blip { position: absolute; width: 15px; height: 15px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff; opacity: 0; cursor: pointer; }
+
+        /* חידות */
         .riddle-opt { 
-            display: block; width: 100%; padding: 10px; margin-bottom: 8px; 
+            display: block; width: 100%; padding: 12px; margin-bottom: 8px; 
             background: #333; color: #fff; border: 1px solid #555; cursor: pointer; text-align: right;
         }
         .riddle-opt:hover { background: #444; border-color: var(--highlight); }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
         /* מובייל */
         @media (max-width: 768px) {
@@ -148,7 +148,7 @@
             <div class="title">ברוכים הבאים לחדר הבריחה</div>
             <div class="text">
                 נכנסת לחדר בריחה ויש לך <strong>שלוש דקות בלבד</strong> לסיים אותו!<br><br>
-                עליך לאסוף רכיבים, לענות על חידות ולבנות כלים כדי לשרוד את מתקפת הגז ולפרוץ לקטר.<br>
+                עליך לאסוף רכיבים, לענות על חידות ולבנות כלים כדי לשרוד.<br>
                 כל טעות בחידה תעלה לך בזמן יקר.
             </div>
             <button class="btn" onclick="Game.start()">התחל משחק (03:00)</button>
@@ -164,10 +164,8 @@
             <div class="title" style="color:var(--accent)">כל הכבוד! ניצחת!</div>
             <div class="text">
                 <ul style="list-style:none; padding:0;">
-                    <li><strong>נבנה על ידי:</strong> עידן אברבוך בעזרת Gemini</li>
-                    <br>
-                    <li><strong>חומר ובניית סיפור:</strong> יואב פלדמן</li>
-                    <br>
+                    <li><strong>נבנה על ידי:</strong> עידן אברבוך בעזרת Gemini</li><br>
+                    <li><strong>חומר ובניית סיפור:</strong> יואב פלדמן</li><br>
                     <li><strong>קבוצה במדעים:</strong><br>עידן אברבוך, יואב פלדמן, סהר חדד</li>
                 </ul>
             </div>
@@ -201,34 +199,41 @@
 
         <div id="sidebar">
             <div id="timer-box">03:00</div>
-            
-            <div class="panel">
-                <h3>יומן</h3>
-                <div id="log"></div>
+            <div class="panel"><h3>יומן</h3><div id="log"></div></div>
+            <div class="panel"><h3>שולחן עבודה (בחר 3)</h3>
+                <div class="craft-area"><div class="slot" id="craft-0"></div><div class="slot" id="craft-1"></div><div class="slot" id="craft-2"></div></div>
+                <button class="btn" onclick="Game.craft()">בצע אינטגרציה</button>
             </div>
-
-            <div class="panel">
-                <h3>שולחן עבודה (בחר 3)</h3>
-                <div class="craft-area">
-                    <div class="slot" id="craft-0"></div>
-                    <div class="slot" id="craft-1"></div>
-                    <div class="slot" id="craft-2"></div>
-                </div>
-                <button class="btn" style="width:100%; font-size:1rem;" onclick="Game.craft()">בצע אינטגרציה</button>
-            </div>
-
-            <div class="panel">
-                <h3>תיק ציוד</h3>
-                <div id="inventory"></div>
-            </div>
+            <div class="panel"><h3>תיק ציוד</h3><div id="inventory"></div></div>
         </div>
     </div>
 
-    <div id="riddle-modal" class="overlay-screen" style="background:rgba(0,0,0,0.8);">
+    <div id="riddle-modal" class="overlay-screen" style="background:rgba(0,0,0,0.8); display:none;">
         <div class="info-box">
             <div class="title">שאלה</div>
             <div class="text" id="riddle-text"></div>
             <div id="riddle-answers"></div>
+        </div>
+    </div>
+
+    <div id="wave-modal" class="overlay-screen" style="background:rgba(0,0,0,0.9); display:none;">
+        <div class="info-box">
+            <div class="title">כיול מקדח רטט</div>
+            <p>הזז את המחוון עד שהגלים יסתנכרנו כדי לפרוץ את הדיזה.</p>
+            <canvas id="wave-canvas"></canvas>
+            <input type="range" id="wave-slider" min="0" max="100" value="50" style="width:100%">
+            <div id="wave-status" style="margin-top:10px; font-weight:bold; color:red;">לא מסונכרן</div>
+        </div>
+    </div>
+
+    <div id="sonar-modal" class="overlay-screen" style="background:rgba(0,0,0,0.9); display:none;">
+        <div class="info-box">
+            <div class="title">איתור שמע</div>
+            <p>לחץ על הנקודה הלבנה כשהיא מופיעה כדי לתפוס את המדען.</p>
+            <div id="sonar-ui">
+                <div id="sonar-sweep"></div>
+                <div id="sonar-blip"></div>
+            </div>
         </div>
     </div>
 
@@ -238,90 +243,58 @@
             motor: { id: 'motor', icon: '⚙️', name: 'מנוע רטט' },
             battery: { id: 'battery', icon: '🔋', name: 'סוללה' },
             drill: { id: 'drill', icon: '🦟', name: 'מקדח רטט', tool: true },
-            
             drone: { id: 'drone', icon: '🚁', name: 'רחפן' },
             sensor: { id: 'sensor', icon: '🌡️', name: 'חיישן תרמי' },
             lens: { id: 'lens', icon: '👓', name: 'עדשות' },
             glasses: { id: 'glasses', icon: '🕶️', name: 'משקפיים', tool: true },
-            
             mic: { id: 'mic', icon: '🎙️', name: 'מיקרופון' },
-            headset: { id: 'headset', icon: '🎧', name: 'אוזניות' }, 
+            headset: { id: 'headset', icon: '🎧', name: 'אוזניות' },
             wire: { id: 'wire', icon: '🔌', name: 'חוט' },
             sonar: { id: 'sonar', icon: '📡', name: 'סורק שמע', tool: true }
         };
 
         const Riddles = {
-            needle: {
-                q: "איזה מסוגי המחטים הבאים אינו מכאיב? (רמז: את המחט של היתוש לא ניתן להרגיש)",
-                opts: ["מחט מחוספס ורוטט", "מחט לעירוי דם", "מחט לביופסיה במח העצם", "מחט של בדיקת דם מחט פרפרית"],
-                ans: 0
-            },
-            drone: {
-                q: "מהו היתרון המבצעי העיקרי של רחפן הבנוי כמו יתוש? (רמז: כשהיתוש קשה להבחין בו)",
-                opts: ["יכולת לטוס לחלל החיצון", "יכולת לשאת משקלים כבדים מאוד כמו טנקים", "יכולת תמרון גבוהה בחללים צפופים ויציבות ברוחות", "מהירות טיסה שעוברת את מהירות הקול"],
-                ans: 2
-            },
-            sensor: {
-                q: "היתוש מסוגל לאתר בני אדם ממרחק רב בעיקר בזכות זיהוי של:",
-                opts: ["תנועות גוף מהירות", "צבע הבגדים שאנו לובשים", "פליטת פחמן דו-חמצני (CO2) בנשימה שלנו", "גלי רדיו שהטלפון שלנו משדר"],
-                ans: 2
-            }
+            needle: { q: "איזה מסוגי המחטים הבאים אינו מכאיב? (רמז: את המחט של היתוש לא ניתן להרגיש)", opts: ["מחט מחוספס ורוטט", "מחט לעירוי דם", "מחט לביופסיה במח העצם", "מחט של בדיקת דם מחט פרפרית"], ans: 0 },
+            drone: { q: "מהו היתרון המבצעי העיקרי של רחפן הבנוי כמו יתוש?", opts: ["יכולת לטוס לחלל החיצון", "יכולת לשאת משקלים כבדים מאוד", "יכולת תמרון גבוהה ויציבות ברוחות", "מהירות טיסה שעוברת את מהירות הקול"], ans: 2 },
+            sensor: { q: "היתוש מסוגל לאתר בני אדם ממרחק רב בעיקר בזכות זיהוי של:", opts: ["תנועות גוף מהירות", "צבע הבגדים שאנו לובשים", "פליטת פחמן דו-חמצני (CO2)", "גלי רדיו"], ans: 2 }
         };
 
         const Game = {
-            time: 180,
-            timerInterval: null,
-            inventory: [],
-            craftSlots: [],
-            phase: 1,
+            time: 180, timerInterval: null, inventory: [], craftSlots: [], phase: 1,
 
             start() {
                 document.getElementById('intro-screen').style.display = 'none';
                 this.log("המשימה החלה. אסוף רכיבים!");
-                
                 this.timerInterval = setInterval(() => {
                     this.time--;
                     const m = Math.floor(this.time / 60);
                     const s = this.time % 60;
                     document.getElementById('timer-box').innerText = `0${m}:${s<10?'0'+s:s}`;
-                    if(this.time <= 0) {
-                        clearInterval(this.timerInterval);
-                        document.getElementById('game-over').style.display = 'flex';
-                    }
+                    if(this.time <= 0) { clearInterval(this.timerInterval); document.getElementById('game-over').style.display = 'flex'; }
                 }, 1000);
             },
 
             clickItem(id) {
-                if(Riddles[id]) {
-                    this.showRiddle(id);
-                } else {
-                    this.collect(id);
-                }
+                if(Riddles[id]) this.showRiddle(id);
+                else this.collect(id);
             },
 
             showRiddle(id) {
                 const r = Riddles[id];
                 const modal = document.getElementById('riddle-modal');
-                const content = document.getElementById('riddle-answers');
                 document.getElementById('riddle-text').innerText = r.q;
-                content.innerHTML = '';
-                
+                const ansBox = document.getElementById('riddle-answers');
+                ansBox.innerHTML = '';
                 modal.style.display = 'flex';
                 
                 r.opts.forEach((opt, idx) => {
                     const div = document.createElement('div');
-                    div.className = 'riddle-opt';
-                    div.innerText = opt;
+                    div.className = 'riddle-opt'; div.innerText = opt;
                     div.onclick = () => {
-                        if(idx === r.ans) {
-                            modal.style.display = 'none';
-                            this.collect(id);
-                        } else {
-                            alert("תשובה לא נכונה! ירדו 10 שניות.");
-                            this.time -= 10;
-                        }
+                        if(idx === r.ans) { modal.style.display = 'none'; this.collect(id); }
+                        else { alert("טעות! 10 שניות ירדו."); this.time -= 10; }
                     };
-                    content.appendChild(div);
+                    ansBox.appendChild(div);
                 });
             },
 
@@ -329,10 +302,8 @@
                 this.inventory.push(Items[id]);
                 document.getElementById('spot-' + id).style.display = 'none';
                 this.log("מצאת: " + Items[id].name);
-                
                 if(id === 'drone') this.inventory.push(Items.lens); 
                 if(id === 'mic') { this.inventory.push(Items.headset); this.inventory.push(Items.wire); }
-                
                 this.renderInv();
             },
 
@@ -345,13 +316,9 @@
                     if(this.craftSlots.includes(idx)) div.classList.add('selected');
                     div.innerText = item.icon;
                     div.onclick = () => {
-                        if(this.craftSlots.includes(idx)) {
-                            this.craftSlots = this.craftSlots.filter(i => i !== idx);
-                        } else if(this.craftSlots.length < 3) {
-                            this.craftSlots.push(idx);
-                        }
-                        this.renderCraft();
-                        this.renderInv();
+                        if(this.craftSlots.includes(idx)) this.craftSlots = this.craftSlots.filter(i => i !== idx);
+                        else if(this.craftSlots.length < 3) this.craftSlots.push(idx);
+                        this.renderCraft(); this.renderInv();
                     };
                     grid.appendChild(div);
                 });
@@ -372,49 +339,33 @@
                 if(this.craftSlots.length !== 3) { alert("בחר 3 פריטים"); return; }
                 const ids = this.craftSlots.map(i => this.inventory[i].id);
                 
-                if(ids.includes('motor') && ids.includes('needle') && ids.includes('battery')) {
-                    this.finishCraft(Items.drill, "מקדח רטט נוצר!");
-                } else if(ids.includes('lens') && ids.includes('sensor') && ids.includes('drone')) {
-                    this.finishCraft(Items.glasses, "משקפיים תרמיים נוצרו!");
-                } else if(ids.includes('mic') && ids.includes('headset') && ids.includes('wire')) {
-                    this.finishCraft(Items.sonar, "סורק שמע נוצר!");
-                } else {
-                    alert("שילוב לא מתאים");
-                    this.craftSlots = [];
-                    this.renderInv();
-                    this.renderCraft();
-                }
+                if(ids.includes('motor') && ids.includes('needle') && ids.includes('battery')) this.finishCraft(Items.drill, "מקדח רטט נוצר!");
+                else if(ids.includes('lens') && ids.includes('sensor') && ids.includes('drone')) this.finishCraft(Items.glasses, "משקפיים תרמיים נוצרו!");
+                else if(ids.includes('mic') && ids.includes('headset') && ids.includes('wire')) this.finishCraft(Items.sonar, "סורק שמע נוצר!");
+                else { alert("שילוב לא מתאים"); this.craftSlots = []; this.renderInv(); this.renderCraft(); }
             },
 
             finishCraft(newItem, msg) {
                 this.craftSlots.sort((a,b) => b-a).forEach(i => this.inventory.splice(i, 1));
                 this.craftSlots = [];
                 this.inventory.push(newItem);
-                this.renderInv();
-                this.renderCraft();
-                this.log(msg);
+                this.renderInv(); this.renderCraft(); this.log(msg);
             },
 
             clickTarget(target) {
                 const hasTool = (id) => this.inventory.some(i => i.id === id);
 
                 if(target === 'vent') {
-                    if(hasTool('drill')) {
-                        this.nextLevel("עברת את קראון 1 בהצלחה", 2);
-                    } else alert("צריך כלי חדירה עדין (כמו יתוש).");
+                    if(hasTool('drill')) Minigames.wave();
+                    else alert("הדיזה נעולה. בנה מקדח רטט.");
                 }
                 else if(target === 'door') {
-                    if(hasTool('glasses')) {
-                        this.nextLevel("עברת את קראון 2 בהצלחה", 3);
-                    } else alert("חושך מוחלט. צריך ראייה תרמית.");
+                    if(hasTool('glasses')) this.nextLevel("עברת את קראון 2 בהצלחה", 3);
+                    else alert("חושך מוחלט. צריך ראייה תרמית.");
                 }
                 else if(target === 'boss') {
-                    if(hasTool('sonar')) {
-                        clearInterval(this.timerInterval);
-                        document.getElementById('credits-screen').style.display = 'flex';
-                    } else {
-                        alert("חושך מוחלט בקטר! אתה חייב לשמוע אותו כדי לתפוס אותו.");
-                    }
+                    if(hasTool('sonar')) Minigames.sonar();
+                    else alert("המדען בחושך. השתמש בסורק שמע.");
                 }
             },
 
@@ -422,35 +373,80 @@
                 const screen = document.getElementById('level-screen');
                 document.getElementById('level-msg').innerText = msg;
                 screen.style.display = 'flex';
-                
                 setTimeout(() => {
                     screen.style.display = 'none';
                     this.phase = nextPhase;
-                    
                     if(nextPhase === 2) {
-                        document.getElementById('bg-train').style.opacity = 0;
-                        document.getElementById('bg-hall').style.opacity = 1;
-                        
+                        document.getElementById('bg-train').style.opacity = 0; document.getElementById('bg-hall').style.opacity = 1;
                         ['needle','motor','battery','vent'].forEach(id => document.getElementById('spot-'+id).style.display = 'none');
                         ['drone','sensor','door'].forEach(id => document.getElementById('spot-'+id).style.display = 'block');
-                        this.log("הגעת למסדרון החשוך.");
                     }
                     if(nextPhase === 3) {
-                        document.getElementById('bg-hall').style.opacity = 0;
-                        document.getElementById('bg-lab').style.opacity = 1;
-                        
+                        document.getElementById('bg-hall').style.opacity = 0; document.getElementById('bg-lab').style.opacity = 1;
                         ['drone','sensor','door'].forEach(id => document.getElementById('spot-'+id).style.display = 'none');
-                        document.getElementById('spot-mic').style.display = 'block';
-                        document.getElementById('spot-arcadius').style.display = 'block';
-                        this.log("הגעת לקטר. ארקדיוס מסתתר.");
+                        ['mic','arcadius'].forEach(id => document.getElementById('spot-'+id).style.display = 'block');
                     }
                 }, 2000);
             },
 
             log(txt) {
-                const d = document.createElement('div');
-                d.className = 'log-msg'; d.innerText = "> " + txt;
-                document.getElementById('log').prepend(d);
+                const d = document.createElement('div'); d.className = 'log-msg'; d.innerText = "> " + txt; document.getElementById('log').prepend(d);
+            }
+        };
+
+        const Minigames = {
+            wave() {
+                const modal = document.getElementById('wave-modal');
+                modal.style.display = 'flex';
+                const cvs = document.getElementById('wave-canvas');
+                const ctx = cvs.getContext('2d');
+                const slider = document.getElementById('wave-slider');
+                let t = 0;
+                
+                const loop = () => {
+                    if(modal.style.display === 'none') return;
+                    ctx.fillStyle = '#000'; ctx.fillRect(0,0,300,150);
+                    t += 0.2;
+                    ctx.strokeStyle = 'green'; ctx.beginPath();
+                    for(let x=0; x<300; x++) ctx.lineTo(x, 75 + Math.sin((x+t*5)*0.1)*30); ctx.stroke();
+                    
+                    const val = slider.value;
+                    const diff = Math.abs(val - 72);
+                    ctx.strokeStyle = diff < 5 ? 'gold' : 'red'; ctx.beginPath();
+                    for(let x=0; x<300; x++) ctx.lineTo(x, 75 + Math.sin((x+t*5)*(val/500))*30); ctx.stroke();
+                    
+                    if(diff < 5) {
+                        document.getElementById('wave-status').innerText = "נעול!";
+                        document.getElementById('wave-status').style.color = "gold";
+                        setTimeout(() => { modal.style.display = 'none'; Game.nextLevel("עברת את קראון 1 בהצלחה", 2); }, 1000);
+                        return;
+                    } else {
+                        document.getElementById('wave-status').innerText = "לא מסונכרן";
+                        document.getElementById('wave-status').style.color = "red";
+                    }
+                    requestAnimationFrame(loop);
+                };
+                loop();
+            },
+
+            sonar() {
+                const modal = document.getElementById('sonar-modal');
+                modal.style.display = 'flex';
+                const blip = document.getElementById('sonar-blip');
+                
+                const interval = setInterval(() => {
+                    if(modal.style.display === 'none') { clearInterval(interval); return; }
+                    const x = 125 + 80 * Math.cos(Date.now()/1000);
+                    const y = 125 + 80 * Math.sin(Date.now()/1000);
+                    blip.style.left = (x-7)+'px'; blip.style.top = (y-7)+'px';
+                    blip.style.opacity = (Math.sin(Date.now()/100) > 0.8) ? 1 : 0;
+                }, 50);
+
+                blip.onclick = () => {
+                    modal.style.display = 'none';
+                    clearInterval(Game.timerInterval);
+                    document.getElementById('credits-screen').style.display = 'flex';
+                };
             }
         };
     </script>
