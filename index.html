@@ -4,19 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#000000">
-    <title>פרוטוקול העוקץ | גרסה מלאה</title>
+    <title>פרוטוקול העוקץ | אתגר הזמן</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700;900&family=Heebo:wght@100;300;400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
         /* * ==========================================================================
-         * 1. הגדרות עיצוב ומשתנים (CSS CORE)
-         * ==========================================================================
-         */
+         * 1. CORE STYLES
+         * ========================================================================== */
         :root {
-            --bg-void: #020202;
-            --bg-panel: #0b0c10;
-            --border-dim: #1f2833;
+            --bg-void: #010101;
+            --bg-panel: #0a0b0e;
             --c-gold: #ffb700; 
             --c-cyan: #66fcf1;
             --c-red: #ff2a2a;
@@ -24,176 +22,114 @@
             --font-ui: 'Heebo', sans-serif;
             --font-display: 'Rubik', sans-serif;
             --font-code: 'Share Tech Mono', monospace;
-            --sidebar-w: 380px;
+            --sidebar-w: 350px;
             --header-h: 70px;
         }
 
         * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; outline: none; }
-        
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--bg-void); color: #e0e0e0;
-            font-family: var(--font-ui); overflow: hidden; overscroll-behavior: none;
-        }
+        body, html { width: 100%; height: 100%; margin: 0; padding: 0; background-color: var(--bg-void); color: #e0e0e0; font-family: var(--font-ui); overflow: hidden; overscroll-behavior: none; }
 
-        /* אפקט סריקה (Scanlines) */
-        .scanlines {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 9999;
-        }
+        /* CRT Effect */
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 2px, 3px 100%; pointer-events: none; z-index: 9999; }
 
         /* * ==========================================================================
-         * 2. מסכים (SCREENS)
-         * ==========================================================================
-         */
-        .screen-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 2000; display: none;
-            flex-direction: column; justify-content: center; align-items: center;
-            padding: 20px; text-align: center;
-        }
+         * 2. SCREENS & OVERLAYS
+         * ========================================================================== */
+        .screen-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 20px; text-align: center; }
         .screen-layer.active { display: flex; animation: fadeIn 0.5s; }
 
-        /* כרטיסי מידע */
-        .info-card {
-            background: rgba(10, 12, 15, 0.95); border: 2px solid var(--c-gold);
-            padding: 30px; border-radius: 8px; box-shadow: 0 0 50px rgba(255, 183, 0, 0.2);
-            max-width: 600px; width: 100%; position: relative; max-height: 90vh; overflow-y: auto;
-        }
-        
-        .title-large { font-family: var(--font-display); font-size: 32px; color: var(--c-gold); margin-bottom: 20px; text-transform: uppercase; }
+        /* INTRO / END CARDS */
+        .info-card { background: rgba(10, 12, 15, 0.95); border: 1px solid var(--c-gold); padding: 30px; border-radius: 4px; box-shadow: 0 0 50px rgba(255, 183, 0, 0.2); max-width: 600px; width: 100%; position: relative; }
+        .title-large { font-family: var(--font-display); font-size: 32px; color: var(--c-gold); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; }
         .text-content { font-size: 18px; line-height: 1.6; color: #ccc; margin-bottom: 30px; text-align: right; }
-        .text-content p { margin-bottom: 15px; }
+        .text-content strong { color: #fff; text-decoration: underline; text-decoration-color: var(--c-red); }
         
-        .btn-main {
-            background: var(--c-gold); color: #000; border: none; padding: 15px 40px;
-            font-family: var(--font-display); font-weight: bold; font-size: 20px;
-            cursor: pointer; transition: 0.3s; width: 100%; text-transform: uppercase;
-            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-        }
-        .btn-main:hover { background: #fff; transform: translateY(-2px); }
+        .btn-base { background: var(--c-gold); color: #000; border: none; padding: 15px 40px; font-family: var(--font-display); font-weight: bold; font-size: 20px; cursor: pointer; transition: 0.3s; width: 100%; text-transform: uppercase; clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); }
+        .btn-base:hover { background: #fff; transform: translateY(-2px); }
 
-        /* מסך מעבר */
+        /* TRANSITION SCREEN */
         #transition-screen { background: rgba(0,0,0,0.95); z-index: 3000; }
-        .trans-text { font-family: var(--font-display); font-size: 40px; color: var(--c-green); text-shadow: 0 0 20px var(--c-green); animation: pulse 2s infinite; }
+        .transition-text { font-family: var(--font-display); font-size: 40px; color: var(--c-green); text-shadow: 0 0 20px var(--c-green); animation: pulse 2s infinite; }
 
-        /* מסך סיום וקרדיטים */
-        .credits-list { list-style: none; padding: 0; text-align: center; }
-        .credits-list li { margin-bottom: 15px; border-bottom: 1px dashed #333; padding-bottom: 10px; }
-        .role { display: block; font-size: 14px; color: var(--c-cyan); margin-bottom: 2px; }
+        /* GAME OVER */
+        #game-over h1 { color: var(--c-red); text-shadow: 0 0 20px var(--c-red); font-size: 50px; }
+
+        /* CREDITS */
+        .credits-ul { list-style: none; padding: 0; text-align: center; }
+        .credits-ul li { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .role { display: block; font-size: 12px; color: var(--c-cyan); }
         .name { font-size: 20px; color: #fff; font-weight: bold; }
 
         /* * ==========================================================================
-         * 3. ממשק המשחק (GAME UI)
-         * ==========================================================================
-         */
-        #game-ui {
-            display: grid; grid-template-columns: 1fr var(--sidebar-w);
-            grid-template-rows: var(--header-h) 1fr; width: 100%; height: 100%;
-            opacity: 0; transition: opacity 1s;
-        }
+         * 3. GAME UI
+         * ========================================================================== */
+        #game-ui { display: grid; grid-template-columns: 1fr var(--sidebar-w); grid-template-rows: var(--header-h) 1fr; width: 100%; height: 100%; opacity: 0; transition: opacity 1s; }
         #game-ui.visible { opacity: 1; }
 
-        /* HEADER */
-        header {
-            grid-column: 1 / -1; background: var(--bg-panel); border-bottom: 1px solid var(--border-dim);
-            display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 100;
-        }
-        .logo h1 { font-family: var(--font-display); font-size: 24px; color: var(--c-gold); margin: 0; }
+        /* HEADER & TIMER */
+        header { grid-column: 1 / -1; background: var(--bg-panel); border-bottom: 1px solid var(--border-dim); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 100; }
+        .logo h1 { font-family: var(--font-display); font-size: 22px; color: var(--c-gold); margin: 0; }
         
-        #timer-display { font-family: var(--font-code); font-size: 36px; color: var(--c-red); font-weight: bold; text-shadow: 0 0 10px var(--c-red); }
-        .timer-label { font-size: 12px; color: #666; display: block; text-align: center; }
+        #timer-display { font-family: var(--font-code); font-size: 32px; color: var(--c-red); font-weight: bold; text-shadow: 0 0 10px var(--c-red); letter-spacing: 2px; }
+        .timer-label { font-size: 12px; color: #666; display: block; text-align: center; line-height: 1; }
 
         /* VIEWPORT */
-        #viewport { position: relative; background: #000; overflow: hidden; border-left: 1px solid var(--border-dim); cursor: crosshair; }
-        
-        .layer { 
-            position: absolute; top:0; left:0; width:100%; height:100%; 
-            background-size: cover; background-position: center; 
-            transition: opacity 1.5s; opacity: 0; z-index: 1; 
-        }
+        #viewport { position: relative; background: #000; overflow: hidden; border-left: 1px solid #333; cursor: crosshair; }
+        .layer { position: absolute; top:0; left:0; width:100%; height:100%; background-size: cover; background-position: center; transition: opacity 1.5s; opacity: 0; z-index: 1; }
         #layer-train { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); opacity: 1; }
         #layer-hall { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); filter: brightness(0.4) sepia(1); }
         #layer-eng { background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png'); filter: brightness(0.3); }
 
-        /* HOTSPOTS */
         #hotspots { position: absolute; top:0; left:0; width:100%; height:100%; z-index: 20; }
-        
-        .hotspot {
-            position: absolute; width: 70px; height: 70px;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.3s;
-        }
-        .hs-ring { position: absolute; width: 100%; height: 100%; border: 2px dashed var(--c-gold); border-radius: 50%; animation: spin 4s linear infinite; }
-        .hs-core { width: 12px; height: 12px; background: var(--c-gold); box-shadow: 0 0 15px var(--c-gold); transform: rotate(45deg); }
+        .hotspot { position: absolute; width: 64px; height: 64px; display: flex; justify-content: center; align-items: center; cursor: pointer; border-radius: 50%; transition: 0.3s; }
+        .hs-ring { position: absolute; width: 100%; height: 100%; border: 1px dashed var(--c-gold); border-radius: 50%; animation: spin 4s linear infinite; }
+        .hs-core { width: 10px; height: 10px; background: var(--c-gold); box-shadow: 0 0 10px var(--c-gold); transform: rotate(45deg); }
         .hotspot:hover { transform: scale(1.1); } .hotspot:hover .hs-core { background: #fff; }
 
-        /* Locations */
+        /* Coordinates */
         #hs-case { top: 68%; left: 75%; }
-        #hs-seat { top: 62%; left: 20%; }
-        #hs-vent { top: 8%; left: 50%; width: 150px; height: 90px; }
+        #hs-seat { top: 62%; left: 22%; }
+        #hs-vent { top: 8%; left: 50%; width: 140px; height: 80px; }
         #hs-junk { top: 75%; left: 35%; display:none; }
         #hs-panel { top: 45%; left: 12%; display:none; }
-        #hs-door { top: 35%; left: 50%; width: 100px; height: 180px; display:none; }
+        #hs-door { top: 35%; left: 50%; width: 90px; height: 150px; display:none; }
         #hs-closet { top: 55%; left: 15%; display:none; }
         #hs-enemy { top: 40%; left: 65%; width: 100px; height: 220px; display:none; }
 
         /* SIDEBAR */
-        aside {
-            background: var(--bg-panel); border-left: 1px solid var(--border-dim);
-            display: flex; flex-direction: column; padding: 20px; gap: 15px; z-index: 50;
-        }
-        .panel { border: 1px solid var(--border-dim); padding: 15px; border-radius: 4px; background: rgba(255,255,255,0.02); }
-        .p-head { color: var(--c-gold); font-size: 14px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; font-weight: bold; }
-
-        /* LOG */
-        #log-feed { height: 120px; overflow-y: auto; font-size: 14px; line-height: 1.5; color: #bbb; }
-        .log-entry { margin-bottom: 8px; border-bottom: 1px dashed #222; padding-bottom: 4px; animation: fadeIn 0.3s; }
-
+        aside { background: var(--bg-panel); border-left: 1px solid #333; display: flex; flex-direction: column; padding: 20px; gap: 15px; z-index: 50; }
+        .panel { border: 1px solid #333; padding: 10px; border-radius: 4px; background: rgba(255,255,255,0.02); }
+        .p-head { color: var(--c-gold); font-size: 12px; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 5px; margin-bottom: 10px; }
+        
         /* CRAFTING */
         .craft-wrap { display: flex; gap: 5px; margin-bottom: 10px; }
-        .c-slot { flex: 1; aspect-ratio: 1; border: 1px dashed #555; display: flex; justify-content: center; align-items: center; font-size: 24px; color: #555; background: #000; }
-        .c-slot.filled { border-color: var(--c-gold); color: #fff; box-shadow: inset 0 0 10px rgba(255, 183, 0, 0.2); }
-        #btn-craft { width: 100%; padding: 12px; background: #222; border: none; color: #555; font-weight: bold; cursor: not-allowed; transition: 0.3s; }
+        .c-slot { flex: 1; aspect-ratio: 1; border: 1px dashed #555; display: flex; justify-content: center; align-items: center; font-size: 24px; color: #555; }
+        .c-slot.filled { border-color: var(--c-gold); color: #fff; }
+        #btn-craft { width: 100%; padding: 10px; background: #222; border: none; color: #555; font-weight: bold; cursor: not-allowed; }
         #btn-craft.ready { background: var(--c-gold); color: #000; cursor: pointer; }
 
         /* INVENTORY */
         #inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .inv-slot { aspect-ratio: 1; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; background: #000; }
+        .inv-slot { aspect-ratio: 1; border: 1px solid #333; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; }
         .inv-slot.sel { border-color: var(--c-green); box-shadow: inset 0 0 10px rgba(0,255,157,0.2); }
 
         /* * ==========================================================================
          * 4. MODALS & RIDDLES
-         * ==========================================================================
-         */
-        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 3000; display: none; justify-content: center; align-items: center; padding: 20px; }
+         * ========================================================================== */
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.9); z-index: 3000; display: none; justify-content: center; align-items: center; padding: 15px; }
         .modal.open { display: flex; }
-        
-        .riddle-box { background: #0b0c10; border: 2px solid var(--c-cyan); width: 100%; max-width: 500px; padding: 25px; border-radius: 8px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); text-align: right; }
-        .riddle-q { font-size: 20px; color: #fff; margin-bottom: 20px; line-height: 1.4; font-weight: bold; }
-        .riddle-opt { display: block; width: 100%; padding: 15px; margin-bottom: 10px; background: rgba(0, 242, 255, 0.1); border: 1px solid #333; color: #ccc; cursor: pointer; text-align: right; transition: 0.2s; font-size: 16px; }
+        .riddle-box { background: #0b0c10; border: 2px solid var(--c-cyan); width: 100%; max-width: 500px; padding: 20px; border-radius: 8px; box-shadow: 0 0 30px rgba(0, 242, 255, 0.2); }
+        .riddle-q { font-size: 18px; color: #fff; margin-bottom: 20px; line-height: 1.4; }
+        .riddle-opt { display: block; width: 100%; padding: 12px; margin-bottom: 10px; background: rgba(0, 242, 255, 0.1); border: 1px solid #333; color: #ccc; cursor: pointer; text-align: right; transition: 0.2s; }
         .riddle-opt:hover { background: rgba(0, 242, 255, 0.3); color: #fff; border-color: var(--c-cyan); }
-
-        .minigame-box { background: #0b0c10; border: 2px solid var(--c-gold); padding: 20px; border-radius: 8px; text-align: center; width: 100%; max-width: 500px; }
-        
-        /* Wave Game */
-        #wave-cvs { width: 100%; height: 150px; background: #000; border: 1px solid #333; margin-bottom: 10px; }
-        
-        /* Sonar Game */
-        #sonar-ui { width: 250px; height: 250px; border-radius: 50%; border: 2px solid var(--c-green); margin: 0 auto; position: relative; overflow: hidden; background: radial-gradient(#002200, #000); }
-        #sonar-sweep { position: absolute; width: 100%; height: 100%; background: conic-gradient(transparent, rgba(0,255,0,0.5)); border-radius: 50%; animation: spin 2s linear infinite; }
-        #sonar-blip { position: absolute; width: 15px; height: 15px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px #fff; opacity: 0; cursor: pointer; }
 
         /* Mobile */
         @media (max-width: 900px) {
-            #game-ui { grid-template-columns: 1fr; grid-template-rows: 60px 1fr 300px; }
-            aside { border-left: none; border-top: 1px solid #333; padding: 10px; gap: 10px; }
+            #game-ui { grid-template-columns: 1fr; grid-template-rows: 60px 1fr 260px; }
+            aside { border-left: none; border-top: 1px solid #333; padding: 10px; }
             #inventory-grid { grid-template-columns: repeat(6, 1fr); overflow-x: auto; padding-bottom: 5px; }
-            .inv-slot { font-size: 24px; min-width: 50px; }
-            #log-feed { height: 70px; }
-            .hotspot { width: 80px; height: 80px; }
+            .inv-slot { font-size: 22px; min-width: 50px; }
+            #timer-display { font-size: 24px; }
         }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -211,34 +147,30 @@
             <h1 class="title-large">פרוטוקול העוקץ</h1>
             <div class="text-content">
                 <p>נכנסת לחדר בריחה ויש לך <strong>שלוש דקות בלבד</strong> לסיים אותו!</p>
-                <p>הדממה בקרון מספר 5 הופרה. אדים ירקרקים זולגים מהתקרה. הדלתות נעולות.</p>
-                <p><strong>המשימה:</strong> בתור מהנדס מכונות, עליך לאסוף רכיבים, לענות על חידות ביומימטיות ולבנות כלים כדי לפרוץ לקטר ולהציל את הנוסעים.</p>
+                <p>הדממה בקרון הופרה. גז רעיל משתחרר. עליך לאסוף רכיבים, לענות על חידות ביומימטיות ולבנות כלים כדי לשרוד.</p>
                 <p>כל טעות בחידה תעלה לך בזמן יקר.</p>
             </div>
-            <button class="btn-main" onclick="Game.start()">התחל אתגר (03:00)</button>
+            <button class="btn-base" onclick="Game.start()">התחל אתגר (03:00)</button>
         </div>
     </div>
 
     <div id="game-over" class="screen-layer">
-        <h1 style="color:var(--c-red); font-size:50px;">הזמן נגמר</h1>
-        <p style="color:#ccc; font-size:24px;">נכשלת במשימה.</p>
-        <button class="btn-main" onclick="location.reload()" style="max-width:300px; margin-top:20px;">נסה שוב</button>
+        <h1>הזמן נגמר</h1>
+        <p style="font-size: 20px; color: #ccc;">נכשלת במשימה.</p>
+        <button class="btn-base" onclick="location.reload()" style="margin-top:20px; border-color:var(--c-red); color:var(--c-red);">נסה שוב</button>
     </div>
 
     <div id="transition-screen" class="screen-layer">
-        <div class="trans-text" id="trans-text">עברת את קראון 1 בהצלחה</div>
+        <div class="transition-text" id="trans-text">עברת את קראון 1 בהצלחה</div>
     </div>
 
     <div id="credits-screen" class="screen-layer">
         <div class="info-card">
-            <h1 class="title-large" style="color:var(--c-green)">משימה הושלמה!</h1>
-            <div style="text-align:center; color:#ccc; margin-bottom:20px; font-size:18px;">
-                הנוגדן הושג. הנחיל נוטרל. הצלת את הרכבת בזכות התושייה ההנדסית שלך.
-            </div>
-            <ul class="credits-list">
+            <h1 class="title-large" style="color:var(--c-green)">כל הכבוד!</h1>
+            <ul class="credits-ul">
                 <li>
                     <span class="role">נבנה על ידי</span>
-                    <span class="name">עידן אברבוך בעזרת Gemini</span>
+                    <span class="name">עידן אברבוך (בעזרת Gemini)</span>
                 </li>
                 <li>
                     <span class="role">חומר ובניית סיפור</span>
@@ -249,17 +181,17 @@
                     <span class="name">עידן אברבוך, יואב פלדמן, סהר חדד</span>
                 </li>
             </ul>
-            <button class="btn-main" onclick="location.reload()">התחל מחדש</button>
+            <button class="btn-base" onclick="location.reload()">התחל מחדש</button>
         </div>
     </div>
 
     <div id="game-ui">
         <header>
             <div class="logo">
-                <h1 style="color:var(--c-gold)">פרוטוקול העוקץ</h1>
+                <h1>MIVTZA CULEX</h1>
             </div>
             <div>
-                <span class="timer-label" style="font-size:12px; color:#666;">זמן נותר</span>
+                <span class="timer-label">זמן נותר</span>
                 <div id="timer-display">03:00</div>
             </div>
         </header>
@@ -271,12 +203,9 @@
 
             <div id="hotspots">
                 <div class="hotspot" id="hs-case" data-id="case" style="top:70%; left:75%;"><div class="hs-ring"></div><div class="hs-core"></div></div>
-                <div class="hotspot" id="hs-seat" data-id="seat" style="top:60%; left:20%;"><div class="hs-ring"></div><div class="hs-core"></div></div>
-                <div class="hotspot" id="hs-vent" data-id="vent" style="top:8%; left:50%; width:150px; height:80px;"><div class="hs-ring" style="border-radius:10px;"></div></div>
+                <div class="hotspot" id="hs-seat" data-id="seat" style="top:60%; left:20%;"><div class="hs-ring"></div><div class="hs-core"></div></div> <div class="hotspot" id="hs-vent" data-id="vent" style="top:8%; left:50%; width:150px; height:80px;"><div class="hs-ring" style="border-radius:10px;"></div></div>
 
-                <div class="hotspot" id="hs-junk" data-id="junk" style="top:80%; left:30%; display:none;"><div class="hs-ring"></div><div class="hs-core"></div></div>
-                <div class="hotspot" id="hs-panel" data-id="panel" style="top:50%; left:15%; display:none;"><div class="hs-ring"></div><div class="hs-core"></div></div>
-                <div class="hotspot" id="hs-door" data-id="door" style="top:35%; left:50%; width:100px; height:180px; display:none;"><div class="hs-ring" style="border-radius:5px;"></div></div>
+                <div class="hotspot" id="hs-junk" data-id="junk" style="top:80%; left:30%; display:none;"><div class="hs-ring"></div><div class="hs-core"></div></div> <div class="hotspot" id="hs-panel" data-id="panel" style="top:50%; left:15%; display:none;"><div class="hs-ring"></div><div class="hs-core"></div></div> <div class="hotspot" id="hs-door" data-id="door" style="top:35%; left:50%; width:100px; height:180px; display:none;"><div class="hs-ring" style="border-radius:5px;"></div></div>
 
                 <div class="hotspot" id="hs-closet" data-id="closet" style="top:60%; left:15%; display:none;"><div class="hs-ring"></div><div class="hs-core"></div></div>
                 <div class="hotspot" id="hs-enemy" data-id="enemy" style="top:40%; left:65%; width:100px; height:220px; display:none; opacity:0; cursor:default;"></div>
@@ -286,13 +215,13 @@
         <aside>
             <div class="panel" style="flex:1;">
                 <div class="p-head">יומן משימה</div>
-                <div id="log-feed">
-                    <div class="log-entry">המערכת מוכנה. המתן לתחילת משימה.</div>
+                <div id="log-feed" style="height:100%; overflow-y:auto; font-size:14px; color:#ccc;">
+                    > המתן לתחילת משימה...
                 </div>
             </div>
 
             <div class="panel">
-                <div class="p-head">שולחן הרכבה (בחר 3)</div>
+                <div class="p-head">שולחן הרכבה</div>
                 <div class="craft-wrap">
                     <div class="c-slot" id="slot-0"></div>
                     <div class="c-slot" id="slot-1"></div>
@@ -310,98 +239,81 @@
 
     <div id="modal-riddle" class="modal">
         <div class="riddle-box">
-            <h2 style="color:var(--c-cyan); margin-top:0;">אתגר ידע ביומימטי</h2>
+            <h2 style="color:var(--c-cyan); margin-top:0;">אתגר ידע</h2>
             <p id="riddle-q" class="riddle-q"></p>
             <div id="riddle-opts"></div>
         </div>
     </div>
 
-    <div id="modal-msg" class="modal">
-        <div class="minigame-box">
-            <h3 style="color:var(--c-gold)">הודעת מערכת</h3>
-            <p id="msg-text" style="color:#ccc; font-size:18px;"></p>
-            <button class="btn-main" style="padding:10px; font-size:16px;" onclick="Modal.close('modal-msg')">אישור</button>
-        </div>
-    </div>
-
-    <div id="modal-wave" class="modal">
-        <div class="minigame-box">
-            <h3>כיול מקדח רטט</h3>
-            <p style="color:#aaa;">הזז את המחוון כדי לסנכרן את הגלים.</p>
-            <canvas id="wave-cvs"></canvas>
-            <input type="range" id="wave-slider" min="0" max="100" value="50" style="width:100%">
-            <div id="wave-stat" style="margin-top:10px; font-weight:bold; color:red;">לא מסונכרן</div>
-        </div>
-    </div>
-
-    <div id="modal-sonar" class="modal">
-        <div class="minigame-box">
-            <h3>איתור בחושך</h3>
-            <p style="color:#aaa;">הקשב. לחץ על הנקודה כשהיא מופיעה.</p>
-            <div id="sonar-ui">
-                <div id="sonar-sweep"></div>
-                <div id="sonar-blip"></div>
-            </div>
-        </div>
-    </div>
-
     <script>
-        /** DATABASE & STATE **/
+        /** DATABASE **/
         const DB = {
             Items: {
-                MOTOR: { id: 'MOTOR', icon: '⚙️' },
-                NEEDLE: { id: 'NEEDLE', icon: '📍' }, // Riddle 1
-                BATTERY: { id: 'BATTERY', icon: '🔋' },
-                DRILL: { id: 'DRILL', icon: '🦟', tool: true },
+                MOTOR: { id:'MOTOR', icon:'⚙️' },
+                NEEDLE: { id:'NEEDLE', icon:'📍' }, // Riddle 1
+                BATTERY: { id:'BATTERY', icon:'🔋' },
+                DRILL: { id:'DRILL', icon:'🦟', tool:true },
                 
-                LENS: { id: 'LENS', icon: '👓' },
-                PARTS: { id: 'PARTS', icon: '🚁' }, // Riddle 2
-                SENSOR: { id: 'SENSOR', icon: '🌡️' }, // Riddle 3
-                GOGGLES: { id: 'GOGGLES', icon: '🕶️', tool: true },
+                LENS: { id:'LENS', icon:'👓' },
+                PARTS: { id:'PARTS', icon:'🚁' }, // Riddle 2
+                SENSOR: { id:'SENSOR', icon:'🌡️' }, // Riddle 3
+                GOGGLES: { id:'GOGGLES', icon:'🕶️', tool:true },
                 
-                MIC: { id: 'MIC', icon: '🎙️' },
-                HEADSET: { id: 'HEADSET', icon: '🎧' },
-                WIRE: { id: 'WIRE', icon: '🔌' },
-                SONAR: { id: 'SONAR', icon: '📡', tool: true }
+                MIC: { id:'MIC', icon:'🎙️' },
+                HEADSET: { id:'HEADSET', icon:'🎧' },
+                WIRE: { id:'WIRE', icon:'🔌' },
+                SONAR: { id:'SONAR', icon:'📡', tool:true }
             },
             Riddles: [
                 {
+                    id: 1,
                     q: "איזה מסוגי המחטים הבאים אינו מכאיב? (רמז: את המחט של היתוש לא ניתן להרגיש)",
                     opts: ["מחט מחוספס ורוטט", "מחט לעירוי דם", "מחט לביופסיה", "מחט בדיקת דם"],
-                    ans: 0, reward: 'NEEDLE'
+                    ans: 0, // Index 0 is correct
+                    reward: 'NEEDLE'
                 },
                 {
+                    id: 2,
                     q: "מהו היתרון המבצעי העיקרי של רחפן הבנוי כמו יתוש? (רמז: כשהיתוש קשה להבחין בו)",
-                    opts: ["יכולת לטוס לחלל", "יכולת לשאת טנקים", "יכולת תמרון גבוהה ויציבות ברוחות", "מהירות על-קולית"],
-                    ans: 2, reward: 'PARTS'
+                    opts: ["יכולת לטוס לחלל", "יכולת לשאת טנקים", "יכולת תמרון גבוהה בחללים צפופים ויציבות ברוחות", "מהירות על-קולית"],
+                    ans: 2,
+                    reward: 'PARTS'
                 },
                 {
+                    id: 3,
                     q: "היתוש מסוגל לאתר בני אדם ממרחק רב בעיקר בזכות זיהוי של:",
-                    opts: ["תנועות גוף מהירות", "צבע הבגדים", "פליטת פחמן דו-חמצני (CO2)", "גלי רדיו"],
-                    ans: 2, reward: 'SENSOR'
+                    opts: ["תנועות גוף מהירות", "צבע הבגדים", "פליטת פחמן דו-חמצני (CO2) בנשימה", "גלי רדיו"],
+                    ans: 2,
+                    reward: 'SENSOR'
                 }
             ]
         };
 
         const State = { phase: 1, inventory: [], craft: [], solved: [], time: 180, timerId: null };
 
-        /** LOGIC **/
+        /** GAME LOGIC **/
         const Game = {
             start() {
                 document.getElementById('intro-screen').style.display = 'none';
-                document.getElementById('game-ui').style.opacity = 1;
+                document.getElementById('game-ui').classList.add('visible');
                 Inventory.init();
-                Story.log("המשימה החלה. יש לך 3 דקות!");
+                this.log("המשימה החלה. יש לך 3 דקות!");
                 
+                // Start Timer
                 State.timerId = setInterval(() => {
                     State.time--;
                     const m = Math.floor(State.time / 60);
                     const s = State.time % 60;
-                    document.getElementById('timer-display').innerText = `0${m}:${s<10?'0'+s:s}`;
+                    document.getElementById('timer-display').innerText = 
+                        `0${m}:${s < 10 ? '0'+s : s}`;
+                    
                     if(State.time <= 0) this.gameOver();
                 }, 1000);
 
-                document.querySelectorAll('.hotspot').forEach(el => el.onclick = () => this.handleSpot(el.dataset.id));
+                // Hotspot Listeners
+                document.querySelectorAll('.hotspot').forEach(el => {
+                    el.onclick = () => this.handleSpot(el.dataset.id);
+                });
             },
 
             handleSpot(id) {
@@ -409,36 +321,39 @@
 
                 // PHASE 1
                 if(id === 'case') this.collect(['MOTOR','BATTERY'], id);
-                if(id === 'seat') this.triggerRiddle(0, id);
+                if(id === 'seat') this.triggerRiddle(0, id); // Riddle 1 -> NEEDLE
                 if(id === 'vent') {
                     if(Inventory.has('DRILL')) {
                         this.log("הדיזה נפרצה!");
-                        Minigames.wave(); // משחק גלים כדי לפרוץ
-                    } else Modal.msg("שגיאה", "צריך מקדח רטט כדי לחדור!");
+                        this.showTrans("עברת את קראון 1 בהצלחה", () => this.phase2());
+                    } else alert("צריך מקדח רטט!");
                 }
 
                 // PHASE 2
-                if(id === 'junk') this.triggerRiddle(1, id); // Bonus: LENS comes with parts
-                if(id === 'panel') this.triggerRiddle(2, id);
+                if(id === 'junk') this.triggerRiddle(1, id); // Riddle 2 -> PARTS (Bonus: LENS)
+                if(id === 'panel') this.triggerRiddle(2, id); // Riddle 3 -> SENSOR
                 if(id === 'door') {
-                    if(Inventory.has('GOGGLES')) this.showTrans("עברת את קראון 2 בהצלחה", () => this.phase3());
-                    else Modal.msg("סכנה", "חושך מוחלט. צריך ראייה תרמית.");
+                    if(Inventory.has('GOGGLES')) {
+                        this.showTrans("עברת את קראון 2 בהצלחה", () => this.phase3());
+                    } else alert("חושך מוחלט. צריך ראייה תרמית.");
                 }
 
                 // PHASE 3
                 if(id === 'closet') this.collect(['MIC','HEADSET','WIRE'], id);
                 if(id === 'enemy') {
-                    if(Inventory.has('SONAR')) Minigames.sonar();
-                    else Modal.msg("חושך", "אי אפשר למצוא אותו בלי סונאר!");
+                    if(Inventory.has('SONAR')) this.win();
+                    else alert("אי אפשר למצוא אותו בלי סונאר!");
                 }
             },
 
             triggerRiddle(idx, spotId) {
                 const r = DB.Riddles[idx];
                 const box = document.getElementById('modal-riddle');
-                document.getElementById('riddle-q').innerText = r.q;
-                const opts = document.getElementById('riddle-opts');
-                opts.innerHTML = '';
+                const qEl = document.getElementById('riddle-q');
+                const optsEl = document.getElementById('riddle-opts');
+                
+                qEl.innerText = r.q;
+                optsEl.innerHTML = '';
                 
                 r.opts.forEach((opt, i) => {
                     const btn = document.createElement('div');
@@ -447,15 +362,17 @@
                     btn.onclick = () => {
                         if(i === r.ans) {
                             box.classList.remove('open');
-                            if(r.reward === 'PARTS') this.collect(['PARTS','LENS'], spotId);
+                            // Logic specific to items
+                            if(r.reward === 'PARTS') this.collect(['PARTS','LENS'], spotId); // Bonus logic
                             else this.collect([r.reward], spotId);
                         } else {
-                            alert("תשובה שגויה! ירדו 10 שניות.");
-                            State.time -= 10;
+                            alert("תשובה שגויה! נסה שוב.");
+                            State.time -= 10; // Penalty
                         }
                     };
-                    opts.appendChild(btn);
+                    optsEl.appendChild(btn);
                 });
+                
                 box.classList.add('open');
             },
 
@@ -480,24 +397,23 @@
                 State.phase = 2;
                 document.getElementById('layer-train').style.opacity = 0;
                 document.getElementById('layer-hall').style.opacity = 1;
+                
                 ['vent','case','seat'].forEach(id => document.querySelector(`[data-id="${id}"]`).style.display = 'none');
                 ['junk','panel','door'].forEach(id => document.querySelector(`[data-id="${id}"]`).style.display = 'flex');
-                this.log("נכנסת למסדרון החשוך.");
             },
 
             phase3() {
                 State.phase = 3;
                 document.getElementById('layer-hall').style.opacity = 0;
                 document.getElementById('layer-eng').style.opacity = 1;
+                
                 ['junk','panel','door'].forEach(id => document.querySelector(`[data-id="${id}"]`).style.display = 'none');
                 ['closet','enemy'].forEach(id => document.querySelector(`[data-id="${id}"]`).style.display = 'flex');
-                this.log("הגעת לקטר. ארקדיוס כאן.");
             },
 
             log(txt) {
-                const div = document.createElement('div');
-                div.className = 'log-entry'; div.innerHTML = `> ${txt}`;
-                document.getElementById('log-feed').prepend(div);
+                document.getElementById('log-feed').innerHTML += `<div>> ${txt}</div>`;
+                document.getElementById('log-feed').scrollTop = 9999;
             },
 
             gameOver() {
@@ -511,7 +427,7 @@
             }
         };
 
-        /** INVENTORY & CRAFTING **/
+        /** INVENTORY SYSTEM **/
         const Inventory = {
             init() {
                 const g = document.getElementById('inv-grid');
@@ -547,75 +463,18 @@
         const Crafting = {
             update() {
                 [0,1,2].forEach(i => document.getElementById(`slot-${i}`).innerText = State.craft[i]!==undefined ? State.inventory[State.craft[i]].icon : '');
-                const btn = document.getElementById('btn-craft');
-                btn.className = State.craft.length===3 ? 'ready' : '';
+                document.getElementById('btn-craft').className = State.craft.length===3 ? 'btn-base' : 'btn-base';
+                document.getElementById('btn-craft').style.opacity = State.craft.length===3 ? 1 : 0.5;
             },
             craft() {
                 if(State.craft.length!==3) return;
                 const ids = State.craft.map(i => State.inventory[i].id);
-                if(this.check(ids,['MOTOR','NEEDLE','BATTERY'])) { Inventory.consume(); Inventory.add(DB.Items.DRILL); Game.log("בנית מקדח רטט"); }
-                else if(this.check(ids,['LENS','SENSOR','PARTS'])) { Inventory.consume(); Inventory.add(DB.Items.GOGGLES); Game.log("בנית משקפי תרמי"); }
-                else if(this.check(ids,['MIC','HEADSET','WIRE'])) { Inventory.consume(); Inventory.add(DB.Items.SONAR); Game.log("בנית סורק שמע"); }
-                else Modal.msg("שגיאה", "שילוב לא חוקי");
+                if(this.check(ids,['MOTOR','NEEDLE','BATTERY'])) { Inventory.consume(); Inventory.add(DB.Items.DRILL); Game.log("נוצר: מקדח רטט"); }
+                else if(this.check(ids,['LENS','SENSOR','PARTS'])) { Inventory.consume(); Inventory.add(DB.Items.GOGGLES); Game.log("נוצר: משקפי תרמי"); }
+                else if(this.check(ids,['MIC','HEADSET','WIRE'])) { Inventory.consume(); Inventory.add(DB.Items.SONAR); Game.log("נוצר: סורק שמע"); }
+                else alert("שילוב לא חוקי");
             },
             check(sel, req) { return req.every(r => sel.includes(r)); }
-        };
-
-        /** MINIGAMES **/
-        const Minigames = {
-            wave() {
-                Modal.open('modal-wave');
-                setTimeout(() => {
-                    const cvs = document.getElementById('wave-cvs');
-                    const ctx = cvs.getContext('2d');
-                    cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
-                    const rng = document.getElementById('wave-slider');
-                    let val = 50, t = 0;
-                    rng.oninput = (e) => val = parseInt(e.target.value);
-
-                    function loop() {
-                        if(!document.getElementById('modal-wave').classList.contains('open')) return;
-                        ctx.fillStyle = '#000'; ctx.fillRect(0,0,cvs.width,cvs.height);
-                        t += 0.2;
-                        
-                        ctx.strokeStyle = '#00ff9d'; ctx.beginPath();
-                        for(let x=0; x<cvs.width; x++) ctx.lineTo(x, 75 + Math.sin((x+t*5)*0.1)*40);
-                        ctx.stroke();
-
-                        const diff = Math.abs(val - 72);
-                        ctx.strokeStyle = diff < 5 ? '#ffb700' : '#00f2ff';
-                        ctx.beginPath();
-                        for(let x=0; x<cvs.width; x++) ctx.lineTo(x, 75 + Math.sin((x+t*5)*(val/500))*40);
-                        ctx.stroke();
-
-                        if (diff < 5) {
-                            setTimeout(() => { 
-                                Modal.close('modal-wave'); 
-                                Game.showTrans("עברת את קראון 1 בהצלחה", () => Game.phase2());
-                            }, 1000);
-                        }
-                        requestAnimationFrame(loop);
-                    }
-                    loop();
-                }, 100);
-            },
-            sonar() {
-                Modal.open('modal-sonar');
-                const blip = document.getElementById('sonar-blip');
-                setInterval(() => {
-                    const x = 125 + 80 * Math.cos(Date.now()/1000);
-                    const y = 125 + 80 * Math.sin(Date.now()/1000);
-                    blip.style.left = (x-7)+'px'; blip.style.top = (y-7)+'px';
-                    blip.style.opacity = (Math.sin(Date.now()/100)>0.8) ? 1 : 0;
-                }, 50);
-                blip.onclick = () => { Modal.close('modal-sonar'); Game.win(); };
-            }
-        };
-
-        const Modal = { 
-            msg(t, txt) { document.getElementById('msg-text').innerText=txt; document.getElementById('modal-msg').classList.add('open'); }, 
-            open(id) { document.getElementById(id).classList.add('open'); },
-            close(id) { document.getElementById(id).classList.remove('open'); }
         };
 
     </script>
