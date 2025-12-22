@@ -2,659 +2,464 @@
 <html lang="he" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>פרוטוקול העוקץ | מערכת יציבה</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>פרוטוקול העוקץ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700&family=Heebo:wght@400;700&display=swap" rel="stylesheet">
     
-    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&family=Heebo:wght@300;400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
     <style>
-        /* * ==========================================================================
-         * 1. CORE STYLES & RESET
-         * ========================================================================== */
         :root {
-            --bg-void: #000000;
-            --bg-panel: #111111;
-            --border-dim: #333333;
-            
-            --c-gold: #ffb700; 
-            --c-cyan: #00f2ff;
-            --c-red: #ff3333;
-            --c-green: #00ff9d;
-
-            --sidebar-w: 350px; /* רוחב קבוע לסרגל */
-            --header-h: 70px;
-            
-            --font-ui: 'Heebo', sans-serif;
-            --font-display: 'Rubik', sans-serif;
-            --font-code: 'Share Tech Mono', monospace;
+            --bg-color: #121212;
+            --panel-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --accent: #4caf50; /* ירוק */
+            --highlight: #ffc107; /* זהב */
+            --danger: #f44336; /* אדום */
         }
 
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
+        * { box-sizing: border-box; user-select: none; }
+
+        body {
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            font-family: 'Heebo', sans-serif;
+            height: 100vh; width: 100vw; overflow: hidden;
+            display: flex; flex-direction: column;
         }
 
-        body, html {
-            width: 100%; height: 100%; margin: 0; padding: 0;
-            background-color: var(--bg-void); color: #e0e0e0;
-            font-family: var(--font-ui); overflow: hidden;
-            /* תיקון לגלילה באייפון */
-            position: fixed; 
+        /* --- מסכים (פתיחה / סיום / מעבר) --- */
+        .overlay-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95); z-index: 2000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 20px; text-align: center;
         }
-
-        /* Scanlines */
-        .scanlines {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 3px; pointer-events: none; z-index: 9999; opacity: 0.5;
-        }
-
-        /* * ==========================================================================
-         * 2. MAIN LAYOUT (FLEXBOX FIX)
-         * ========================================================================== */
-        #app-container {
-            display: flex; /* שימוש ב-Flex במקום Grid למניעת שבירה */
-            flex-direction: column;
-            width: 100%; height: 100%;
-        }
-
-        /* HEADER */
-        #header {
-            height: var(--header-h);
-            background: var(--bg-panel);
-            border-bottom: 2px solid var(--border-dim);
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 20px; z-index: 100; flex-shrink: 0;
-        }
-        .logo h1 { font-family: var(--font-display); font-size: 22px; color: var(--c-gold); margin: 0; text-transform: uppercase; }
         
-        .timer-box { text-align: center; border: 1px solid #333; padding: 5px 15px; border-radius: 4px; background: #000; }
-        .timer-label { font-size: 10px; color: #888; display: block; }
-        #timer-val { font-family: var(--font-code); font-size: 24px; color: var(--c-red); font-weight: bold; }
-
-        /* CONTENT WRAPPER */
-        #content-area {
-            display: flex;
-            flex: 1; /* תופס את שאר הגובה */
-            overflow: hidden;
-            position: relative;
+        .info-box {
+            background: var(--panel-bg); border: 2px solid var(--highlight);
+            padding: 30px; border-radius: 10px; max-width: 600px; width: 100%;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
-        /* VIEWPORT (המשחק עצמו - צד ימין) */
+        .title { font-family: 'Rubik'; font-size: 2rem; color: var(--highlight); margin-bottom: 20px; }
+        .text { font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px; }
+        
+        .btn {
+            background: var(--highlight); color: #000; border: none;
+            padding: 12px 30px; font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; border-radius: 5px; transition: 0.2s;
+        }
+        .btn:hover { background: #fff; }
+
+        /* --- ממשק המשחק --- */
+        #game-container {
+            display: flex; flex: 1; height: 100%;
+            /* במובייל - עמודה, במחשב - שורה */
+            flex-direction: row; 
+        }
+
+        /* צד ימין - תמונה */
         #viewport {
-            flex: 1; /* תופס את כל הרוחב הפנוי */
-            position: relative;
-            background: #000;
-            overflow: hidden;
-            cursor: crosshair;
+            flex: 2; position: relative; background: #000; overflow: hidden;
+            border-left: 2px solid #333;
         }
 
-        /* שכבות רקע - תיקון מתיחה */
-        .layer {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover; background-position: center center; background-repeat: no-repeat;
-            transition: opacity 1s; opacity: 0; z-index: 1;
+        .bg-image {
+            width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transition: opacity 1s; position: absolute; top:0; left:0;
         }
         
-        #layer-train { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); opacity: 1; }
-        #layer-hall { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); filter: brightness(0.5); }
-        #layer-eng { background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png'); filter: brightness(0.4); }
+        #bg-train { background-image: url('https://i.ibb.co/7tQt5S0h/Gemini-Generated-Image-prcu4rprcu4rprcu.png'); z-index: 1; }
+        #bg-hall { background-image: url('https://i.ibb.co/svJJmvYr/Gemini-Generated-Image-l4kaehl4kaehl4ka.png'); filter: brightness(0.5); z-index: 1; opacity: 0; }
+        #bg-lab { background-image: url('https://i.ibb.co/d04yrgRx/Gemini-Generated-Image-j02tg6j02tg6j02t.png'); z-index: 1; opacity: 0; }
 
-        /* אפקטים */
-        #fx-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 6; opacity: 0; transition: 0.5s; }
-        #ov-gas { background: radial-gradient(circle, rgba(0,255,100,0.15), transparent 80%); mix-blend-mode: screen; }
-        #ov-thermal { background: linear-gradient(180deg, rgba(0,50,0,0.2), transparent), repeating-linear-gradient(0deg, transparent, transparent 2px, #0f0 3px); mix-blend-mode: hard-light; filter: contrast(1.5) invert(1); z-index: 7; }
-        #ov-dark { background: radial-gradient(circle at 50% 50%, transparent 100px, #000 600px); z-index: 8; transition: 2s; }
-
-        /* HOTSPOTS - תיקון גודל לחיצה */
-        #hotspots-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; }
-        
+        /* נקודות לחיצה */
         .hotspot {
-            position: absolute; width: 80px; height: 80px; /* גדול מספיק לאצבע */
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; z-index: 30;
-            -webkit-tap-highlight-color: transparent;
+            position: absolute; z-index: 10; cursor: pointer;
+            width: 60px; height: 60px; border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
         }
-        
-        .hs-gfx {
-            width: 100%; height: 100%; border: 1px dashed var(--c-gold); border-radius: 50%;
-            animation: spin 4s linear infinite; pointer-events: none;
-        }
-        .hs-center {
-            width: 10px; height: 10px; background: var(--c-gold); 
-            transform: rotate(45deg); pointer-events: none;
-            box-shadow: 0 0 10px var(--c-gold);
-        }
-        
-        .hotspot:active .hs-gfx { border-color: #fff; transform: scale(1.1); }
-        .hs-label {
-            position: absolute; bottom: -30px; 
-            background: rgba(0,0,0,0.8); border: 1px solid var(--c-gold); color: var(--c-gold);
-            font-size: 12px; padding: 2px 6px; pointer-events: none; opacity: 0; transition: 0.2s;
-            white-space: nowrap;
-        }
-        .hotspot:hover .hs-label { opacity: 1; }
+        .hotspot:hover { background: rgba(255, 215, 0, 0.3); border-color: gold; transform: scale(1.1); }
 
         /* מיקומים */
-        #hs-case { top: 65%; left: 75%; }
-        #hs-seat { top: 60%; left: 20%; }
-        #hs-vent { top: 5%; left: 50%; width: 150px; height: 100px; }
-        #hs-junk { top: 75%; left: 30%; display: none; }
-        #hs-panel { top: 45%; left: 10%; display: none; }
-        #hs-door { top: 30%; left: 50%; width: 100px; height: 200px; display: none; }
-        #hs-closet { top: 55%; left: 15%; display: none; }
-        #hs-enemy { top: 35%; left: 65%; width: 120px; height: 250px; display: none; opacity: 0; }
+        /* קרון 1 */
+        #spot-needle { top: 60%; left: 20%; }
+        #spot-battery { top: 70%; left: 75%; }
+        #spot-motor { top: 65%; left: 50%; }
+        #spot-vent { top: 10%; left: 50%; width: 150px; height: 80px; border-radius: 10px; }
+        
+        /* קרון 2 */
+        #spot-drone { top: 75%; left: 30%; }
+        #spot-sensor { top: 50%; left: 15%; }
+        #spot-door { top: 35%; left: 50%; width: 100px; height: 200px; border-radius: 5px; }
+        
+        /* קרון 3 */
+        #spot-mic { top: 60%; left: 15%; }
+        #spot-arcadius { top: 40%; left: 65%; width: 120px; height: 200px; opacity: 0; } /* נסתר */
 
-        /* SIDEBAR (צד שמאל) - תיקון רוחב */
-        aside {
-            width: var(--sidebar-w);
-            min-width: var(--sidebar-w); /* מונע מעיכה */
-            background: #0a0a0a;
-            border-right: 2px solid var(--border-dim); /* גבול ימני כי זה RTL */
-            display: flex; flex-direction: column;
-            padding: 15px; gap: 15px; z-index: 50;
+        /* צד שמאל - תפריט */
+        #sidebar {
+            flex: 1; min-width: 300px; background: var(--panel-bg);
+            padding: 20px; display: flex; flex-direction: column; gap: 20px;
             overflow-y: auto;
         }
 
-        .panel { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 10px; border-radius: 4px; }
-        .panel-head { font-size: 12px; color: var(--c-gold); text-transform: uppercase; border-bottom: 1px solid #333; margin-bottom: 5px; padding-bottom: 2px; }
-
-        #log { height: 120px; overflow-y: auto; font-size: 13px; color: #ccc; line-height: 1.4; }
-        .log-line { margin-bottom: 5px; border-bottom: 1px dashed #222; }
-
-        /* BUTTONS */
-        .btn-act {
-            width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff;
-            cursor: pointer; font-family: var(--font-display); font-weight: bold; transition: 0.2s;
-        }
-        .btn-act.gold { background: var(--c-gold); color: #000; border: none; }
-        .btn-act.cyan { border-color: var(--c-cyan); color: var(--c-cyan); background: transparent; }
-        .btn-act.cyan.active { background: rgba(0, 242, 255, 0.2); color: #fff; }
-
-        /* INVENTORY GRID */
-        #inv-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
-        .inv-slot {
-            aspect-ratio: 1; background: #000; border: 1px solid #444;
-            display: flex; justify-content: center; align-items: center; font-size: 22px; cursor: pointer;
-        }
-        .inv-slot.selected { border-color: var(--c-gold); box-shadow: inset 0 0 10px rgba(255, 183, 0, 0.3); }
-
-        .craft-wrap { display: flex; gap: 5px; margin-bottom: 5px; }
-        .c-slot { flex: 1; aspect-ratio: 1; border: 1px dashed #555; display: flex; justify-content: center; align-items: center; font-size: 24px; color: #fff; }
-
-        /* * ==========================================================================
-         * 3. SCREENS & MODALS
-         * ========================================================================== */
-        .full-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 5000; display: none;
-            flex-direction: column; justify-content: center; align-items: center;
-            padding: 20px; text-align: center;
-        }
-        .full-screen.active { display: flex; }
-
-        /* Card Style */
-        .card {
-            background: #111; border: 2px solid var(--c-gold); padding: 30px;
-            max-width: 600px; width: 100%; border-radius: 8px; box-shadow: 0 0 40px rgba(255, 183, 0, 0.1);
-            max-height: 90vh; overflow-y: auto;
-        }
-        .card h1 { font-family: var(--font-display); color: var(--c-gold); margin-top: 0; text-transform: uppercase; font-size: 28px; }
-        .card p { font-size: 16px; line-height: 1.6; color: #ccc; margin-bottom: 20px; text-align: right; }
-        .card ul { list-style: none; padding: 0; text-align: center; }
-        .card li { margin-bottom: 10px; border-bottom: 1px dashed #333; padding-bottom: 5px; }
-
-        /* Modals */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); z-index: 4000; display: none;
-            justify-content: center; align-items: center; padding: 20px;
-        }
-        .modal.open { display: flex; }
-        .modal-box {
-            background: #0a0a0a; border: 1px solid var(--c-cyan); width: 100%; max-width: 450px;
-            padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
-        }
-        .riddle-opt {
-            width: 100%; padding: 12px; margin-bottom: 8px; background: #151515;
-            border: 1px solid #333; color: #eee; cursor: pointer; text-align: right;
-        }
-
-        /* Minigames */
-        #wave-cvs { width: 100%; height: 150px; background: #000; border: 1px solid #333; }
-        input[type=range] { width: 100%; height: 40px; }
+        #timer-box { font-size: 2rem; color: var(--danger); font-weight: bold; text-align: center; border: 2px solid var(--danger); padding: 10px; }
         
-        #sonar-wrap { width: 250px; height: 250px; border-radius: 50%; border: 2px solid var(--c-green); margin: 0 auto; position: relative; overflow: hidden; background: radial-gradient(#002200, #000); }
-        #sonar-beam { position: absolute; width: 100%; height: 100%; background: conic-gradient(transparent, rgba(0,255,0,0.5)); border-radius: 50%; animation: spin 2s linear infinite; }
-        #sonar-dot { position: absolute; width: 20px; height: 20px; background: #fff; border-radius: 50%; box-shadow: 0 0 15px #fff; opacity: 0; cursor: pointer; }
+        .panel { background: #2a2a2a; padding: 15px; border-radius: 8px; }
+        .panel h3 { margin: 0 0 10px 0; color: var(--highlight); border-bottom: 1px solid #444; padding-bottom: 5px; }
+        
+        #log { height: 150px; overflow-y: auto; font-size: 0.9rem; color: #ccc; }
+        .log-msg { margin-bottom: 5px; border-bottom: 1px dashed #333; }
 
-        /* * ==========================================================================
-         * 4. MOBILE ADJUSTMENTS
-         * ========================================================================== */
-        @media (max-width: 900px) {
-            #app-container { flex-direction: column; }
-            
-            #header { padding: 0 15px; height: 60px; }
-            .logo h1 { font-size: 18px; }
-            
-            #content-area { flex-direction: column; }
-            
-            /* Sidebar moves to bottom */
-            aside {
-                width: 100%; min-width: 0; height: auto; max-height: 40vh;
-                border-right: none; border-top: 2px solid #333;
-                padding: 10px; gap: 10px;
-            }
-            
-            #log { height: 70px; font-size: 12px; }
-            
-            #inv-grid { grid-template-columns: repeat(6, 1fr); overflow-x: auto; padding-bottom: 5px; }
-            .inv-slot { font-size: 24px; min-width: 50px; }
-            
-            /* Bigger touch targets */
-            .hotspot { width: 90px; height: 90px; }
-            .hs-label { font-size: 12px; bottom: -30px; background: rgba(0,0,0,0.9); }
+        /* שולחן עבודה */
+        .craft-area { display: flex; gap: 5px; margin-bottom: 10px; }
+        .slot { flex: 1; height: 50px; background: #000; border: 1px solid #555; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
+        .slot.filled { border-color: var(--highlight); }
+
+        /* תיק ציוד */
+        #inventory { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+        .inv-item { height: 50px; background: #000; border: 1px solid #555; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; }
+        .inv-item.selected { border-color: var(--highlight); background: #333; }
+
+        /* מודאל שאלות אמריקאיות */
+        #riddle-modal { display: none; }
+        .riddle-opt { 
+            display: block; width: 100%; padding: 10px; margin-bottom: 8px; 
+            background: #333; color: #fff; border: 1px solid #555; cursor: pointer; text-align: right;
         }
+        .riddle-opt:hover { background: #444; border-color: var(--highlight); }
 
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes slideIn { from { opacity: 0; margin-left: -10px; } to { opacity: 1; margin-left: 0; } }
-        @keyframes pulse { 50% { opacity: 0.5; } }
-
+        /* --- התאמה למובייל --- */
+        @media (max-width: 768px) {
+            #game-container { flex-direction: column; }
+            #viewport { flex: 2; min-height: 50vh; }
+            #sidebar { flex: 1; min-height: 40vh; }
+            .hotspot { width: 70px; height: 70px; } /* כפתורים גדולים יותר */
+        }
     </style>
 </head>
 <body>
 
-    <div class="scanlines"></div>
-
-    <div id="boot-screen" class="full-screen active" style="z-index:9000;">
-        <div style="font-family:monospace; color:var(--c-cyan); margin-bottom:10px;">INITIALIZING SYSTEM...</div>
-        <div style="width:300px; height:4px; background:#222;"><div id="boot-bar" style="width:0%; height:100%; background:var(--c-cyan); transition:width 0.5s;"></div></div>
-    </div>
-
-    <div id="intro-screen" class="full-screen">
-        <div class="card">
-            <h1>פרוטוקול העוקץ</h1>
-            <div class="text-content">
-                <p>נכנסת לחדר בריחה ויש לך <strong>שלוש דקות בלבד</strong> לסיים אותו!</p>
-                <p>הדממה בקרון 5 הופרה. אדים ירקרקים של גז רעיל משתחררים. הדיזה נעולה במנגנון לחץ.</p>
-                <p><strong>המשימה:</strong> בתור מהנדס מכונות, עליך לאסוף רכיבים, לענות על חידות ביומימטיות ולבנות כלים (בהשראת היתוש) כדי לפרוץ לקטר ולהציל את הנוסעים.</p>
-                <p style="color:var(--c-gold)">כל טעות בחידה תעלה לך בזמן יקר!</p>
+    <div id="intro-screen" class="overlay-screen">
+        <div class="info-box">
+            <div class="title">ברוכים הבאים לחדר הבריחה</div>
+            <div class="text">
+                נכנסת לחדר בריחה ויש לך <strong>שלוש דקות בלבד</strong> לסיים אותו!<br><br>
+                עליך לאסוף רכיבים, לענות על חידות ולבנות כלים כדי לשרוד את מתקפת הגז ולפרוץ לקטר.<br>
+                כל טעות בחידה תעלה לך בזמן יקר.
             </div>
-            <button class="btn-act gold" onclick="Game.start()">התחל משימה (03:00)</button>
+            <button class="btn" onclick="Game.start()">התחל משחק (03:00)</button>
         </div>
     </div>
 
-    <div id="app-container" style="display:none;">
-        <header id="header">
-            <div class="logo"><h1>פרוטוקול העוקץ</h1></div>
-            <div class="timer-box">
-                <span class="timer-label">זמן נותר</span>
-                <div id="timer-val">03:00</div>
+    <div id="level-screen" class="overlay-screen" style="display:none;">
+        <h1 id="level-msg" style="color: var(--accent); font-size: 3rem;"></h1>
+    </div>
+
+    <div id="credits-screen" class="overlay-screen" style="display:none;">
+        <div class="info-box">
+            <div class="title" style="color:var(--accent)">כל הכבוד! ניצחת!</div>
+            <div class="text">
+                <ul style="list-style:none; padding:0;">
+                    <li><strong>נבנה על ידי:</strong> עידן אברבוך בעזרת Gemini</li>
+                    <br>
+                    <li><strong>חומר ובניית סיפור:</strong> יואב פלדמן</li>
+                    <br>
+                    <li><strong>קבוצה במדעים:</strong><br>עידן אברבוך, יואב פלדמן, סהר חדד</li>
+                </ul>
             </div>
-        </header>
+            <button class="btn" onclick="location.reload()">התחל מחדש</button>
+        </div>
+    </div>
 
-        <div id="content-area">
-            <main id="viewport">
-                <canvas id="fx-canvas"></canvas>
-                
-                <div id="ov-gas" class="overlay" style="opacity:1;"></div>
-                <div id="ov-thermal" class="overlay"></div>
-                <div id="ov-dark" class="overlay"></div>
+    <div id="game-over" class="overlay-screen" style="display:none;">
+        <h1 style="color:var(--danger); font-size: 3rem;">הזמן נגמר!</h1>
+        <button class="btn" onclick="location.reload()">נסה שוב</button>
+    </div>
 
-                <div class="layer" id="layer-lab"></div>
-                <div class="layer" id="layer-hall"></div>
-                <div class="layer" id="layer-train"></div>
+    <div id="game-container">
+        <div id="viewport">
+            <div id="bg-train" class="bg-image"></div>
+            <div id="bg-hall" class="bg-image"></div>
+            <div id="bg-lab" class="bg-image"></div>
 
-                <div id="hotspots-layer">
-                    <div class="hotspot" id="hs-case" data-id="case"><div class="hs-gfx"></div><div class="hs-center"></div><div class="hs-label">מזוודה</div></div>
-                    <div class="hotspot" id="hs-seat" data-id="seat"><div class="hs-gfx"></div><div class="hs-center"></div><div class="hs-label">מושב</div></div>
-                    <div class="hotspot" id="hs-vent" data-id="vent"><div class="hs-gfx" style="border-radius:10px;"></div><div class="hs-label">דיזה</div></div>
+            <div id="spot-needle" class="hotspot" onclick="Game.clickItem('needle')"></div>
+            <div id="spot-motor" class="hotspot" onclick="Game.clickItem('motor')"></div>
+            <div id="spot-battery" class="hotspot" onclick="Game.clickItem('battery')"></div>
+            <div id="spot-vent" class="hotspot" onclick="Game.clickTarget('vent')"></div>
 
-                    <div class="hotspot" id="hs-junk" data-id="junk" style="display:none"><div class="hs-gfx"></div><div class="hs-center"></div><div class="hs-label">גרוטאות</div></div>
-                    <div class="hotspot" id="hs-panel" data-id="panel" style="display:none"><div class="hs-gfx"></div><div class="hs-center"></div><div class="hs-label">פאנל</div></div>
-                    <div class="hotspot" id="hs-door" data-id="door" style="display:none"><div class="hs-gfx" style="border-radius:5px;"></div><div class="hs-label">דלת</div></div>
+            <div id="spot-drone" class="hotspot" style="display:none;" onclick="Game.clickItem('drone')"></div>
+            <div id="spot-sensor" class="hotspot" style="display:none;" onclick="Game.clickItem('sensor')"></div>
+            <div id="spot-door" class="hotspot" style="display:none;" onclick="Game.clickTarget('door')"></div>
 
-                    <div class="hotspot" id="hs-closet" data-id="closet" style="display:none"><div class="hs-gfx"></div><div class="hs-center"></div><div class="hs-label">ארון</div></div>
-                    <div class="hotspot" id="hs-enemy" data-id="enemy" style="display:none"><div class="hs-gfx" style="opacity:0;"></div></div>
+            <div id="spot-mic" class="hotspot" style="display:none;" onclick="Game.clickItem('mic')"></div>
+            <div id="spot-arcadius" class="hotspot" style="display:none;" onclick="Game.clickTarget('boss')"></div>
+        </div>
+
+        <div id="sidebar">
+            <div id="timer-box">03:00</div>
+            
+            <div class="panel">
+                <h3>יומן</h3>
+                <div id="log"></div>
+            </div>
+
+            <div class="panel">
+                <h3>שולחן עבודה (בחר 3)</h3>
+                <div class="craft-area">
+                    <div class="slot" id="craft-0"></div>
+                    <div class="slot" id="craft-1"></div>
+                    <div class="slot" id="craft-2"></div>
                 </div>
-            </main>
+                <button class="btn" style="width:100%; font-size:1rem;" onclick="Game.craft()">בצע אינטגרציה</button>
+            </div>
 
-            <aside>
-                <div class="panel" style="flex:1;">
-                    <div class="panel-head">יומן</div>
-                    <div id="log"></div>
-                </div>
-
-                <button id="btn-scan" class="btn-act cyan" onclick="Game.toggleScanner()">👁️ סורק תרמי: כבוי</button>
-
-                <div class="panel">
-                    <div class="panel-head">שולחן הרכבה (בחר 3)</div>
-                    <div class="craft-wrap">
-                        <div class="c-slot" id="slot-0"></div><div class="c-slot" id="slot-1"></div><div class="c-slot" id="slot-2"></div>
-                    </div>
-                    <button id="btn-craft" class="btn-act" onclick="Crafting.craft()">בצע אינטגרציה</button>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-head">ציוד</div>
-                    <div id="inv-grid"></div>
-                </div>
-            </aside>
+            <div class="panel">
+                <h3>תיק ציוד</h3>
+                <div id="inventory"></div>
+            </div>
         </div>
     </div>
 
-    <div id="modal-riddle" class="modal">
-        <div class="modal-box">
-            <h2 style="color:var(--c-cyan)">אתגר ידע</h2>
-            <p id="riddle-q" style="font-size:18px; color:#fff; text-align:right; margin-bottom:20px;"></p>
-            <div id="riddle-opts"></div>
-        </div>
-    </div>
-
-    <div id="modal-msg" class="modal">
-        <div class="modal-box">
-            <h3>הודעה</h3><p id="msg-text" style="color:#ccc; font-size:18px; margin-bottom:20px;"></p>
-            <button class="btn-act gold" onclick="Modal.close('modal-msg')">אישור</button>
-        </div>
-    </div>
-
-    <div id="modal-wave" class="modal">
-        <div class="modal-box">
-            <h3>כיול מקדח רטט</h3><p style="color:#aaa;">הזז את המחוון כדי לסנכרן את הגלים.</p>
-            <canvas id="wave-cvs"></canvas>
-            <input type="range" id="wave-slider" min="0" max="100" value="50" style="width:100%">
-            <div id="wave-stat" style="margin-top:10px; color:red; font-weight:bold;">לא מסונכרן</div>
-        </div>
-    </div>
-
-    <div id="modal-sonar" class="modal">
-        <div class="modal-box">
-            <h3>איתור שמע כיווני</h3><p style="color:#aaa;">הקשב. לחץ על הנקודה כשהיא מופיעה.</p>
-            <div id="sonar-wrap"><div id="sonar-beam"></div><div id="sonar-dot"></div></div>
-        </div>
-    </div>
-
-    <div id="game-over" class="full-screen">
-        <h1 style="color:var(--c-red); font-size:50px;">הזמן נגמר</h1>
-        <p style="color:#aaa; font-size:24px;">נכשלת במשימה.</p>
-        <button class="btn-act gold" style="max-width:300px; margin-top:20px;" onclick="location.reload()">נסה שוב</button>
-    </div>
-
-    <div id="transition-screen" class="full-screen" style="background:rgba(0,0,0,0.95); z-index:6000; display:none;">
-        <div class="trans-text" id="trans-text"></div>
-    </div>
-
-    <div id="credits-screen" class="full-screen">
-        <div class="card">
-            <h1 style="color:var(--c-green)">משימה הושלמה!</h1>
-            <p style="text-align:center;">הנוגדן הושג. הנחיל נוטרל. הצלת את הרכבת בזכות התושייה ההנדסית שלך.</p>
-            <ul class="credits-list">
-                <li><span style="color:var(--c-cyan); display:block; font-size:12px;">נבנה על ידי</span><span class="name">עידן אברבוך בעזרת Gemini</span></li>
-                <li><span style="color:var(--c-cyan); display:block; font-size:12px;">חומר ובניית סיפור</span><span class="name">יואב פלדמן</span></li>
-                <li><span style="color:var(--c-cyan); display:block; font-size:12px;">קבוצה במדעים</span><span class="name">עידן אברבוך, יואב פלדמן, סהר חדד</span></li>
-            </ul>
-            <button class="btn-act gold" onclick="location.reload()">סיום</button>
+    <div id="riddle-modal" class="overlay-screen" style="background:rgba(0,0,0,0.8);">
+        <div class="info-box">
+            <div class="title">שאלה</div>
+            <div class="text" id="riddle-text"></div>
+            <div id="riddle-answers"></div>
         </div>
     </div>
 
     <script>
-        // DATA
-        const DB = {
-            Items: {
-                MOTOR: { id:'MOTOR', icon:'⚙️', name:'מנוע' },
-                NEEDLE: { id:'NEEDLE', icon:'📍', name:'מחט' },
-                BATTERY: { id:'BATTERY', icon:'🔋', name:'סוללה' },
-                DRILL: { id:'DRILL', icon:'🦟', name:'מקדח', tool:true },
-                LENS: { id:'LENS', icon:'👓', name:'עדשות' },
-                SENSOR: { id:'SENSOR', icon:'🌡️', name:'חיישן' },
-                PARTS: { id:'PARTS', icon:'🚁', name:'חלקים' },
-                GOGGLES: { id:'GOGGLES', icon:'🕶️', name:'משקפיים', tool:true },
-                MIC: { id:'MIC', icon:'🎙️', name:'מיקרופון' },
-                HEADSET: { id:'HEADSET', icon:'🎧', name:'אוזנייה' },
-                WIRE: { id:'WIRE', icon:'🔌', name:'חוט' },
-                SONAR: { id:'SONAR', icon:'📡', name:'סורק', tool:true }
+        // נתונים
+        const Items = {
+            needle: { id: 'needle', icon: '📍', name: 'מחט' },
+            motor: { id: 'motor', icon: '⚙️', name: 'מנוע רטט' },
+            battery: { id: 'battery', icon: '🔋', name: 'סוללה' },
+            drill: { id: 'drill', icon: '🦟', name: 'מקדח רטט', tool: true },
+            
+            drone: { id: 'drone', icon: '🚁', name: 'רחפן' },
+            sensor: { id: 'sensor', icon: '🌡️', name: 'חיישן תרמי' },
+            lens: { id: 'lens', icon: '👓', name: 'עדשות' }, // מגיע אוטומטית עם הרחפן
+            glasses: { id: 'glasses', icon: '🕶️', name: 'משקפיים', tool: true },
+            
+            mic: { id: 'mic', icon: '🎙️', name: 'מיקרופון' },
+            headset: { id: 'headset', icon: '🎧', name: 'אוזניות' }, // אוטומטי
+            wire: { id: 'wire', icon: '🔌', name: 'חוט' }, // אוטומטי
+            sonar: { id: 'sonar', icon: '📡', name: 'סורק שמע', tool: true }
+        };
+
+        const Riddles = {
+            needle: {
+                q: "איזה מסוגי המחטים הבאים אינו מכאיב? (רמז: את המחט של היתוש לא ניתן להרגיש)",
+                opts: ["מחט מחוספס ורוטט", "מחט לעירוי דם", "מחט לביופסיה במח העצם", "מחט של בדיקת דם מחט פרפרית"],
+                ans: 0
             },
-            Riddles: [
-                { q: "איזה מסוגי המחטים הבאים אינו מכאיב? (רמז: את המחט של היתוש לא ניתן להרגיש)", opts: ["מחט מחוספס ורוטט", "מחט לעירוי דם", "מחט לביופסיה", "מחט בדיקת דם"], ans: 0, reward: 'NEEDLE' },
-                { q: "מהו היתרון המבצעי של רחפן יתוש? (רמז: כשהיתוש קשה להבחין בו)", opts: ["טיסה לחלל", "נשיאת טנקים", "תמרון בחלל צפוף ויציבות ברוח", "מהירות על-קולית"], ans: 2, reward: 'PARTS' },
-                { q: "היתוש מאתר בני אדם בעיקר בזכות:", opts: ["תנועות גוף", "צבע בגדים", "פליטת פחמן דו-חמצני (CO2)", "גלי רדיו"], ans: 2, reward: 'SENSOR' }
-            ],
-            Story: {
-                start: "הדממה הופרה. גז רעיל משתחרר. הדיזה נעולה בלחץ. בנה כלי חדירה עדין.",
-                p1_done: "הדיזה נוטרלה! הדלת נפתחה למסדרון חשוך מלא בלייזרים.",
-                p2_done: "המשקפיים חשפו את הלייזרים. הגעת לקטר. המדען בחושך. השתמש בשמיעה."
+            drone: {
+                q: "מהו היתרון המבצעי העיקרי של רחפן הבנוי כמו יתוש? (רמז: כשהיתוש קשה להבחין בו)",
+                opts: ["יכולת לטוס לחלל החיצון", "יכולת לשאת משקלים כבדים מאוד כמו טנקים", "יכולת תמרון גבוהה בחללים צפופים ויציבות ברוחות, המתאימה לריגול", "מהירות טיסה שעוברת את מהירות הקול"],
+                ans: 2
+            },
+            sensor: {
+                q: "היתוש מסוגל לאתר בני אדם ממרחק רב בעיקר בזכות זיהוי של:",
+                opts: ["תנועות גוף מהירות", "צבע הבגדים שאנו לובשים", "פליטת פחמן דו-חמצני (CO2) בנשימה שלנו", "גלי רדיו שהטלפון שלנו משדר"],
+                ans: 2
             }
         };
 
-        const State = { phase: 1, inventory: [], craft: [], solved: [], time: 180, timerId: null, scanner: false };
-
-        // ENGINE
         const Game = {
+            time: 180,
+            timerInterval: null,
+            inventory: [],
+            craftSlots: [],
+            phase: 1,
+
             start() {
                 document.getElementById('intro-screen').style.display = 'none';
-                document.getElementById('app-container').style.display = 'flex';
-                Inventory.init();
-                Story.log(DB.Story.start);
-                Fx.start();
+                this.log("המשימה החלה. אסוף רכיבים!");
                 
-                State.timerId = setInterval(() => {
-                    State.time--;
-                    const m = Math.floor(State.time / 60);
-                    const s = State.time % 60;
-                    document.getElementById('timer-val').innerText = `0${m}:${s<10?'0'+s:s}`;
-                    if(State.time <= 0) this.gameOver();
-                }, 1000);
-
-                document.querySelectorAll('.hotspot').forEach(el => el.onclick = () => this.handleSpot(el.id.replace('hs-', '')));
-            },
-
-            handleSpot(id) {
-                if (!State.scanner && !['vent','door','enemy'].includes(id)) { Modal.msg("שגיאה", "לא ניתן לזהות. נדרשת סריקה."); return; }
-                if (State.solved.includes(id)) return;
-
-                if (id === 'case') this.collect(['MOTOR','BATTERY'], id, "מנוע וסוללה");
-                if (id === 'seat') this.triggerRiddle(0, id);
-                if (id === 'vent') {
-                    if (Inventory.has('DRILL')) Minigames.wave();
-                    else Modal.msg("סכנה", "נגיעה תפעיל מלכוד. נדרש מקדח רטט.");
-                }
-
-                if (id === 'junk') this.triggerRiddle(1, id); 
-                if (id === 'panel') this.triggerRiddle(2, id);
-                if (id === 'door') {
-                    if (Inventory.has('GOGGLES')) this.showTrans("עברת את קראון 2 בהצלחה", () => this.phase2());
-                    else Modal.msg("סכנה", "חושך מוחלט. צריך ראייה תרמית.");
-                }
-
-                if (id === 'closet') this.collect(['MIC','HEADSET','WIRE'], id, "ציוד שמע");
-                if (id === 'enemy') {
-                    if (Inventory.has('SONAR')) Minigames.sonar();
-                    else Modal.msg("חושך", "אי אפשר למצוא אותו בלי סורק שמע.");
-                }
-            },
-
-            triggerRiddle(idx, spotId) {
-                const r = DB.Riddles[idx];
-                const box = document.getElementById('modal-riddle');
-                document.getElementById('riddle-q').innerText = r.q;
-                const opts = document.getElementById('riddle-opts');
-                opts.innerHTML = '';
-                r.opts.forEach((opt, i) => {
-                    const btn = document.createElement('div');
-                    btn.className = 'riddle-opt'; btn.innerText = opt;
-                    btn.onclick = () => {
-                        if(i === r.ans) {
-                            Modal.close('modal-riddle');
-                            if(r.reward === 'PARTS') this.collect(['PARTS','LENS'], spotId, "חלקים ועדשות");
-                            else this.collect([r.reward], spotId, "רכיב חדש");
-                        } else { alert("תשובה שגויה! ירדו 20 שניות."); State.time -= 20; }
-                    };
-                    opts.appendChild(btn);
-                });
-                Modal.open('modal-riddle');
-            },
-
-            collect(keys, id, name) {
-                keys.forEach(k => Inventory.add(DB.Items[k]));
-                State.solved.push(id);
-                document.getElementById('hs-'+id).style.display = 'none';
-                Story.log(`מצאת: ${name}`);
-            },
-
-            showTrans(txt, cb) {
-                const el = document.getElementById('transition-screen');
-                el.style.display = 'flex';
-                el.innerHTML = `<h1 class="trans-text">${txt}</h1>`;
-                setTimeout(() => { el.style.display = 'none'; cb(); }, 2500);
-            },
-
-            toggleScanner() {
-                State.scanner = !State.scanner;
-                const btn = document.getElementById('btn-scanner');
-                if (State.scanner) {
-                    btn.classList.add('active'); btn.innerText='👁️ סורק: פעיל';
-                    if(State.phase===2) document.getElementById('ov-thermal').style.opacity = 1;
-                } else {
-                    btn.classList.remove('active'); btn.innerText='👁️ סורק: כבוי';
-                    document.getElementById('ov-thermal').style.opacity = 0;
-                }
-            },
-
-            phase2() {
-                State.phase = 2; Story.log(DB.Story.p1_done);
-                document.getElementById('ov-gas').style.opacity = 0;
-                document.getElementById('layer-train').style.opacity = 0;
-                document.getElementById('layer-hall').style.opacity = 1; // Show Phase 2 BG
-                
-                // Hide Phase 1 spots
-                ['vent','case','seat'].forEach(id => document.getElementById('hs-'+id).style.display = 'none');
-                // Show Phase 2 spots
-                ['junk','panel','door'].forEach(id => document.getElementById('hs-'+id).style.display = 'flex');
-            },
-
-            phase3() {
-                State.phase = 3; Story.log(DB.Story.p2_done);
-                document.getElementById('layer-hall').style.opacity = 0;
-                document.getElementById('layer-eng').style.opacity = 1; // Show Phase 3 BG
-                document.getElementById('ov-dark').style.opacity = 1;
-                document.getElementById('ov-thermal').style.opacity = 0;
-                
-                // Hide Phase 2 spots
-                ['junk','panel','door'].forEach(id => document.getElementById('hs-'+id).style.display = 'none');
-                // Show Phase 3 spots
-                document.getElementById('hs-closet').style.display = 'flex';
-                document.getElementById('hs-enemy').style.display = 'block';
-            },
-
-            gameOver() { clearInterval(State.timerId); document.getElementById('game-over').style.display='flex'; },
-            win() { clearInterval(State.timerId); document.getElementById('credits-screen').style.display='flex'; }
-        };
-
-        const Inventory = {
-            init() {
-                const g = document.getElementById('inv-grid');
-                for(let i=0; i<8; i++) {
-                    let d = document.createElement('div'); d.className='inv-slot'; d.id=`inv-${i}`;
-                    d.onclick = () => this.toggle(i); g.appendChild(d);
-                }
-            },
-            add(item) { if(State.inventory.some(x=>x.id===item.id)) return; State.inventory.push(item); this.render(); },
-            has(id) { return State.inventory.some(x=>x.id===id); },
-            render() {
-                for(let i=0; i<8; i++) {
-                    const el = document.getElementById(`inv-${i}`);
-                    el.innerText = State.inventory[i] ? State.inventory[i].icon : '';
-                    el.className = State.craft.includes(i) ? 'inv-slot sel' : 'inv-slot';
-                }
-            },
-            toggle(i) {
-                if(!State.inventory[i]) return;
-                if(State.craft.includes(i)) State.craft = State.craft.filter(x=>x!==i);
-                else if(State.craft.length < 3) State.craft.push(i);
-                this.render(); Crafting.update();
-            },
-            consume() { State.craft.sort((a,b)=>b-a).forEach(i => State.inventory.splice(i,1)); State.craft=[]; this.render(); Crafting.update(); }
-        };
-
-        const Crafting = {
-            update() {
-                [0,1,2].forEach(i => document.getElementById(`slot-${i}`).innerText = State.craft[i]!==undefined ? State.inventory[State.craft[i]].icon : '');
-                document.getElementById('btn-craft').className = State.craft.length===3 ? 'btn-act gold' : 'btn-act';
-            },
-            craft() {
-                if(State.craft.length!==3) return;
-                const ids = State.craft.map(i => State.inventory[i].id);
-                if(this.check(ids,['MOTOR','NEEDLE','BATTERY'])) { Inventory.consume(); Inventory.add(DB.Items.DRILL); Game.log("נוצר: מקדח רטט"); }
-                else if(this.check(ids,['LENS','SENSOR','PARTS'])) { Inventory.consume(); Inventory.add(DB.Items.GOGGLES); Game.log("נוצר: משקפי תרמי"); }
-                else if(this.check(ids,['MIC','HEADSET','WIRE'])) { Inventory.consume(); Inventory.add(DB.Items.SONAR); Game.log("נוצר: סורק שמע"); }
-                else Modal.msg("שגיאה", "שילוב לא חוקי");
-            },
-            check(sel, req) { return req.every(r => sel.includes(r)); }
-        };
-
-        const Modal = { 
-            msg(t, txt) { document.getElementById('msg-text').innerText=txt; this.open('modal-msg'); }, 
-            open(id) { document.getElementById(id).classList.add('open'); },
-            close(id) { document.getElementById(id).classList.remove('open'); }
-        };
-        const Story = { log(t) { const d=document.createElement('div'); d.className='log-line'; d.innerText=`> ${t}`; document.getElementById('log').prepend(d); } };
-
-        const Minigames = {
-            wave() {
-                Modal.open('modal-wave');
-                setTimeout(() => {
-                    const c = document.getElementById('wave-cvs'); const ctx = c.getContext('2d');
-                    c.width = c.offsetWidth; c.height = c.offsetHeight;
-                    const rng = document.getElementById('wave-slider');
-                    let val = 50, t = 0; rng.oninput = e => val = parseInt(e.target.value);
-                    function loop() {
-                        if(!document.getElementById('modal-wave').classList.contains('open')) return;
-                        ctx.fillStyle = '#000'; ctx.fillRect(0,0,c.width,c.height); t += 0.2;
-                        ctx.strokeStyle = '#00ff9d'; ctx.beginPath();
-                        for(let x=0; x<c.width; x++) ctx.lineTo(x, 75 + Math.sin((x+t*5)*0.1)*40); ctx.stroke();
-                        const diff = Math.abs(val - 72);
-                        ctx.strokeStyle = diff < 5 ? '#ffb700' : '#00f2ff'; ctx.beginPath();
-                        for(let x=0; x<c.width; x++) ctx.lineTo(x, 75 + Math.sin((x+t*5)*(val/500))*40); ctx.stroke();
-                        if(diff < 5) { 
-                            document.getElementById('wave-stat').innerText = "נעול!"; document.getElementById('wave-stat').style.color = "#00ff9d";
-                            setTimeout(()=>{Modal.close('modal-wave'); Game.showTrans("עברת את קראון 1 בהצלחה", () => Game.phase2());}, 1000); 
-                        } else { document.getElementById('wave-stat').innerText = "לא מסונכרן"; document.getElementById('wave-stat').style.color = "red"; }
-                        requestAnimationFrame(loop);
+                this.timerInterval = setInterval(() => {
+                    this.time--;
+                    const m = Math.floor(this.time / 60);
+                    const s = this.time % 60;
+                    document.getElementById('timer-box').innerText = `0${m}:${s<10?'0'+s:s}`;
+                    if(this.time <= 0) {
+                        clearInterval(this.timerInterval);
+                        document.getElementById('game-over').style.display = 'flex';
                     }
-                    loop();
-                }, 100);
+                }, 1000);
             },
-            sonar() {
-                Modal.open('modal-sonar');
-                const pt = document.getElementById('sonar-dot');
-                setInterval(() => {
-                    const x = 125 + 80 * Math.cos(Date.now()/1000); const y = 125 + 80 * Math.sin(Date.now()/1000);
-                    pt.style.left = (x-10)+'px'; pt.style.top = (y-10)+'px';
-                    pt.style.opacity = (Math.sin(Date.now()/100)>0.8) ? 1 : 0;
-                }, 50);
-                pt.onclick = () => { Modal.close('modal-sonar'); Game.win(); };
-            }
-        };
 
-        const Fx = {
-            start() {
-                const c=document.getElementById('fx-canvas'); const x=c.getContext('2d');
-                c.width=window.innerWidth; c.height=window.innerHeight;
-                const p=Array(50).fill().map(()=>({x:Math.random()*c.width,y:Math.random()*c.height,v:Math.random()}));
-                function l(){x.clearRect(0,0,c.width,c.height);x.fillStyle='rgba(255,255,255,0.1)';p.forEach(d=>{d.y-=d.v;if(d.y<0)d.y=c.height;x.beginPath();x.arc(d.x,d.y,1,0,Math.PI*2);x.fill();});requestAnimationFrame(l);}l();
-            }
-        };
+            clickItem(id) {
+                // אם יש חידה לפריט הזה
+                if(Riddles[id]) {
+                    this.showRiddle(id);
+                } else {
+                    // פריטים ללא חידה (כמו מנוע/סוללה/מיקרופון) נאספים מיד
+                    this.collect(id);
+                }
+            },
 
-        window.onload = () => {
-            let w = 0; const bar = document.getElementById('boot-bar');
-            const i = setInterval(() => { w+=5; bar.style.width=w+'%'; if(w>=100){ clearInterval(i); document.getElementById('boot-screen').style.display='none'; document.getElementById('intro-screen').style.display='flex'; } }, 50);
+            showRiddle(id) {
+                const r = Riddles[id];
+                const modal = document.getElementById('riddle-modal');
+                const content = document.getElementById('riddle-answers');
+                document.getElementById('riddle-text').innerText = r.q;
+                content.innerHTML = '';
+                
+                modal.style.display = 'flex';
+                
+                r.opts.forEach((opt, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'riddle-opt';
+                    div.innerText = opt;
+                    div.onclick = () => {
+                        if(idx === r.ans) {
+                            modal.style.display = 'none';
+                            this.collect(id);
+                        } else {
+                            alert("תשובה לא נכונה! ירדו 10 שניות.");
+                            this.time -= 10;
+                        }
+                    };
+                    content.appendChild(div);
+                });
+            },
+
+            collect(id) {
+                // הוספת הפריט
+                this.inventory.push(Items[id]);
+                document.getElementById('spot-' + id).style.display = 'none';
+                this.log("מצאת: " + Items[id].name);
+                
+                // בונוסים אוטומטיים
+                if(id === 'drone') this.inventory.push(Items.lens); 
+                if(id === 'mic') { this.inventory.push(Items.headset); this.inventory.push(Items.wire); }
+                
+                this.renderInv();
+            },
+
+            renderInv() {
+                const grid = document.getElementById('inventory');
+                grid.innerHTML = '';
+                this.inventory.forEach((item, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'inv-item';
+                    if(this.craftSlots.includes(idx)) div.classList.add('selected');
+                    div.innerText = item.icon;
+                    div.onclick = () => {
+                        if(this.craftSlots.includes(idx)) {
+                            this.craftSlots = this.craftSlots.filter(i => i !== idx);
+                        } else if(this.craftSlots.length < 3) {
+                            this.craftSlots.push(idx);
+                        }
+                        this.renderCraft();
+                        this.renderInv();
+                    };
+                    grid.appendChild(div);
+                });
+            },
+
+            renderCraft() {
+                for(let i=0; i<3; i++) {
+                    const el = document.getElementById('craft-'+i);
+                    el.innerText = ''; el.classList.remove('filled');
+                    if(this.craftSlots[i] !== undefined) {
+                        el.innerText = this.inventory[this.craftSlots[i]].icon;
+                        el.classList.add('filled');
+                    }
+                }
+            },
+
+            craft() {
+                if(this.craftSlots.length !== 3) { alert("בחר 3 פריטים"); return; }
+                const ids = this.craftSlots.map(i => this.inventory[i].id);
+                
+                // בדיקת מתכונים
+                if(ids.includes('motor') && ids.includes('needle') && ids.includes('battery')) {
+                    this.finishCraft(Items.drill, "מקדח רטט נוצר!");
+                } else if(ids.includes('lens') && ids.includes('sensor') && ids.includes('drone')) {
+                    this.finishCraft(Items.glasses, "משקפיים תרמיים נוצרו!");
+                } else if(ids.includes('mic') && ids.includes('headset') && ids.includes('wire')) {
+                    this.finishCraft(Items.sonar, "סורק שמע נוצר!");
+                } else {
+                    alert("שילוב לא מתאים");
+                    this.craftSlots = [];
+                    this.renderInv();
+                    this.renderCraft();
+                }
+            },
+
+            finishCraft(newItem, msg) {
+                // הסרת הישנים (מהסוף להתחלה)
+                this.craftSlots.sort((a,b) => b-a).forEach(i => this.inventory.splice(i, 1));
+                this.craftSlots = [];
+                this.inventory.push(newItem);
+                this.renderInv();
+                this.renderCraft();
+                this.log(msg);
+            },
+
+            clickTarget(target) {
+                // בדיקת שימוש בכלים
+                const hasTool = (id) => this.inventory.some(i => i.id === id);
+
+                if(target === 'vent') {
+                    if(hasTool('drill')) {
+                        this.nextLevel("עברת את קראון 1 בהצלחה", 2);
+                    } else alert("אי אפשר לגעת בזה! צריך כלי חדירה עדין.");
+                }
+                else if(target === 'door') {
+                    if(hasTool('glasses')) {
+                        this.nextLevel("עברת את קראון 2 בהצלחה", 3);
+                    } else alert("חושך מוחלט. צריך לראות איפה הלייזרים.");
+                }
+                else if(target === 'boss') {
+                    // המדען נסתר, לוחצים עליו רק אם יש סונאר
+                    if(hasTool('sonar')) {
+                        clearInterval(this.timerInterval);
+                        document.getElementById('credits-screen').style.display = 'flex';
+                    }
+                }
+            },
+
+            nextLevel(msg, nextPhase) {
+                const screen = document.getElementById('level-screen');
+                document.getElementById('level-msg').innerText = msg;
+                screen.style.display = 'flex';
+                
+                setTimeout(() => {
+                    screen.style.display = 'none';
+                    this.phase = nextPhase;
+                    
+                    if(nextPhase === 2) {
+                        document.getElementById('bg-train').style.opacity = 0;
+                        document.getElementById('bg-hall').style.opacity = 1;
+                        
+                        ['needle','motor','battery','vent'].forEach(id => document.getElementById('spot-'+id).style.display = 'none');
+                        ['drone','sensor','door'].forEach(id => document.getElementById('spot-'+id).style.display = 'block');
+                        this.log("הגעת למסדרון החשוך.");
+                    }
+                    if(nextPhase === 3) {
+                        document.getElementById('bg-hall').style.opacity = 0;
+                        document.getElementById('bg-lab').style.opacity = 1;
+                        
+                        ['drone','sensor','door'].forEach(id => document.getElementById('spot-'+id).style.display = 'none');
+                        document.getElementById('spot-mic').style.display = 'block';
+                        document.getElementById('spot-arcadius').style.display = 'block'; // עכשיו הוא קיים בדף אבל שקוף
+                        this.log("הגעת לקטר. ארקדיוס מסתתר.");
+                    }
+                }, 2000);
+            },
+
+            log(txt) {
+                const d = document.createElement('div');
+                d.className = 'log-msg';
+                d.innerText = "> " + txt;
+                document.getElementById('log').prepend(d);
+            }
         };
     </script>
 </body>
