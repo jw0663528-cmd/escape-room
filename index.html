@@ -845,11 +845,13 @@
                     Modal.msg("שגיאה", "שילוב לא תקין.");
                 }
                 if (
-                    Inventory.has('DRILL') &&
-                    Inventory.has('GOGGLES') &&
-                    Inventory.has('SONAR')
+                    ids.includes('DRILL') &&
+                    ids.includes('GOGGLES') &&
+                    ids.includes('SONAR')
                 ) {
+                    Inventory.consume();
                     Secret.launchDino();
+                    return;
                 }
             },
             check(sel, req) { return req.every(r => sel.includes(r)); }
