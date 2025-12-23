@@ -764,7 +764,10 @@
 
             win() {
                 Modal.msg("משימה הושלמה!", DB.Story.win);
-                setTimeout(() => location.reload(), 6000);
+                
+                // השארת השחקן במעבדה – ללא ריסטארט
+                document.getElementById('interact-layer').style.pointerEvents = 'none';
+                Story.log("המעבדה ננעלה. כל המערכות שקטות.");
             }
         };
 
@@ -840,6 +843,13 @@
                     if(State.phase === 3) Minigames.sonar();
                 } else {
                     Modal.msg("שגיאה", "שילוב לא תקין.");
+                }
+                if (
+                    Inventory.has('DRILL') &&
+                    Inventory.has('GOGGLES') &&
+                    Inventory.has('SONAR')
+                ) {
+                    Secret.launchDino();
                 }
             },
             check(sel, req) { return req.every(r => sel.includes(r)); }
@@ -1055,6 +1065,21 @@
             // אתחול המשחק
             Game.init();
         });
+        const Secret = {
+    launched: false,
+    launchDino() {
+        if (this.launched) return;
+        this.launched = true;
+
+        // מסך שחור שקט
+        document.body.innerHTML = `
+            <iframe 
+                src="https://chromedino.com/"
+                style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;background:black;"
+            ></iframe>
+        `;
+    }
+};
     </script>
 </body>
 </html>
