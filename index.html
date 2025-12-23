@@ -305,6 +305,18 @@
             box-shadow: 0 0 15px #fff; cursor: pointer; opacity: 0; transition: 0.1s;
         }
 
+        /* Intro modal specific */
+        #modal-intro .modal-box { max-width: 700px; text-align: center; padding-bottom: 10px; }
+        #modal-intro .modal-body p { font-size: 18px; color: #ccc; margin-bottom: 20px; }
+
+        /* Quiz modal */
+        #modal-quiz .choices { display:flex; flex-direction:column; gap:10px; margin-top:10px; text-align:right; }
+        .choice-btn { padding: 12px 16px; border:1px solid #333; background:transparent; cursor:pointer; text-align:right; font-size:16px; border-radius:6px; }
+        .choice-btn:hover { transform:scale(1.02); }
+
+        /* Transition modal */
+        #modal-transition .modal-box { max-width: 420px; text-align: center; }
+
         /* * ==========================================================================
          * 5. MOBILE RESPONSIVE OVERRIDES
          * ==========================================================================
@@ -339,31 +351,6 @@
             .hotspot { width: 70px; height: 70px; }
             .hs-label { font-size: 11px; bottom: -25px; }
         }
-        /* סגנון לכפתורי החידון */
-        .quiz-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid #444;
-            color: #ccc;
-            padding: 15px;
-            text-align: right;
-            font-family: 'Rubik', sans-serif;
-            cursor: pointer;
-            transition: 0.3s;
-            border-radius: 4px;
-        }
-        .quiz-btn:hover {
-            background: rgba(255, 183, 0, 0.1);
-            border-color: var(--c-gold);
-            color: var(--c-gold);
-        }
-        .quiz-btn.wrong {
-            background: rgba(255, 42, 42, 0.2);
-            border-color: var(--status-crit);
-        }
-        .quiz-btn.correct {
-            background: rgba(0, 255, 157, 0.2);
-            border-color: var(--status-ok);
-        }
 
         @keyframes blink { 50% { opacity: 0.3; } }
         @keyframes scan { 0% { top: 0%; } 100% { top: 100%; } }
@@ -395,6 +382,7 @@
                 <div class="ind danger active" id="ind-gas"><div class="led"></div> גז רעיל</div>
                 <div class="ind" id="ind-thermal"><div class="led"></div> תרמי</div>
                 <div class="ind" id="ind-audio"><div class="led"></div> שמע</div>
+                <div class="ind" id="ind-timer"><div class="led" style="background:var(--c-gold)"></div><span id="timer-display">03:00</span></div>
             </div>
         </header>
 
@@ -465,6 +453,44 @@
         </div>
     </div>
 
+    <div id="modal-intro" class="modal-wrap visible">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="modal-title">התחלת משחק</div>
+            </div>
+            <div class="modal-body">
+                <p>נכנסת לחדר בריחה ויש לך שלוש דקות בלבד לסיים אותו.</p>
+                <p style="color:#aaa; font-size:14px; margin-top:0;">לאחר שתלחץ על "התחל", הטיימר יתחיל. במהלך איסוף החומרים יופיעו חידות ריבוי-בחירה לפי קראונים (חדרים).</p>
+                <button id="start-game-btn" style="padding:12px 18px; font-size:16px; background:var(--c-gold); border:none; cursor:pointer; border-radius:6px;">התחל</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-quiz" class="modal-wrap">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="modal-title">חידה</div>
+                <div class="modal-close" onclick="Modal.close('modal-quiz')">×</div>
+            </div>
+            <div class="modal-body" id="quiz-body">
+                <div id="quiz-text" style="text-align:right; color:#ddd; font-size:16px;"></div>
+                <div class="choices" id="quiz-choices"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-transition" class="modal-wrap">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="modal-title">מעבר</div>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:18px; color:#ccc;">עברת את קראון בהצלחה</p>
+                <button onclick="Modal.close('modal-transition')" style="width:100%; padding:10px; background:#333; color:#fff; border:1px solid #666;">המשך</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-tuner" class="modal-wrap">
         <div class="modal-box">
             <div class="modal-head">
@@ -478,18 +504,7 @@
             </div>
         </div>
     </div>
-    <div id="modal-quiz" class="modal-wrap">
-        <div class="modal-box" style="max-width: 500px;">
-            <div class="modal-head">
-                <div class="modal-title">מערכת אבטחה ביומטרית</div>
-            </div>
-            <div class="modal-body">
-                <p id="quiz-question" style="font-size:18px; margin-bottom:20px; color:#fff; line-height:1.5;"></p>
-                <div id="quiz-options" style="display:flex; flex-direction:column; gap:10px;">
-                    </div>
-            </div>
-        </div>
-    </div>
+
     <div id="modal-sonar" class="modal-wrap">
         <div class="modal-box">
             <div class="modal-head">
@@ -535,84 +550,6 @@
                 win: "תפסת אותו! חטפת את הנוגדן. השילוב של קור רוח והנדסת הטבע הציל את כולם."
             }
         };
-        // מאגר החידות החדש
-        const QuizData = {
-            'seat': { // חידה 1 - מחט
-                q: "חידה 1 (קרון ראשון): איזה מסוגי המחטים הבאים אינו מכאיב? (רמז: את המחט של היתוש לא ניתן להרגיש)",
-                answers: [
-                    "מחט מחוספס ורוטט", // תשובה נכונה
-                    "מחט לעירוי דם",
-                    "מחט לביופסיה במח העצם",
-                    "מחט של בדיקת דם (פרפרית)"
-                ],
-                correct: 0, // האינדקס של התשובה הנכונה (מתחיל ב-0)
-                reward: { keys: ['NEEDLE'], id: 'seat', name: "מחט מיקרונית" }
-            },
-            'debris': { // חידה 2 - רחפן יתוש
-                q: "חידה 2 (קרון שני): מהו היתרון המבצעי העיקרי של רחפן הבנוי כמו יתוש? (רמז: כשהיתוש קשה להבחין בו)",
-                answers: [
-                    "יכולת לטוס לחלל החיצון",
-                    "יכולת לשאת משקלים כבדים מאוד כמו טנקים",
-                    "יכולת תמרון גבוהה בחללים צפופים ויציבות ברוחות", // תשובה נכונה
-                    "מהירות טיסה שעוברת את מהירות הקול"
-                ],
-                correct: 2,
-                reward: { keys: ['LENS', 'PARTS'], id: 'debris', name: "עדשות וחלקי רחפן" }
-            },
-            'panel': { // חידה 3 - חיישן
-                q: "חידה 3 (קרון שני): היתוש מסוגל לאתר בני אדם ממרחק רב בעיקר בזכות זיהוי של:",
-                answers: [
-                    "תנועות גוף מהירות",
-                    "צבע הבגדים שאנו לובשים",
-                    "פליטת פחמן דו-חמצני (CO2) בנשימה שלנו", // תשובה נכונה
-                    "גלי רדיו שהטלפון שלנו משדר"
-                ],
-                correct: 2,
-                reward: { keys: ['SENSOR'], id: 'panel', name: "חיישן תרמי" }
-            }
-        };
-
-        // מנהל החידון
-        const Quiz = {
-            currentId: null,
-            
-            open(hotspotId) {
-                this.currentId = hotspotId;
-                const data = QuizData[hotspotId];
-                
-                document.getElementById('quiz-question').innerText = data.q;
-                const optsDiv = document.getElementById('quiz-options');
-                optsDiv.innerHTML = '';
-
-                data.answers.forEach((ans, index) => {
-                    const btn = document.createElement('button');
-                    btn.className = 'quiz-btn';
-                    btn.innerText = ans;
-                    btn.onclick = (e) => this.check(index, e.target);
-                    optsDiv.appendChild(btn);
-                });
-
-                document.getElementById('modal-quiz').classList.add('visible');
-            },
-
-            check(index, btnElement) {
-                const data = QuizData[this.currentId];
-                
-                if (index === data.correct) {
-                    // תשובה נכונה
-                    btnElement.classList.add('correct');
-                    setTimeout(() => {
-                        document.getElementById('modal-quiz').classList.remove('visible');
-                        // קריאה לפונקציית האיסוף המקורית
-                        Game.collect(data.reward.keys, data.reward.id, data.reward.name);
-                    }, 500);
-                } else {
-                    // תשובה שגויה
-                    btnElement.classList.add('wrong');
-                    Story.log("גישה נדחתה. נסה שנית.");
-                }
-            }
-        };
 
         const State = {
             phase: 1,
@@ -620,6 +557,47 @@
             craftSlots: [],
             solved: [],
             scanner: false
+        };
+
+        /**
+         * ==========================================================================
+         * QUIZ DATA (המילים של החידות נשמרו בדיוק כפי שהתקבלו)
+         * ==========================================================================
+         */
+        const QuizBank = {
+            // חידה 1 (קראון ראשון)
+            q1: {
+                text: "חידה 1 (קראון ראשון): איזה מסוגי המחטים הבאים אינו מכאיב? (רמז: את המחט של היתוש לא ניתן להרגיש)",
+                choices: [
+                    "1) מחט מחוספס ורוטט.",
+                    "2) מחט לעירוי דם",
+                    "3) מחט לביופסיה במח העצם",
+                    "4) מחט של בדיקת דם מחט פרפרית"
+                ],
+                correctIndex: 0 // תשובה: א
+            },
+            // חידה 2 (קראון שני)
+            q2: {
+                text: "חידה 2 (קראון שני): מהו היתרון המבצעי העיקרי של רחפן הבנוי כמו יתוש? (רמז: כשהיתוש קשה להבחין בו.)",
+                choices: [
+                    "א. יכולת לטוס לחלל החיצון.",
+                    "ב. יכולת לשאת משקלים כבדים מאוד כמו טנקים.",
+                    "ג. יכולת תמרון גבוהה בחללים צפופים ויציבות ברוחות, המתאימה לריגול.",
+                    "ד. מהירות טיסה שעוברת את מהירות הקול"
+                ],
+                correctIndex: 2 // תשובה: ג
+            },
+            // חידה 3 (קראון שני)
+            q3: {
+                text: "חידה 3 (קראון שני): היתוש מסוגל לאתר בני אדם ממרחק רב בעיקר בזכות זיהוי של:",
+                choices: [
+                    "א. תנועות גוף מהירות.",
+                    "ב. צבע הבגדים שאנו לובשים.",
+                    "ג. פליטת פחמן דו-חמצני (CO2) בנשימה שלנו.",
+                    "ד. גלי רדיו שהטלפון שלנו משדר"
+                ],
+                correctIndex: 2 // תשובה: ג
+            }
         };
 
         /**
@@ -640,7 +618,7 @@
             },
 
             handleHotspot(id) {
-                // בדיקת סורק תרמי
+                // Scanner Check logic (לא לשנות בדיקה זו)
                 if (!State.scanner && id !== 'vent' && id !== 'door') {
                     Modal.msg("שגיאה", "לא ניתן לזהות אובייקט. נדרשת סריקה תרמית.");
                     return;
@@ -648,30 +626,147 @@
                 
                 if (State.solved.includes(id)) return;
 
-                // בדיקה אם לחפץ הזה יש חידה משויכת
-                if (QuizData[id]) {
-                    Quiz.open(id);
+                // חיבור בין נקודות איסוף לחידות לפי קראונים
+                const quizMap = {
+                    // קראון ראשון: suitcase/seat -> חידה q1
+                    suitcase: QuizBank.q1,
+                    seat: QuizBank.q1,
+                    // קראון שני: debris -> q2, panel -> q3
+                    debris: QuizBank.q2,
+                    panel: QuizBank.q3
+                };
+
+                // אם יש חידה משויכת לאובייקט ונשאלת כבר - אפשר לאסוף ללא חזרה
+                const shouldAsk = quizMap[id] && !Quiz.isAnsweredFor(id);
+
+                if (shouldAsk) {
+                    Quiz.ask(quizMap[id], (ok) => {
+                        if (ok) {
+                            // קריאה לאיסוף לאחר תשובה נכונה
+                            if (['suitcase','seat'].includes(id)) {
+                                if (id === 'suitcase') this.collect(['MOTOR', 'BATTERY'], id, "מנוע וסוללה");
+                                if (id === 'seat') this.collect(['NEEDLE'], id, "מחט מיקרונית");
+                            }
+                            if (id === 'debris') this.collect(['LENS', 'PARTS'], id, "עדשות וחלקים");
+                            if (id === 'panel') this.collect(['SENSOR'], id, "חיישן תרמי");
+                            Quiz.markAnswered(id);
+                        } else {
+                            // תשובה שגויה - להציג הודעה, ולא לאסוף
+                            Modal.msg("תשובה שגויה", "התשובה לא נכונה. נסה שנית במקום אחר.");
+                        }
+                    });
                     return;
                 }
 
-                // PHASE 1 (חפצים ללא חידות - כמו המזוודה)
-                if (id === 'suitcase') this.collect(['MOTOR', 'BATTERY'], id, "מנוע וסוללה");
-                
-                // הטיפול בדיזה נשאר רגיל (מיני-גיים גלים)
+                // PHASE 1 (במידה ולא היתה חידה או כבר נענתה)
+                if (['suitcase', 'seat'].includes(id) && !shouldAsk) {
+                    if (id === 'suitcase') this.collect(['MOTOR', 'BATTERY'], id, "מנוע וסוללה");
+                    if (id === 'seat') this.collect(['NEEDLE'], id, "מחט מיקרונית");
+                }
+
                 if (id === 'vent') {
                     if (Inventory.has('DRILL')) Minigames.wave();
                     else Modal.msg("סכנה", "נגיעה בדיזה תפעיל את המנגנון. נדרש מקדח רטט.");
                 }
 
-                // הדלת נשארת רגילה
+                // PHASE 2
+                if (['debris', 'panel'].includes(id) && !shouldAsk) {
+                    if (id === 'debris') this.collect(['LENS', 'PARTS'], id, "עדשות וחלקים");
+                    if (id === 'panel') this.collect(['SENSOR'], id, "חיישן תרמי");
+                }
                 if (id === 'door') {
                     if (Inventory.has('GOGGLES')) this.phase3();
                     else Modal.msg("סכנה", "חושך מוחלט. אי אפשר לעבור בלי לראות.");
                 }
 
-                // PHASE 3 (הארון נשאר רגיל)
+                // PHASE 3
                 if (id === 'closet') this.collect(['MIC', 'HEADSET', 'WIRE'], id, "ציוד שמע");
             },
+
+            collect(keys, id, name) {
+                keys.forEach(k => Inventory.add(DB.Items[k]));
+                State.solved.push(id);
+                const dom = document.querySelector(`[data-id="${id}"]`);
+                if (dom) dom.style.display = 'none';
+                Story.log(`מצאת: ${name}`);
+            },
+
+            toggleScanner() {
+                State.scanner = !State.scanner;
+                const btn = document.getElementById('btn-scanner');
+                
+                if (State.scanner) {
+                    btn.style.color = '#fff';
+                    btn.style.borderColor = '#fff';
+                    btn.style.background = 'rgba(0, 242, 255, 0.2)';
+                    document.body.classList.add('scanner-on');
+                    Story.log("סורק תרמי פעיל.");
+                } else {
+                    btn.style.color = 'var(--c-cyan)';
+                    btn.style.borderColor = 'var(--c-cyan)';
+                    btn.style.background = 'transparent';
+                    document.body.classList.remove('scanner-on');
+                }
+            },
+
+            phase2() {
+                State.phase = 2;
+                Story.log(DB.Story.p1_done);
+                
+                document.getElementById('overlay-gas').style.opacity = 0;
+                document.getElementById('ind-gas').classList.remove('active', 'danger');
+                document.getElementById('ind-thermal').classList.add('active', 'danger');
+                
+                document.getElementById('layer-train').style.opacity = 0;
+                document.getElementById('layer-hallway').style.opacity = 1;
+
+                ['vent', 'suitcase', 'seat'].forEach(id => {
+                    const el = document.querySelector(`[data-id="${id}"]`);
+                    if(el) el.style.display = 'none';
+                });
+                
+                ['debris', 'panel', 'door'].forEach(id => {
+                    const el = document.querySelector(`[data-id="${id}"]`);
+                    if (el) el.style.display = 'flex';
+                });
+
+                // תצוגת דף מעבר לאחר מעבר קראון ראשון
+                setTimeout(() => Modal.transitionShow(), 200);
+            },
+
+            phase3() {
+                State.phase = 3;
+                Story.log(DB.Story.p2_done);
+                
+                document.getElementById('overlay-thermal').style.opacity = 1;
+                setTimeout(() => document.getElementById('overlay-thermal').style.opacity = 0, 2000);
+                
+                document.getElementById('layer-hallway').style.opacity = 0;
+                document.getElementById('layer-engine').style.opacity = 1;
+                document.getElementById('overlay-dark').style.opacity = 1;
+
+                document.getElementById('ind-thermal').classList.remove('active');
+                document.getElementById('ind-audio').classList.add('active', 'danger');
+
+                ['debris', 'panel', 'door'].forEach(id => {
+                    const el = document.querySelector(`[data-id="${id}"]`);
+                    if (el) el.style.display = 'none';
+                });
+                const closetEl = document.querySelector(`[data-id="closet"]`);
+                if (closetEl) closetEl.style.display = 'flex';
+
+                if (Inventory.has('SONAR')) Minigames.sonar();
+                else Story.log("עליך לבנות סורק שמע.");
+
+                // תצוגת דף מעבר לאחר מעבר קראון שני
+                setTimeout(() => Modal.transitionShow(), 200);
+            },
+
+            win() {
+                Modal.msg("משימה הושלמה!", DB.Story.win);
+                setTimeout(() => location.reload(), 6000);
+            }
+        };
 
         /**
          * ==========================================================================
@@ -764,7 +859,45 @@
                 document.getElementById('msg-text').innerText = txt;
                 document.getElementById('modal-msg').classList.add('visible');
             },
-            close(id) { document.getElementById(id).classList.remove('visible'); }
+            close(id) { document.getElementById(id).classList.remove('visible'); },
+            transitionShow() { // הצגת דף מעבר עם הטקסט הנדרש
+                document.getElementById('modal-transition').classList.add('visible');
+            }
+        };
+
+        /**
+         * ==========================================================================
+         * QUIZ HANDLER
+         * ==========================================================================
+         */
+        const Quiz = {
+            answeredFor: {}, // track which hotspot IDs already answered
+            current: null,
+            ask(qObj, callback) {
+                // qObj: {text, choices, correctIndex}
+                this.current = { qObj, callback };
+                const modal = document.getElementById('modal-quiz');
+                document.getElementById('quiz-text').innerText = qObj.text;
+                const choicesWrap = document.getElementById('quiz-choices');
+                choicesWrap.innerHTML = '';
+                qObj.choices.forEach((c, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.innerText = c;
+                    btn.onclick = () => this._answer(idx);
+                    choicesWrap.appendChild(btn);
+                });
+                modal.classList.add('visible');
+            },
+            _answer(idx) {
+                const { qObj, callback } = this.current || {};
+                document.getElementById('modal-quiz').classList.remove('visible');
+                if (!qObj) { if(callback) callback(false); return; }
+                const ok = (idx === qObj.correctIndex);
+                if (callback) callback(ok);
+            },
+            markAnswered(hotspotId) { this.answeredFor[hotspotId] = true; },
+            isAnsweredFor(hotspotId) { return !!this.answeredFor[hotspotId]; }
         };
 
         /**
@@ -817,7 +950,7 @@
                 document.getElementById('modal-sonar').classList.add('visible');
                 const blip = document.getElementById('sonar-blip');
                 
-                setInterval(() => {
+                const interval = setInterval(() => {
                     const r = 100;
                     const x = 140 + r * Math.cos(Date.now()/1000);
                     const y = 140 + r * Math.sin(Date.now()/1000);
@@ -826,6 +959,7 @@
                 }, 50);
 
                 blip.onclick = () => {
+                    clearInterval(interval);
                     Modal.close('modal-sonar');
                     Game.win();
                 };
@@ -836,7 +970,8 @@
             start() {
                 const cvs = document.getElementById('fx-canvas');
                 const ctx = cvs.getContext('2d');
-                cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+                function resize(){ cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
+                resize(); window.addEventListener('resize', resize);
                 
                 const parts = Array.from({length:50}, () => ({
                     x:Math.random()*cvs.width, y:Math.random()*cvs.height,
@@ -858,6 +993,38 @@
             }
         };
 
+        // TIMER
+        const Timer = {
+            totalSec: 180,
+            remaining: 180,
+            intervalId: null,
+            start(sec = 180) {
+                this.stop();
+                this.remaining = sec;
+                this.updateDisplay();
+                this.intervalId = setInterval(() => {
+                    this.remaining--;
+                    this.updateDisplay();
+                    if (this.remaining <= 0) {
+                        this.stop();
+                        Modal.msg("הזמן אזל", "הזמן נגמר. המשחק הושלם בכישלון.");
+                        // לחסום אינטראקציה ולרענן אחרי כמה שניות
+                        document.getElementById('interact-layer').style.pointerEvents = 'none';
+                        setTimeout(() => location.reload(), 5000);
+                    }
+                }, 1000);
+            },
+            stop() {
+                if (this.intervalId) clearInterval(this.intervalId);
+                this.intervalId = null;
+            },
+            updateDisplay() {
+                const mm = String(Math.floor(this.remaining/60)).padStart(2,'0');
+                const ss = String(this.remaining % 60).padStart(2,'0');
+                document.getElementById('timer-display').innerText = `${mm}:${ss}`;
+            }
+        };
+
         // BOOT
         window.onload = () => {
             const term = document.getElementById('term-out');
@@ -873,11 +1040,22 @@
                     setTimeout(() => {
                         document.getElementById('boot-screen').style.display = 'none';
                         document.getElementById('main-interface').style.opacity = 1;
-                        Game.init();
+                        // אל תאתחל את המשחק אוטומטית — נתחיל אחרי לחיצה על "התחל" במודאל ההתחלתי
+                        // להראות דף פתיחה (מורשה כבר במבנה DOM כ-modal-intro)
                     }, 500);
                 }
             }, 500);
         };
+
+        // לחיצה על כפתור ההתחלה במודאל הפתיחה: אתחול המשחק והפעלת טיימר
+        document.getElementById('start-game-btn').addEventListener('click', () => {
+            document.getElementById('modal-intro').classList.remove('visible');
+            // התחלת טיימר של 3 דקות
+            Timer.start(180);
+            // אתחול המשחק
+            Game.init();
+        });
     </script>
 </body>
 </html>
+
