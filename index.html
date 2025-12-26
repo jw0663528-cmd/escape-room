@@ -569,11 +569,6 @@
          * GAME DATA
          * ==========================================================================
          */
-                document.getElementById('start-game-btn').addEventListener('click', () => {
-            document.getElementById('modal-story').classList.remove('visible');
-            Timer.start(180);
-            Game.init();
-        });
 
         const DB = {
             Items: {
@@ -1088,46 +1083,70 @@
         // BOOT
         window.onload = () => {
             const term = document.getElementById('term-out');
-            const lines = ["Booting...", "Loading Bio-Drivers...", "Accessing Train OS...", "Target Acquired."];
+            const lines = [
+                "Booting...",
+                "Loading Bio-Drivers...",
+                "Accessing Train OS...",
+                "Target Acquired."
+            ];
+        
             let i = 0;
             const int = setInterval(() => {
-                if(i < lines.length) {
-                    const d = document.createElement('div'); d.className='boot-line'; d.innerText = "> " + lines[i++];
+                if (i < lines.length) {
+                    const d = document.createElement('div');
+                    d.className = 'boot-line';
+                    d.innerText = "> " + lines[i++];
                     term.appendChild(d);
                 } else {
                     clearInterval(int);
                     document.getElementById('boot-progress').style.width = '100%';
+        
                     setTimeout(() => {
                         document.getElementById('boot-screen').style.display = 'none';
                         document.getElementById('main-interface').style.opacity = 1;
-                        // אל תאתחל את המשחק אוטומטית — נתחיל אחרי לחיצה על "התחל" במודאל ההתחלתי
-                        // להראות דף פתיחה (מורשה כבר במבנה DOM כ-modal-intro)
+        
+                        // ❗ לא מתחילים משחק כאן
+                        // מחכים ללחיצה על כפתור ההתחלה
                     }, 500);
                 }
             }, 500);
         };
 
-        // לחיצה על כפתור ההתחלה במודאל הפתיחה: אתחול המשחק והפעלת טיימר
-        document.getElementById('start-game-btn').addEventListener('click', () => {
-            document.getElementById('modal-intro').classList.remove('visible');
-            // התחלת טיימר של 3 דקות
-            // אתחול המשחק
-            Game.init();
-        });
-        const Secret = {
-    launched: false,
-    launchDino() {
-        if (this.launched) return;
-        this.launched = true;
 
-        // מסך שחור שקט
-        document.body.innerHTML = `
-            <iframe 
-                src="https://chromedino.com/"
-                style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;background:black;"
-            ></iframe>
-        `;
-    }
+            // לחיצה על כפתור ההתחלה במודאל הפתיחה: אתחול המשחק והפעלת טיימר
+            document.getElementById('start-game-btn').addEventListener('click', () => {
+                document.getElementById('modal-intro').classList.remove('visible');
+                // התחלת טיימר של 3 דקות
+                // אתחול המשחק
+                Game.init();
+            });
+            const Secret = {
+        launched: false,
+        launchDino() {
+            if (this.launched) return;
+            this.launched = true;
+    
+            // מסך שחור שקט
+            document.body.innerHTML = `
+                <iframe 
+                    src="https://chromedino.com/"
+                    style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;background:black;"
+                ></iframe>
+            `;
+        }
+                document.addEventListener('DOMContentLoaded', () => {
+        const startBtn = document.getElementById('start-game-btn');
+        if (!startBtn) return;
+    
+        startBtn.addEventListener('click', () => {
+            const storyModal = document.getElementById('modal-story');
+            if (storyModal) storyModal.classList.remove('visible');
+    
+            // התחלה אמיתית של המשחק
+            Game.init();
+            Timer.start(180);
+        });
+    });
 };
     </script>
 </body>
