@@ -416,10 +416,10 @@
         
         <p><strong>בזכות קור הרוח שלך וההבנה של מנגנוני הטבע — כולם ניצלו.</strong></p>
         
-        <button id="start-game-btn"
+        <button id="btn-story-start"
           style="margin-top:20px;width:100%;padding:14px;font-size:16px;
           background:var(--c-gold);border:none;cursor:pointer;border-radius:6px;">
-        התחל
+        המשך
         </button>
         
             </div>
@@ -493,7 +493,7 @@
         </div>
     </div>
 
-    <div id="modal-intro" class="modal-wrap visible">
+    <div id="modal-intro" class="modal-wrap">
         <div class="modal-box">
             <div class="modal-head">
                 <div class="modal-title">התחלת משחק</div>
@@ -501,7 +501,7 @@
             <div class="modal-body">
                 <p>נכנסת לחדר בריחה ויש לך שלוש דקות בלבד לסיים אותו.</p>
                 <p style="color:#aaa; font-size:14px; margin-top:0;">לאחר שתלחץ על "התחל", הטיימר יתחיל. במהלך איסוף החומרים יופיעו חידות ריבוי-בחירה לפי קראונים (חדרים).</p>
-                <button id="start-game-btn" style="padding:12px 18px; font-size:16px; background:var(--c-gold); border:none; cursor:pointer; border-radius:6px;">התחל</button>
+                <button id="btn-intro-start" style="padding:12px 18px; font-size:16px; background:var(--c-gold); border:none; cursor:pointer; border-radius:6px;">התחל</button>
             </div>
         </div>
     </div>
@@ -601,9 +601,15 @@
             scanner: false
         };
 
+        const Secret = {
+            launchDino: function() {
+                Modal.msg("סוד", "מצאת ביצת פסחא! (Easter Egg)");
+            }
+        };
+
         /**
          * ==========================================================================
-         * QUIZ DATA (המילים של החידות נשמרו בדיוק כפי שהתקבלו)
+         * QUIZ DATA
          * ==========================================================================
          */
         const QuizBank = {
@@ -660,7 +666,7 @@
             },
 
             handleHotspot(id) {
-                // Scanner Check logic (לא לשנות בדיקה זו)
+                // Scanner Check logic
                 if (!State.scanner && id !== 'vent' && id !== 'door') {
                     Modal.msg("שגיאה", "לא ניתן לזהות אובייקט. נדרשת סריקה תרמית.");
                     return;
@@ -809,6 +815,7 @@
                 // השארת השחקן במעבדה – ללא ריסטארט
                 document.getElementById('interact-layer').style.pointerEvents = 'none';
                 Story.log("המעבדה ננעלה. כל המערכות שקטות.");
+                Timer.stop();
             }
         };
 
@@ -820,6 +827,7 @@
         const Inventory = {
             init() {
                 const grid = document.getElementById('inv-grid');
+                grid.innerHTML = ''; // Reset for restart
                 for (let i=0; i<8; i++) {
                     let div = document.createElement('div');
                     div.className = 'inv-cell';
@@ -882,10 +890,7 @@
                 } else if (this.check(ids, ['MIC','HEADSET','WIRE'])) {
                     Inventory.consume(); Inventory.add(DB.Items.SONAR); Story.log("בנית סורק שמע.");
                     if(State.phase === 3) Minigames.sonar();
-                } else {
-                    Modal.msg("שגיאה", "שילוב לא תקין.");
-                }
-                if (
+                } else if (
                     ids.includes('DRILL') &&
                     ids.includes('GOGGLES') &&
                     ids.includes('SONAR')
@@ -893,6 +898,8 @@
                     Inventory.consume();
                     Secret.launchDino();
                     return;
+                } else {
+                    Modal.msg("שגיאה", "שילוב לא תקין.");
                 }
             },
             check(sel, req) { return req.every(r => sel.includes(r)); }
@@ -1102,35 +1109,35 @@
                     setTimeout(() => {
                         document.getElementById('boot-screen').style.display = 'none';
                         document.getElementById('main-interface').style.opacity = 1;
-                        
-                        // ❗ לא מתחילים משחק כאן
-                        // מחכים ללחיצה על כפתור ההתחלה
+                        // The story modal is visible by default via CSS
                     }, 500);
                 }
             }, 500);
         };
 
-
-            // לחיצה על כפתור ההתחלה במודאל הפתיחה: אתחול המשחק והפעלת טיימר
-            document.getElementById('start-game-btn').addEventListener('click', () => {
-                document.getElementById('modal-intro').classList.remove('visible');
-                // התחלת טיימר של 3 דקות
-                // אתחול המשחק
-                Game.init();
-            });
-                document.addEventListener('DOMContentLoaded', () => {
-        const startBtn = document.getElementById('start-game-btn');
-        if (!startBtn) return;
-        
-        startBtn.addEventListener('click', () => {
-            const storyModal = document.getElementById('modal-story');
-            if (storyModal) storyModal.classList.remove('visible');
+        // EVENT LISTENERS FOR START BUTTONS
+        document.addEventListener('DOMContentLoaded', () => {
             
-            // התחלה אמיתית של המשחק
-            Game.init();
-            Timer.start(180);
+            // 1. Story Modal Start Button
+            const btnStory = document.getElementById('btn-story-start');
+            if (btnStory) {
+                btnStory.addEventListener('click', () => {
+                    document.getElementById('modal-story').classList.remove('visible');
+                    document.getElementById('modal-intro').classList.add('visible');
+                });
+            }
+
+            // 2. Intro Modal Start Button (Starts the actual game)
+            const btnIntro = document.getElementById('btn-intro-start');
+            if (btnIntro) {
+                btnIntro.addEventListener('click', () => {
+                    document.getElementById('modal-intro').classList.remove('visible');
+                    Game.init();
+                    Timer.start(180);
+                });
+            }
         });
-    });
+
     </script>
 </body>
 </html>
