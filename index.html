@@ -385,6 +385,48 @@
                 <div class="ind" id="ind-timer"><div class="led" style="background:var(--c-gold)"></div><span id="timer-display">03:00</span></div>
             </div>
         </header>
+                <div id="modal-story" class="modal-wrap visible">
+          <div class="modal-box" style="max-width:900px;">
+            <div class="modal-head">
+              <div class="modal-title">פרוטוקול העוקץ</div>
+            </div>
+            <div class="modal-body" style="text-align:right; line-height:1.6; font-size:15px; color:#ddd; max-height:70vh; overflow-y:auto;">
+        
+        <p><strong>כרגע נכנסת לרכבת הקטלנית תנסה לשרוד.</strong></p>
+        
+        <p><strong>הדממה בקרון מספר 5</strong> מופרת ברגע אחד. בזה אחר זה, פתחי האוורור בתקרה נפתחים בלחש ארוך ומצמרר, ואדים ירקרקים מתחילים לזלוג פנימה. תשעת הנוסעים האחרים בקרון צורחים בבהלה, דופקים על הדלתות הנעולות בחוסר אונים.</p>
+        
+        <p>רק אתה נותר עומד במרכז החדר ללא תזוזה. כמהנדס מכונות מבריק, אתה לא נותן לפחד להשתלט עליך. בזמן שהאחרים מאבדים עשתונות, המוח שלך עובר למצב עבודה: ניתוח בעיה, מציאת פתרון. אתה רוכן מעל המזוודה הכסופה שהונחה במרכז הקרון.</p>
+        
+        <p>המסך על הקיר מריצד ודמותו של ד"ר ארקדיוס מופיעה.  
+        "הגז הזה יהרוג את כולכם תוך דקות," הוא מחייך.  
+        "הנוגדן נמצא אצלי, בקרון הקטר. יש לכם הזדמנות אחת."</p>
+        
+        <p><strong>המשימה הראשונה: נטרול המנגנון</strong><br>
+        הגז נפלט מתוך דיזה משוריינת המוגנת במערכת לחץ רגישה. אתה מבין שכל ניסיון סתימה בכוח יגרום לפיצוץ המכל כולו.</p>
+        
+        <p>אתה מזהה מנוע רטט זעיר, מחט גמישה וסוללת ליתיום.  
+        רמז מהבהב על הצג: <em>“היתוש קודח, לא דוקר.”</em></p>
+        
+        <p><strong>המשימה השנייה: הדרך לקטר</strong><br>
+        הדלת לקרון הבא נפתחת למסדרון חשוך מלא בלייזרים ובורות.  
+        עדשות, חיישן תרמי וחלקי רחפן הופכים למשקפי ראייה ביומימטיים.</p>
+        
+        <p><strong>השיא: החדר החשוך</strong><br>
+        פעימות לב. בום־בום.  
+        אתה מאזין, מאתר, ופועל.</p>
+        
+        <p><strong>בזכות קור הרוח שלך וההבנה של מנגנוני הטבע — כולם ניצלו.</strong></p>
+        
+        <button id="start-game-btn"
+          style="margin-top:20px;width:100%;padding:14px;font-size:16px;
+          background:var(--c-gold);border:none;cursor:pointer;border-radius:6px;">
+        התחל
+        </button>
+        
+            </div>
+          </div>
+        </div>
 
         <main id="viewport">
             <canvas id="fx-canvas"></canvas>
@@ -519,6 +561,7 @@
             </div>
         </div>
     </div>
+    
 
     <script>
         /**
@@ -526,6 +569,12 @@
          * GAME DATA
          * ==========================================================================
          */
+                document.getElementById('start-game-btn').addEventListener('click', () => {
+            document.getElementById('modal-story').classList.remove('visible');
+            Timer.start(180);
+            Game.init();
+        });
+
         const DB = {
             Items: {
                 MOTOR: { id:'MOTOR', icon:'⚙️', name:'מנוע רטט' },
@@ -1062,7 +1111,6 @@
         document.getElementById('start-game-btn').addEventListener('click', () => {
             document.getElementById('modal-intro').classList.remove('visible');
             // התחלת טיימר של 3 דקות
-            Timer.start(180);
             // אתחול המשחק
             Game.init();
         });
