@@ -23,7 +23,7 @@
             --border-dim: #1f2833;
             --border-light: #45a29e;
             
-            /* ערכת צבעים: הנדסה (זהב/ענבר) */
+            /* Colors */
             --c-gold: #ffb700; 
             --c-gold-dim: rgba(255, 183, 0, 0.15);
             --c-cyan: #66fcf1;
@@ -39,7 +39,6 @@
             --font-mono: 'Share Tech Mono', monospace;
         }
 
-        /* איפוס מלא ומניעת התנהגויות דפדפן */
         * {
             box-sizing: border-box;
             user-select: none;
@@ -57,7 +56,6 @@
             overscroll-behavior: none;
         }
 
-        /* אפקט CRT (מסך ישן) גלובלי */
         .scanlines {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
@@ -66,7 +64,6 @@
             opacity: 0.6;
         }
 
-        /* גלילה מותאמת */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: var(--c-gold); border-radius: 2px; }
@@ -141,7 +138,7 @@
         .ind.danger { opacity: 1; color: var(--status-crit); text-shadow: 0 0 5px var(--status-crit); animation: blink 1s infinite; }
         .led { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 
-        /* VIEWPORT (GAME WORLD) */
+        /* VIEWPORT */
         #viewport {
             position: relative; background: #000;
             overflow: hidden; border-left: 1px solid var(--border-dim);
@@ -305,10 +302,6 @@
             box-shadow: 0 0 15px #fff; cursor: pointer; opacity: 0; transition: 0.1s;
         }
 
-        /* Intro modal specific */
-        #modal-intro .modal-box { max-width: 700px; text-align: center; padding-bottom: 10px; }
-        #modal-intro .modal-body p { font-size: 18px; color: #ccc; margin-bottom: 20px; }
-
         /* Quiz modal */
         #modal-quiz .choices { display:flex; flex-direction:column; gap:10px; margin-top:10px; text-align:right; }
         .choice-btn { padding: 12px 16px; border:1px solid #333; background:transparent; cursor:pointer; text-align:right; font-size:16px; border-radius:6px; color:#ffffff;}
@@ -385,7 +378,8 @@
                 <div class="ind" id="ind-timer"><div class="led" style="background:var(--c-gold)"></div><span id="timer-display">03:00</span></div>
             </div>
         </header>
-                <div id="modal-story" class="modal-wrap visible">
+
+        <div id="modal-story" class="modal-wrap visible">
           <div class="modal-box" style="max-width:900px;">
             <div class="modal-head">
               <div class="modal-title">פרוטוקול העוקץ</div>
@@ -1089,7 +1083,7 @@
                 "Accessing Train OS...",
                 "Target Acquired."
             ];
-        
+            
             let i = 0;
             const int = setInterval(() => {
                 if (i < lines.length) {
@@ -1100,11 +1094,11 @@
                 } else {
                     clearInterval(int);
                     document.getElementById('boot-progress').style.width = '100%';
-        
+                    
                     setTimeout(() => {
                         document.getElementById('boot-screen').style.display = 'none';
                         document.getElementById('main-interface').style.opacity = 1;
-        
+                        
                         // ❗ לא מתחילים משחק כאן
                         // מחכים ללחיצה על כפתור ההתחלה
                     }, 500);
@@ -1125,30 +1119,29 @@
         launchDino() {
             if (this.launched) return;
             this.launched = true;
-    
+            
             // מסך שחור שקט
             document.body.innerHTML = `
                 <iframe 
-                    src="https://chromedino.com/"
+                    src="https://chromedino.com/" 
                     style="position:fixed;top:0;left:0;width:100vw;height:100vh;border:none;background:black;"
                 ></iframe>
             `;
         }
+    };
                 document.addEventListener('DOMContentLoaded', () => {
         const startBtn = document.getElementById('start-game-btn');
         if (!startBtn) return;
-    
+        
         startBtn.addEventListener('click', () => {
             const storyModal = document.getElementById('modal-story');
             if (storyModal) storyModal.classList.remove('visible');
-    
+            
             // התחלה אמיתית של המשחק
             Game.init();
             Timer.start(180);
         });
     });
-};
     </script>
 </body>
 </html>
-
